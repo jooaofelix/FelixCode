@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+ <html>
+     <head>
+         <title> Projeto 01</title>
+        <link href="css/style.css" type="text/css" rel="stylesheet"/>
+         <meta charset="utf-8"/>     
+      </head>
+
+      <body>
+          <div class="pagina1">
+            <div class="center">
+                <img src="images/logo.png"/>
+                <div class="pagina2">
+
+                    <div class="center2">
+                        <button onclick ="playPause() "href="" class="btn1" id="play"> O que é a <spam> Florescer </spam></button>
+                       <video id="video" width="500" height="400"  poster="images/FLORESCER CERIMONIAS.PNG"> <source src="videos/Apresentacao.mp4"/> </video> 
+                    </div>
+
+
+                    <div class="center3">
+                        <button onclick="playPause2()" href="" class="btn2" id="play2"> Nosso ponto de vista </button> 
+                        <video id="video2" width="500" height="400"  poster="images/capa.jpg"> <source src="videos/Exemplo.mp4" /> </video> 
+                    </div>
+                </div>
+            </div>
+          </div>
+
+<script>
+
+var myVideo2 = document.querySelector("#video2");
+ function playPause2(){
+    if(myVideo2.paused){
+        myVideo2.play();
+    } else
+    myVideo2.pause();
+}
+var myVideo = document.querySelector("#video");
+ function playPause(){
+    if(myVideo.paused){
+        myVideo.play();
+    } else
+    myVideo.pause();
+}
+
+
+</script>
+                  
+            
+            <div class="container2">
+                    <div class="center-pag-2">
+                        <h2>LOTEN IPSUM</h2>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean fringilla diam tempus consectetur tempus. Phasellus tempor felis eros, eu pulvinar elit ultricies non. In et fringilla libero, a vestibulum magna. Suspendisse nunc lorem, lacinia ut interdum ac, rutrum non sem. Integer congue consequat urna. Sed id suscipit nunc. Duis a quam ex. Vivamus efficitur dapibus augue, sed accumsan arcu.</p>
+                    </div>
+                        <div class="flores">
+                            
+                        </div>
+            </div>
+                    <div class="container3">
+                        
+                        <div class="center-pag-3">
+
+                        </div>
+                    </div>
+            <div class="container3">
+
+                    <div class="center-pag-4">
+                        <form class="formulario">
+                            <H2>
+                               Vamos sonhar juntos? 
+                            </H2>
+
+                                <Form>
+                                        <div class="input-container">
+                                            <Span>Seu nome*</Span>
+                                            <input type="text" name="nome" required/>
+                                        </div>
+
+                                        <div class="input-container">
+                                            <Span>Numero celular*</Span>
+                                            <input type="text" name="nome" required/>
+                                        </div>
+
+                                        <div class="input-container"  form action = "/action_page.php">
+                                            <label for = "birthdaytime" > Cerimonia (data e hora): <br> </label> 
+                                            <input type = "datetime-local" id = "birthdaytime" name = "birthdaytime">   
+                                            
+                                             
+                                        </div>
+
+                                        <div class="input-container">
+                                            <Span> Estilo de Banda*</Span>
+                                            <input type="" name="nome" required/>
+                                        </div>
+                                        
+                                        <div class="input-container">
+                                            <Span>Ei, mostre pra gente que estilo de banda voce gosta. (video no youtube, spotify etc)</Span>
+                                            <input type="text" name="nome" required/>
+                                        </div>
+                                            <div class="input-container">
+                                        <input type="submit" name="acao" value="Enviar"/>
+                                        </div>
+                                </Form>
+                        </form>
+
+                    </div>
+            </div>
+      </body>
+ </html>
+ 
+ <css>
+ *{
+    margin:0;
+    padding: 0; 
+    box-sizing: border-box;
+    
+}
+@keyframes alot {
+    0%{
+       background-position: 0% 50%;
+    }
+    50%{
+        background-position: 100% 50%;
+    }
+    100%{
+        background-position: 0 50%;
+     }
+}
+
+
+.center{
+    width: 1280px;
+    height: 934px;
+    margin: 0 auto;
+    text-align: center;
+}
+.center-pag-2{
+    width: 1200px;
+    height: 100%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.pagina1{
+   
+    animation: alot  20s ease infinite;
+    background: linear-gradient(-45deg,#c5f5f1,#e0ccee ,#8cf9d5,#f0c685) no-repeat;
+    display: flex;
+    background-size: 300% 300%;
+    
+    
+    overflow-x: hidden;
+    justify-content: center;
+}
+    .pagina1 img{
+    width: 900px;
+    margin-top: -20px;
+    
+    }
+    
+    .pagina1 a {
+        font-size: 50px;
+        font-family: fantasy;
+        text-decoration: none;
+        letter-spacing:  1.5px;
+        text-align: center;
+        color: rgb(255, 255, 255);
+        background: rgb(10, 10, 10);
+        border-radius: 10px;
+        padding:  8px 16px;
+        border: 1px solid whitesmoke;
+        display: inline-block;
+         margin-bottom: 10px;
+       margin-top: -40px;
+     
+        
+    }
+     
+
+    .btn1:hover:before{
+        background: rgba(0, 0, 0, 0);
+        color: black;
+        box-shadow:  inset 0 0 0 3px black;
+       
+
+    }
+    p{
+        text-align: justify;
+        margin: 20px auto;
+        font-family: monospace;
+        font-size: medium;
+        
+        
+    }
+
+    .center2{
+        max-width: 600px;
+        margin-top: -200px;
+        
+     
+    }
+
+    .center3{
+        max-width: 600px;
+        margin-top:-485px;
+        margin-left: 700px; 
+        margin-bottom: 10px;     
+    }
+    .center3 a{
+        margin-top: -7px;
+    }
+
+    .container2{
+        padding: 40px;
+        text-align: center;
+        background-color: #ececec ;
+        border: 1px solid black;
+        border-bottom: 0;
+        border-right: 0;
+        border-left: 0;
+        
+    }
+
+    .container2 h2{
+        margin-top: 30px;
+        font-weight: normal;
+    }
+    .container2 p{
+        width: 698px;
+        display: inline-block;
+        text-align: justify;
+    }
+    .flores{
+        width:200px;
+        height: 50px;
+        background-image: url('../images/logo1.png');
+        background-size:  100% 100%;
+        position: relative;
+        top:60px;
+        margin-left: 800px;
+        
+    }
+    .container3{
+        max-height: 400px;
+        width: 100%;
+        height: 300px;
+        background-size: contain;
+        background-position: center;
+        background-color: rgb(226, 236, 204);
+    }
+
+    .container3 > .center-pag-4{
+        height: 350px;
+    }
+    .formulario{
+        position: relative;
+        top:-310px;
+        width: 400px;
+        height: calc(100% + 270px);
+        background-color: rgb(236, 233, 233);
+        border: 2px black solid;
+        margin-left: 30px;
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .formulario h2{
+        font-weight:  normal;
+        font-size:  35px;
+        color:black;
+    }
+
+    .input-container{
+        margin-top: 20px;
+        color: black;
+        font-size:  17px;
+        font-family:Arial, Helvetica, sans-serif;
+   
+    }
+    .input-container span{
+        display: inline-block;
+        width: 100%;
+       
+        
+    }
+
+    .input-container input{
+        margin-top: 8px;
+        width: 344px;
+        height: 40px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+    }
+
+    .input-container input[type = submit ]{
+        width: 280px;
+        font-size: 25px;
+        height: 56px;
+        color: black;
+        background-color: rgb(228, 253, 252);
+       border:2px solid black;
+       border-bottom: 5px solid black;
+        display: inline-block;    
+        margin-left:39px;
+        cursor: pointer;
+        
+    }
+
+    
+ </css>
