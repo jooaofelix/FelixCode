@@ -1,0 +1,270 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Passion+One:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Passion+One:wght@400;700&family=Staatliches&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Big+Shoulders+Display:wght@100;300;700&family=Passion+One:wght@400;700&display=swap');
+
+@keyframes alot {
+    0%{
+       background-position: 0% 50%;
+    }
+    50%{
+        background-position: 100% 50%;
+    }
+    100%{
+        background-position: 0 50%;
+     }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+  }
+  
+  a {
+    color: linear-gradient(-45deg,#96f1ea,#cceee7 ,#8cf9d5,#b5f0ed) no-repeat;
+    text-decoration: none;
+    transition: 0.3s;
+  }
+  
+  a:hover {
+    opacity: 0.7;
+  }
+  
+  .logo {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    margin-left: -10px;
+    margin-right: 1150px;
+  }
+  
+  nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    font-family: system-ui, -apple-system, Helvetica, Arial, sans-serif;
+    background: #ffffff;
+    height: 7vh;
+    
+  }
+  
+ 
+  
+  
+  .nav-list {
+    list-style: none;
+    display: flex;
+  }
+  
+  .nav-list li {
+    letter-spacing: 3px;
+    margin-left: 32px;
+  }
+  
+  .mobile-menu {
+    display: none;
+    cursor: pointer;
+  }
+  
+  .mobile-menu div {
+    width: 32px;
+    height: 2px;
+    background: rgb(3, 3, 3);
+    margin: 8px;
+    transition: 0.3s;
+  }
+  
+  @media (max-width: 999px) {
+    body {
+      overflow-x: hidden;
+    }
+    .nav-list {
+      position: absolute;
+      top: 8vh;
+      right: 0;
+      width: 50vw;
+      height: 92vh;
+      background: #000000;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-around;
+      transform: translateX(100%);
+      transition: transform 0.3s ease-in;
+    }
+    .nav-list li {
+      margin-left: 0;
+      opacity: 0;
+    }
+    .mobile-menu {
+      display: block;
+    }
+  }
+  
+  .nav-list.active {
+    transform: translateX(0);
+  }
+  
+  @keyframes navLinkFade {
+    from {
+      opacity: 0;
+      transform: translateX(50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  .mobile-menu.active .line1 {
+    transform: rotate(-45deg) translate(-8px, 8px);
+  }
+  
+  .mobile-menu.active .line2 {
+    opacity: 0;
+  }
+  
+  .mobile-menu.active .line3 {
+    transform: rotate(45deg) translate(-5px, -7px);
+  }
+    
+
+
+
+@keyframes has-show {
+    from{
+opacity: 0;
+transform: translateY(50px);
+    }
+    to{
+        opacity: 1;
+        transform: none;
+    } 
+}
+
+
+.has-show{
+    animation: has-show 3s ease forwards;
+}
+.pagina1{
+  width: 100%;
+  height:95% ;
+  text-align: center;
+  animation: alot  20s ease infinite;
+  background: linear-gradient(-45deg,#c5f5f1,#e0ccee ,#8cf9d5,#f0c685) no-repeat;
+  display: flex;
+  background-size: 300% 300%;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  justify-content: center;
+}
+
+.pagina1 img{
+
+    width: 1200px;
+    margin: 1rem;
+}
+.pagina1 h1{
+  margin-top: -300px;
+  margin-left: 60px;
+  text-align:  center;
+  font-weight: 500;
+  font-size: 70px;
+ color: black;
+ opacity: 0;
+ /* font-family: 'Bebas Neue', cursive; */
+ /* font-family: 'Staatliches', cursive; */
+ font-family: 'Big Shoulders Display', cursive;
+}
+
+
+.pagina2{
+  width: 100%;
+  height: 70vh;
+  background: #e7e7e7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+ .slide{
+     width: 1024px;
+     height: 576px;
+     overflow: hidden;
+     border-radius: 15px;
+     transition: all 0.4s;
+}
+.slides{
+  width: 5120px;
+  display: flex;
+}
+.image img{
+  width: 1024px;
+  height: 576px;
+
+}
+#atual{
+  margin-left: 0;
+  transition: all 2s;
+}
+
+.btn{
+  position: absolute;
+  
+  color:linear-gradient(-45deg,#c5f5f1,#e0ccee ,#8cf9d5,#f0c685);
+  padding: 10px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.4s;
+  font-size: 3.7em;
+  margin-top: -5px;
+}
+
+.btn:hover{
+  transform: scale(1.5);
+}
+#left{
+  top: 135%;
+  left: 19%;
+}
+
+#right{
+  top: 135%;
+  right: 19%;
+}
+
+
+.balls{
+  position: absolute;
+  width: 1024px;
+  display: flex;
+  justify-content: center;
+  margin-top: -45px;
+
+}
+ .balls div{
+   transition: all 0.5s;
+   border: 3px solid rgb(12, 12, 12);
+   padding: 6px;
+   border-radius: 50%;
+   margin-right: 15px;
+   cursor: pointer;
+
+
+ }
+
+ .balls div:hover{
+   background: rgb(0, 0, 0);
+
+ }
+ .imgAtual{
+  background: rgb(2, 2, 2);
+  transition:all;
+ }
+
+ .pagina3{
+  width: 100%;
+  height: 300px;
+ }
