@@ -7,7 +7,7 @@
     <title>Florescer Cerimonias</title>
 </head>
 <header id="nav">
-    
+
     <nav>
         <a class="logo" href="/">Cultivando o amor</a>
         <div class="mobile-menu">
@@ -23,8 +23,15 @@
         </ul>
       </nav>
       <script src="mobile-navbar.js"></script>
+
+      <link rel="stylesheet" 
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <link rel="stylesheet" href="estilos.css">
 </header>
 <body>
+    
+    
     <!-- Pagina 1 - logo da empresa com movimento| botão que se transforma "vamos florescer?" -> "imagem de play"| back ground em movimento gradient| pouca informação -->
     <div class="pagina1" id="pagina1"> 
         <div class="centro">
@@ -37,56 +44,68 @@
         </div>
     </div>
 
-    <div class="pagina2" id="pagina2">
-        <div class="centro">
+        <div class="pagina2" id="pagina2">
+            <h1>Projetos</h1>
+           
+            <button class="btn-whatsapp">
+                <a href="https://api.whatsapp.com/send?phone=15551234567&text=Hello%2C%20World" target="_blank">
+                    <i class="fa fa-whatsapp"></i>
+                </a>
+            </button>
+               
+            
 
-                <div class="slide">
-                    <div class="slides">
+            <div class="content">
+              <div class="slides">
+                 <input type="radio" name="slide" id="slide1" checked>
+                 <input type="radio" name="slide" id="slide2">
+                 <input type="radio" name="slide" id="slide3">
+                 <input type="radio" name="slide" id="slide4">
+              
+               
+                
+                        <div class="slide s1" >
+                            <img src="./images/jpg1.jpg" alt="">
+                        </div>
 
-                        <div id="left" class="btn">
-                                <a class="fas fa-chevron-left"><</a>
+                        <div class="slide">
+                            <img src="./images/jpg2.jpg" alt="">
+                        </div>
+
+                        <div class="slide">
+                            <img src="./images/jpg3.jpeg" alt="">
+                        </div>
+
+                        <div class="slide">
+                            <img src="./images/jpg4.jpeg" alt="">
+                        </div>
                         </div>
                        
-                        <div id="right" class="btn">
-                            <a id="fas fa-chevron right">></a>
-                        </div>
+                    
 
+                    <div class="navegar">
+                        <label class= "barra" for="slide1"></label>
+                        <label class="barra" for="slide2"></label>
+                        <label class="barra" for="slide3"></label>
+                        <label class="barra" for="slide4"></label>
 
-                            <div id="atual" class="image">
-                                <img src="images/image1.jpg"  />
-                            </div>
-
-                            <div  class="image">
-                                <img src="images/image2.jpg"/>
-                            </div>
-
-                            <div  class="image">
-                                <img src="images/image3.jpg"  />
-                            </div>
-
-
-                        </div>
-                        <div class="balls">
-                            <div id="1"></div>
-                            <div id="2"></div>
-                            <div id="3"></div>
-                        </div>
-                </div>
-
+                    </div>
+               </div>
+               
+            </div>   
         </div>
-    </div>
 
-    <div class="pagina3" id="pagina3">
+   <!------ <div class="pagina3" id="pagina3">
         <div class="centro">
             <div class="contatos" id="contatos">
                 
             </div>
 
         </div>
+        
+        
 
-
-
-    </div>
+    </div> -->
 
     
 </body>
