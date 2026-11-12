@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tramis — Streetwear</title>
+  <meta name="description" content="Camisetas, moletons e bonés streetwear. Peça pelo WhatsApp.">
+  <meta property="og:title" content="Tramis — Streetwear">
+  <meta property="og:description" content="Camisetas, moletons e bonés streetwear. Peça pelo WhatsApp.">
+  <meta name="theme-color" content="#121212">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ===== CABEÇALHO ===== -->
+  <header class="topo" id="topo">
+    <div class="container topo__linha">
+      <a href="#inicio" class="logo" data-nome-loja>TRAMIS</a>
+
+      <nav class="menu" id="menu" aria-label="Menu principal">
+        <a href="#loja">Loja</a>
+        <a href="#sobre">Sobre</a>
+        <a href="#como-comprar">Como comprar</a>
+        <a href="#duvidas">Dúvidas</a>
+      </nav>
+
+      <div class="topo__acoes">
+        <button class="btn-sacola" id="abrir-sacola" aria-label="Abrir sacola">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l1 14H5L6 7Z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 7a3 3 0 0 1 6 0" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span class="contador" id="contador">0</span>
+        </button>
+        <button class="btn-menu" id="btn-menu" aria-label="Abrir menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ===== HERO ===== -->
+    <section class="hero" id="inicio">
+      <div class="container hero__grade">
+        <div class="hero__texto">
+          <p class="selo">Coleção 01 — disponível agora</p>
+          <h1>Vista o que<br>você <span>acredita.</span></h1>
+          <p class="hero__sub" data-slogan>Streetwear feito pra durar.</p>
+          <div class="hero__botoes">
+            <a href="#loja" class="btn btn--claro">Ver a coleção</a>
+            <a href="#" class="btn btn--contorno" data-link-whats>Falar no WhatsApp</a>
+          </div>
+        </div>
+        <div class="hero__vitrine" id="hero-vitrine" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- ===== FAIXA ===== -->
+    <div class="faixa" aria-hidden="true">
+      <div class="faixa__trilho" id="faixa"></div>
+    </div>
+
+    <!-- ===== LOJA ===== -->
+    <section class="secao" id="loja">
+      <div class="container">
+        <div class="secao__cabeca">
+          <h2>Loja</h2>
+          <div class="filtros" id="filtros" role="tablist" aria-label="Filtrar por categoria"></div>
+        </div>
+        <div class="produtos" id="produtos"></div>
+      </div>
+    </section>
+
+    <!-- ===== SOBRE ===== -->
+    <section class="secao secao--escura" id="sobre">
+      <div class="container sobre">
+        <h2 class="revelar">Mais que roupa.<br>Uma <span>atitude.</span></h2>
+        <div class="sobre__texto revelar">
+          <p>Nascemos na rua, com a ideia de fazer peças simples, de tecido pesado e corte que veste bem — sem pagar preço de grife.</p>
+          <p>Cada coleção sai em quantidade limitada. Quando acaba, acabou.</p>
+          <ul class="numeros">
+            <li><strong>100%</strong> algodão</li>
+            <li><strong>30/1</strong> fio penteado</li>
+            <li><strong>7 dias</strong> para trocar</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== COMO COMPRAR ===== -->
+    <section class="secao" id="como-comprar">
+      <div class="container">
+        <h2>Como comprar</h2>
+        <ol class="passos">
+          <li class="revelar"><span>01</span><h3>Escolha</h3><p>Selecione a peça e o tamanho e adicione à sacola.</p></li>
+          <li class="revelar"><span>02</span><h3>Envie</h3><p>Finalize: o pedido vai pronto para o nosso WhatsApp.</p></li>
+          <li class="revelar"><span>03</span><h3>Receba</h3><p>Combinamos pagamento (Pix ou cartão) e enviamos para todo o Brasil.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ===== DÚVIDAS ===== -->
+    <section class="secao secao--clara" id="duvidas">
+      <div class="container duvidas">
+        <h2>Dúvidas</h2>
+        <div class="faq">
+          <details>
+            <summary>Qual o prazo de entrega?</summary>
+            <p>Postamos em até 2 dias úteis após o pagamento. Capitais recebem em 3 a 7 dias úteis.</p>
+          </details>
+          <details>
+            <summary>Como funciona o frete?</summary>
+            <p data-frete>Frete grátis acima de R$ 299.</p>
+          </details>
+          <details>
+            <summary>Posso trocar o tamanho?</summary>
+            <p>Sim. Você tem 7 dias após o recebimento para pedir a troca, com a peça sem uso e com etiqueta.</p>
+          </details>
+          <details>
+            <summary>Quais as formas de pagamento?</summary>
+            <p>Pix (com desconto) ou cartão de crédito em até 3x sem juros, via link de pagamento.</p>
+          </details>
+          <details>
+            <summary>Como escolher o tamanho?</summary>
+            <p>Peça a tabela de medidas no WhatsApp — ajudamos você a escolher.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== RODAPÉ ===== -->
+  <footer class="rodape">
+    <div class="container rodape__grade">
+      <div>
+        <p class="logo" data-nome-loja>TRAMIS</p>
+        <p class="rodape__cidade" data-cidade></p>
+      </div>
+      <div class="rodape__links">
+        <a href="#" data-link-whats>WhatsApp</a>
+        <a href="#" data-link-insta target="_blank" rel="noopener">Instagram</a>
+        <a href="#" data-link-email>E-mail</a>
+      </div>
+    </div>
+    <p class="container rodape__copy">© <span id="ano"></span> <span data-nome-loja>TRAMIS</span>. Todos os direitos reservados.</p>
+  </footer>
+
+  <!-- ===== BOTÃO WHATSAPP FLUTUANTE ===== -->
+  <a href="#" class="whats-flutuante" data-link-whats aria-label="Falar no WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 3C9 3 3.3 8.6 3.3 15.6c0 2.4.7 4.7 1.9 6.7L3 29l6.9-2.1a12.8 12.8 0 0 0 6.1 1.5c7 0 12.7-5.7 12.7-12.7S23 3 16 3Zm0 23.1c-2 0-3.9-.5-5.5-1.5l-.4-.2-4.1 1.2 1.2-4-.3-.4a10.4 10.4 0 1 1 9.1 4.9Zm5.7-7.8c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2l-1 1.2c-.2.2-.4.2-.7.1-.3-.2-1.3-.5-2.5-1.6-.9-.8-1.6-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.6.3-.5v-.5l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.8s1.2 3.2 1.4 3.5c.2.2 2.4 3.7 5.8 5.1 2.8 1.1 3.4.9 4 .8.6-.1 1.9-.8 2.2-1.5.3-.8.3-1.4.2-1.5-.1-.2-.3-.2-.6-.4Z"/></svg>
+  </a>
+
+  <!-- ===== SACOLA ===== -->
+  <div class="fundo-escuro" id="fundo-escuro"></div>
+  <aside class="sacola" id="sacola" aria-label="Sacola de compras" aria-hidden="true">
+    <div class="sacola__topo">
+      <h2>Sua sacola</h2>
+      <button class="fechar" id="fechar-sacola" aria-label="Fechar sacola">✕</button>
+    </div>
+    <div class="sacola__itens" id="sacola-itens"></div>
+    <form class="sacola__final" id="form-pedido">
+      <div class="sacola__total"><span>Total</span><strong id="total">R$ 0,00</strong></div>
+      <label>Seu nome<input type="text" name="nome" required placeholder="Ex.: Ana Lima"></label>
+      <label>CEP<input type="text" name="cep" inputmode="numeric" placeholder="00000-000" maxlength="9"></label>
+      <button type="submit" class="btn btn--escuro btn--cheio">Finalizar pelo WhatsApp</button>
+      <p class="sacola__aviso">O pagamento é combinado no WhatsApp (Pix ou cartão).</p>
+    </form>
+  </aside>
+
+  <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+
+  <script src="js/produtos.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
