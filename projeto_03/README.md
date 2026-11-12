@@ -31,3 +31,13 @@ Dê dois cliques em `index.html`.
 
 **Fora do escopo (cobrar à parte):** pagamento online, cálculo de frete automático,
 controle de estoque, área de login, páginas extras, produção de fotos/textos.
+
+## Publicado no Cloudflare
+Endereço: https://loja-roupas.jvctrfelix.workers.dev
+
+Para publicar de novo depois de editar (com o token do Cloudflare configurado):
+```bash
+cd projeto_03 && npx wrangler deploy
+```
+Para cada cliente, troque o `"name"` em `wrangler.jsonc` (ex.: `"loja-cliente-x"`)
+para não sobrescrever outro site.
