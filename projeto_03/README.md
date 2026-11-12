@@ -33,7 +33,7 @@ Dê dois cliques em `index.html`.
 controle de estoque, área de login, páginas extras, produção de fotos/textos.
 
 ## Publicado no Cloudflare
-Endereço: https://loja-roupas.jvctrfelix.workers.dev
+Endereço: https://tramis.jvctrfelix.workers.dev
 
 Para publicar de novo depois de editar (com o token do Cloudflare configurado):
 ```bash

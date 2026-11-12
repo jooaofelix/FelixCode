@@ -4,12 +4,12 @@
    ========================================================= */
 
 const LOJA = {
-  nome: "NOVA ORDEM",
+  nome: "TRAMIS",
   slogan: "Streetwear feito pra durar.",
   // Número com DDI + DDD, só números. Ex.: 5511987654321
   whatsapp: "5511999999999",
-  instagram: "novaordem",
-  email: "contato@novaordem.com.br",
+  instagram: "tramis",
+  email: "contato@tramis.com.br",
   cidade: "São Paulo — SP",
   // Texto exibido na faixa e no FAQ
   frete: "Frete grátis acima de R$ 299",
