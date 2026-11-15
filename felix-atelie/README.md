@@ -56,3 +56,20 @@ python -m http.server 8000
 As medidas da peça ficam nos objetos `MODEL` e `G` no começo do script, caso você queira ajustar a gola ou a manga.
 
 > O mapa de sombreamento foi derivado da imagem de mockup que você forneceu. Se for deixar o repositório público ou usar comercialmente, confira a licença dessa imagem.
+
+## Publicar na Cloudflare
+
+O site é um arquivo só (`index.html`), então dá para publicar de três jeitos:
+
+**1. Arrastar e soltar (mais rápido)**
+No painel da Cloudflare: **Workers & Pages → Create → Pages → Upload assets**. Dê o nome `atelie-3d` e arraste a pasta `felix-atelie` (ou só o `index.html`). O site fica em `atelie-3d.pages.dev`.
+
+**2. Ligado ao GitHub (atualiza sozinho a cada push)**
+**Workers & Pages → Create → Import a repository** → escolha `felixcode` → em *Root directory* coloque `felix-atelie`. O `wrangler.jsonc` desta pasta já configura tudo (deploy: `npx wrangler deploy`).
+
+**3. Pelo terminal**
+```bash
+cd felix-atelie
+npx wrangler login
+npx wrangler deploy
+```
