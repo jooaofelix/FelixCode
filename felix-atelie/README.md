@@ -1,6 +1,6 @@
 # Ateliê 3D
 
-Editor pessoal de mockup de camiseta: você monta a estampa nos **moldes 2D** (frente, costas, mangas e gola) e vê o resultado em tempo real numa **camiseta 3D** oversized, com rugas, textura de malha e luz de estúdio.
+Editor pessoal de mockup de camiseta: você monta a estampa nos **moldes 2D** (frente, costas, mangas e gola) e vê o resultado em tempo real numa **camiseta 3D** tradicional (gola careca), com dobras reais, textura de malha e luz de estúdio.
 
 ## Como usar
 
@@ -22,7 +22,8 @@ python -m http.server 8000
 - **Balde**: pinta uma peça só (por exemplo, gola e punhos de outra cor, no estilo *ringer*) ou muda a cor de um item.
 - **Posicionar em**: atalhos para peito, logo no peito, costas, nuca, barras e mangas, já no tamanho certo em cm.
 - **Tecido**: cor da camiseta inteira.
-- **Acabamento**: rugas, sombra nas dobras, textura da malha e brilho do algodão.
+- **Vistas**: botões Frente, Lado e Costas na vitrine, além de girar com o mouse/dedo e giro 360°.
+- **Acabamento**: dobras reais (da foto), rugas extras, textura da malha e brilho do algodão.
 - **Cenário e luz**: cor do fundo, sombra projetada (persiana, folhas, janela), força e direção da luz, giro 360°.
 - **Exportar imagem**: PNG em alta resolução da vitrine 3D.
 - **Baixar molde (PNG)**: a arte plana de cada peça na escala de 14 px por cm, para mandar para a estamparia.
@@ -45,6 +46,10 @@ python -m http.server 8000
 - O editor 2D é um canvas do **Fabric.js** em escala real (10 unidades = 1 cm).
 - A cada mudança, o canvas é redesenhado numa textura (14 px/cm), recortada no formato de cada molde.
 - A camiseta 3D é gerada por código com **Three.js**: cada peça é uma malha cujas coordenadas UV apontam exatamente para o seu molde na textura. Por isso o que você desenha no molde aparece no mesmo lugar da camiseta.
-- Rugas e sombras de dobra vêm de ruído 3D aplicado aos vértices; a malha do tecido é um mapa normal gerado na hora.
+- O formato do corpo vem de um mockup em três vistas (frente, lado e costas): a vista de frente dá a largura em cada altura, a vista de lado dá a profundidade, e o modelo é montado fatia por fatia a partir dessas silhuetas.
+- As dobras e a luz das três fotos viram um mapa de sombreamento (em tons de cinza, embutido no `index.html`). Na hora de desenhar, cada ponto da camiseta usa a foto que está mais de frente para ele, então as dobras reais aparecem por cima da sua estampa.
+- A malha do tecido é um mapa normal gerado na hora; o controle "Rugas" adiciona um pouco de ruído 3D aos vértices.
 
-As medidas da peça ficam no objeto `G` no começo do script, caso você queira ajustar o comprimento, a largura ou a manga.
+As medidas da peça ficam nos objetos `MODEL` e `G` no começo do script, caso você queira ajustar a gola ou a manga.
+
+> O mapa de sombreamento foi derivado da imagem de mockup que você forneceu. Se for deixar o repositório público ou usar comercialmente, confira a licença dessa imagem.
