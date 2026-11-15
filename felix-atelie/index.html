@@ -551,10 +551,10 @@ const GOBOS = [['nenhuma', 'Nenhuma'], ['persiana', 'Persiana'], ['folhas', 'Fol
 /* =====================================================================
    Estado
    ===================================================================== */
-const DEFAULT_SETTINGS = { mode: 'foto', view: 'front', wrinkles: 12, ao: 90, knit: 45, sheen: 40, backdrop: '#c3c0b9', gobo: 'persiana', goboStr: 60, light: 25, spin: false, guides: true };
+const DEFAULT_SETTINGS = { mode: 'foto', view: 'front', wrinkles: 12, ao: 90, knit: 45, sheen: 40, backdrop: '#c3c0b9', gobo: 'nenhuma', goboStr: 60, light: 25, spin: false, guides: true };
 let S = { ...DEFAULT_SETTINGS };
-try { Object.assign(S, JSON.parse(store.get('atelie3d:settings2') || '{}')); } catch {}
-const saveSettings = debounce(() => store.set('atelie3d:settings2', JSON.stringify(S)), 300);
+try { Object.assign(S, JSON.parse(store.get('atelie3d:settings3') || '{}')); } catch {}
+const saveSettings = debounce(() => store.set('atelie3d:settings3', JSON.stringify(S)), 300);
 const pieceColors = Object.fromEntries(PIECES.map((p) => [p.id, '#f2f0eb']));
 let tool = 'select';
 let fillPaint = '#6b1d2a';
