@@ -22,10 +22,12 @@ python -m http.server 8000
 - **Balde**: pinta uma peça só (por exemplo, gola e punhos de outra cor, no estilo *ringer*) ou muda a cor de um item.
 - **Posicionar em**: atalhos para peito, logo no peito, costas, nuca, barras e mangas, já no tamanho certo em cm.
 - **Tecido**: cor da camiseta inteira.
-- **Vistas**: botões Frente, Lado e Costas na vitrine, além de girar com o mouse/dedo e giro 360°.
+- **Modo Foto** (padrão): o resultado usa a própria foto do mockup (silhueta, dobras e luz originais) com a sua cor e estampa aplicadas por cima, como num mockup de PSD. É o modo para exportar a imagem final.
+- **Modo 3D**: a camiseta gira livremente; serve para conferir a estampa por todos os ângulos.
+- **Vistas**: botões Frente, Lado e Costas, nos dois modos.
 - **Acabamento**: dobras reais (da foto), rugas extras, textura da malha e brilho do algodão.
 - **Cenário e luz**: cor do fundo, sombra projetada (persiana, folhas, janela), força e direção da luz, giro 360°.
-- **Exportar imagem**: PNG em alta resolução da vitrine 3D.
+- **Exportar imagem**: PNG em alta resolução (no modo Foto, da vista escolhida; no modo 3D, do ângulo atual).
 - **Baixar molde (PNG)**: a arte plana de cada peça na escala de 18 px por cm, para mandar para a estamparia.
 - **Projeto**: salva sozinho no navegador; também dá para salvar e abrir arquivos `.json`.
 
@@ -48,6 +50,7 @@ python -m http.server 8000
 - A camiseta 3D é gerada por código com **Three.js**: cada peça é uma malha cujas coordenadas UV apontam exatamente para o seu molde na textura. Por isso o que você desenha no molde aparece no mesmo lugar da camiseta.
 - O formato do corpo vem de um mockup em três vistas (frente, lado e costas): a vista de frente dá a largura em cada altura, a vista de lado dá a profundidade, e o modelo é montado fatia por fatia a partir dessas silhuetas.
 - As dobras e a luz das três fotos viram um mapa de sombreamento (em tons de cinza, embutido no `index.html`). Na hora de desenhar, cada ponto da camiseta usa a foto que está mais de frente para ele, então as dobras reais aparecem por cima da sua estampa.
+- No **modo Foto**, a camiseta 3D é desenhada sem luz por uma câmera ortográfica alinhada com a foto. Isso diz onde cada pedaço da estampa cai na foto. Depois a foto entra por cima: o recorte dá a silhueta e o tom de cinza dá as sombras e o brilho (multiplicação com um pouco de brilho, como num PSD).
 - A malha do tecido é um mapa normal gerado na hora; o controle "Rugas" adiciona um pouco de ruído 3D aos vértices.
 
 As medidas da peça ficam nos objetos `MODEL` e `G` no começo do script, caso você queira ajustar a gola ou a manga.
