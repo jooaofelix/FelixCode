@@ -73,3 +73,9 @@ cd felix-atelie
 npx wrangler login
 npx wrangler deploy
 ```
+
+## Ferramentas (pasta `tools`)
+
+- `gerar_modelo.py`: transforma um mockup em três vistas (frente, lado, costas) no modelo da camiseta e embute no `index.html`. Assim dá para trocar de peça ou melhorar o encaixe.
+- `testar.js`: abre o app num navegador automático e tira fotos das vistas para conferir.
+- O `CLAUDE.md` explica como tudo funciona por dentro e onde ajustar cada coisa.
