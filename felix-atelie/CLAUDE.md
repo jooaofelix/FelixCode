@@ -30,6 +30,10 @@ O app segue a marca de roupa **148** ("Toda a criação louva", streetwear com r
 4. **Modo 3D**: `MeshPhysicalMaterial` com a textura + `onBeforeCompile` que multiplica pelo sombreamento real da foto (escolhe frente, lado ou costas pela normal do vértice). O lado de dentro escurece com `gl_FrontFacing`.
 5. **Modo Foto** (`renderAlbedo` + `composePhoto` + `drawScene`): desenha a camiseta **sem luz** com câmera **ortográfica alinhada à foto** num render target, lê os pixels e combina, pixel a pixel, com o recorte (`MASK_URL`) e o sombreamento (`SHADE_URL`) da foto: multiplica pelas sombras (`L / photo.hi`, curva 1,25) e soma um brilho para tecidos escuros. Onde a malha não cobre a silhueta da foto, usa a cor do tecido.
 
+## Prompt para IA
+
+`buildPrompt()` monta o texto do botão "Prompt p/ IA": percorre `userObjs()`, acha a peça pelo centro (`pieceAt`) e descreve cada item em `describeItem` (texto/fonte/cor, tamanho em cm, distância abaixo da gola, lado de quem veste). Cores viram nomes pela mais próxima em `NAMED` + hex. Estilos, vistas e formatos ficam em `AI_STYLES`, `AI_VIEWS`, `AI_RATIOS` (português e inglês). As referências vêm de `exportPhoto('front'|'back')`. Lembrete: na frente, +x do molde é a esquerda de quem veste; nas costas, a direita.
+
 ## Coordenadas (importante para não errar o encaixe)
 
 - Unidade do mundo 3D: **cm**. Barra da camiseta em `y = G.Y0 = -40`. `+z` é a frente; `+x` é o lado esquerdo de quem veste (direita de quem olha).

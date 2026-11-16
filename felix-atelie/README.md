@@ -27,6 +27,7 @@ python -m http.server 8000
 - **Vistas**: botões Frente, Lado e Costas, nos dois modos.
 - **Acabamento**: dobras reais (da foto), rugas extras, textura da malha e brilho do algodão.
 - **Cenário e luz**: cor do fundo, sombra projetada (persiana, folhas, janela), força e direção da luz, giro 360°.
+- **Prompt p/ IA**: gera um texto pronto para colar no ChatGPT, Gemini ou Claude (tipo de foto, frente/costas, formato, português ou inglês) com a peça e cada estampa descritas em cm e posição, mais as imagens de referência da frente e das costas para anexar.
 - **Exportar imagem**: PNG em alta resolução (no modo Foto, da vista escolhida; no modo 3D, do ângulo atual).
 - **Baixar molde (PNG)**: a arte plana de cada peça na escala de 18 px por cm, para mandar para a estamparia.
 - **Projeto**: salva sozinho no navegador; também dá para salvar e abrir arquivos `.json`.

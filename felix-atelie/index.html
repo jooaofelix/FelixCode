@@ -215,6 +215,12 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
 .modal-card { width: min(560px, 100%); max-height: 100%; overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 0; padding: 16px; display: grid; gap: 12px; box-shadow: var(--shadow); }
 .modal-card h3 { margin: 0; font: 400 26px/1 var(--font-display); text-transform: uppercase; letter-spacing: .02em; }
 .modal-card img { width: 100%; border-radius: 0; background: var(--panel-2); }
+.modal-card.wide { width: min(760px, 100%); }
+.ai-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+#aiText { min-height: 260px; font: 12px/1.5 var(--font-mono); white-space: pre-wrap; }
+.refs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.refs figure { margin: 0; display: grid; gap: 6px; min-width: 0; }
+.refs figcaption { color: var(--muted); font: 500 10px var(--font-body); letter-spacing: .22em; text-transform: uppercase; }
 .toast {
   position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60;
   padding: 11px 18px; border-radius: 0; background: var(--fg); color: var(--bg); font-weight: 500; font-size: 10px; letter-spacing: .22em; text-transform: uppercase; box-shadow: var(--shadow);
@@ -251,6 +257,7 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
     <div class="top-actions">
       <button id="undo" class="icon-btn" title="Desfazer (Ctrl+Z)" aria-label="Desfazer"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
       <button id="redo" class="icon-btn" title="Refazer (Ctrl+Shift+Z)" aria-label="Refazer"><svg class="i" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
+      <button id="aiPrompt" class="btn" title="Gerar texto para criar a foto da camiseta numa IA"><svg viewBox="-2.2 0 28.4 28.4" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M12 0c.7 4.6 2.1 7.9 4.2 10 2.1 2.1 5.4 3.5 10 4.2-4.6.7-7.9 2.1-10 4.2-2.1 2.1-3.5 5.4-4.2 10-.7-4.6-2.1-7.9-4.2-10-2.1-2.1-5.4-3.5-10-4.2 4.6-.7 7.9-2.1 10-4.2 2.1-2.1 3.5-5.4 4.2-10Z"/></svg>Prompt p/ IA</button>
       <button id="exportPng" class="btn primary"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Exportar imagem</button>
     </div>
   </header>
@@ -388,6 +395,27 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
 <input type="file" id="fileImg" accept="image/*" hidden>
 <input type="file" id="fileProj" accept=".json,application/json" hidden>
 
+<div class="modal" id="aiModal" hidden>
+  <div class="modal-card wide" role="dialog" aria-modal="true" aria-labelledby="aiTitle">
+    <h3 id="aiTitle">Prompt para IA</h3>
+    <p class="note">Copie o texto, cole no chat que gera imagens (ChatGPT, Gemini, Claude…) e anexe as duas imagens de referência abaixo. O texto descreve a peça e cada estampa com tamanho e posição; as imagens garantem que a IA copie a arte certinha.</p>
+    <div class="ai-opts">
+      <div class="field">Tipo de foto<div class="chips" id="aiStyle"></div></div>
+      <div class="field">Mostrar<div class="chips" id="aiView"></div></div>
+      <div class="field">Formato<div class="chips" id="aiRatio"></div></div>
+      <div class="field">Idioma do texto<div class="chips" id="aiLang"></div></div>
+    </div>
+    <label class="field" for="aiText">Texto para colar no chat</label>
+    <textarea id="aiText" readonly></textarea>
+    <div class="row"><button class="btn primary" id="aiCopy">Copiar texto</button></div>
+    <div class="refs">
+      <figure><figcaption>Referência · frente</figcaption><img id="aiRefF" alt="Mockup de referência da frente"><button class="btn small" id="aiDlF">Baixar frente</button></figure>
+      <figure><figcaption>Referência · costas</figcaption><img id="aiRefB" alt="Mockup de referência das costas"><button class="btn small" id="aiDlB">Baixar costas</button></figure>
+    </div>
+    <p class="note">Se o download não começar, clique com o botão direito na imagem (ou segure o dedo no celular) e salve.</p>
+    <div class="row"><button class="btn" id="aiClose">Fechar</button></div>
+  </div>
+</div>
 <div class="modal" id="modal" hidden>
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <h3 id="modalTitle">Imagem pronta</h3>
@@ -1361,8 +1389,8 @@ function renderPhoto() {
   cv.width = W; cv.height = H;
   drawScene(cv.getContext('2d'), W, H, crop);
 }
-function exportPhoto() {
-  const crop = composePhoto(S.view || 'front');
+function exportPhoto(v = S.view || 'front') {
+  const crop = composePhoto(v);
   const H = Math.round(crop.height / 0.86), W = Math.round(Math.max(crop.width / 0.92, H * 0.8));
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   drawScene(c.getContext('2d'), W, H, crop);
@@ -1408,6 +1436,139 @@ function showModal(title, url, note, fname) {
 $('#modalClose').onclick = () => ($('#modal').hidden = true);
 $('#modal').onclick = (e) => { if (e.target.id === 'modal') $('#modal').hidden = true; };
 const SAVE_NOTE = 'O download deve começar sozinho. Se não começar, clique com o botão direito na imagem (ou segure o dedo no celular) e escolha salvar.';
+/* =====================================================================
+   Prompt para IA: descreve a camiseta e cada estampa para um chat de imagem
+   ===================================================================== */
+const AI = { style: 'produto', view: 'front', ratio: '4:5', lang: 'pt' };
+const AI_STYLES = {
+  produto: ['Produto', 'foto de produto para e-commerce: a camiseta sozinha num manequim invisível (ghost mannequin), centralizada, luz de estúdio suave e difusa, sombras realistas',
+            'e-commerce product photo: the t-shirt alone on an invisible ghost mannequin, centered, soft diffused studio lighting, realistic shadows'],
+  modelo: ['Modelo vestindo', 'foto editorial de moda streetwear: uma pessoa vestindo a camiseta, enquadramento da cintura para cima, postura natural, luz natural suave, estética minimalista',
+           'streetwear fashion editorial photo: a person wearing the t-shirt, framed from the waist up, natural pose, soft natural light, minimalist aesthetic'],
+  flatlay: ['Flat lay', 'foto flat lay vista de cima: a camiseta estendida e alinhada sobre uma superfície, luz suave vinda da lateral',
+            'top-down flat lay photo: the t-shirt laid out flat and neatly aligned on a surface, soft side lighting'],
+  cabide: ['Cabide', 'foto da camiseta pendurada num cabide de madeira clara contra uma parede, luz suave de janela',
+           'photo of the t-shirt hanging on a light wooden hanger against a wall, soft window light'],
+};
+const AI_VIEWS = { front: ['Frente', 'a frente da camiseta', 'the front of the t-shirt'], back: ['Costas', 'as costas da camiseta', 'the back of the t-shirt'], both: ['Frente e costas', 'frente e costas, lado a lado na mesma imagem', 'front and back, side by side in the same image'] };
+const AI_RATIOS = { '4:5': ['4:5 feed', 'vertical 4:5 (feed do Instagram)', 'vertical 4:5 (Instagram feed)'], '1:1': ['1:1', 'quadrado 1:1', 'square 1:1'], '9:16': ['9:16 stories', 'vertical 9:16 (stories)', 'vertical 9:16 (stories)'] };
+const COLOR_EN = { 'Preto': 'black', 'Off-white': 'off-white (bone)', 'Navy': 'navy blue', 'Marrom': 'brown', 'Cinza': 'heather grey', 'Branco': 'white', 'Areia': 'sand beige',
+  'Verde musgo': 'moss green', 'Vinho': 'burgundy', 'Vermelho': 'red', 'Azul-claro': 'light blue', 'Amarelo': 'yellow', 'Papel': 'warm off-white', 'Concreto': 'light concrete grey', 'Tinta': 'near-black', 'Grafite': 'graphite' };
+const NAMED = [...FABRICS, ...BACKDROPS, ['Vermelho', '#c8462b'], ['Azul-claro', '#8fb3d9'], ['Amarelo', '#f0b429'], ['Grafite', '#3a3a3a']];
+function colorName(hex, en) {
+  const rgb = (h) => [1, 3, 5].map((i) => parseInt(toHex(h).slice(i, i + 2), 16));
+  const [r, g, b] = rgb(hex); let best = NAMED[0], bd = 1e9;
+  for (const c of NAMED) { const [r2, g2, b2] = rgb(c[1]); const d = (r - r2) ** 2 + (g - g2) ** 2 + (b - b2) ** 2; if (d < bd) { bd = d; best = c; } }
+  const n = en ? (COLOR_EN[best[0]] || best[0]) : best[0].toLowerCase();
+  return `${bd > 900 ? (en ? 'close to ' : 'próximo de ') : ''}${n} (${toHex(hex).toUpperCase()})`;
+}
+const PIECE_TXT = { front: ['FRENTE', 'FRONT'], back: ['COSTAS', 'BACK'], sleeveR: ['MANGA DIREITA (de quem veste)', "RIGHT SLEEVE (wearer's right)"], sleeveL: ['MANGA ESQUERDA (de quem veste)', "LEFT SLEEVE (wearer's left)"], ribF: ['GOLA', 'COLLAR'], ribB: ['GOLA', 'COLLAR'] };
+const n1 = (v) => (Math.round(v * 2) / 2).toLocaleString(AI.lang === 'en' ? 'en-US' : 'pt-BR');
+function describeItem(o, pc, en) {
+  const c = o.getCenterPoint(), w = o.getScaledWidth() / PX, h = o.getScaledHeight() / PX;
+  const lx = c.x / PX - pc.x, ly = c.y / PX - pc.y, isText = /text/.test(o.type);
+  let what;
+  if (isText) {
+    const t = (o.text || '').split('\n').map((l) => l.trim()).filter(Boolean).join(en ? ' / ' : ' / ');
+    what = en ? `text "${t}" in the ${o.fontFamily} font, color ${colorName(o.fill, true)}` : `texto "${t}" na fonte ${o.fontFamily}, cor ${colorName(o.fill, false)}`;
+    if ((o.text || '').includes('\n')) what += en ? ', stacked in lines (each "/" is a line break), centered' : ', em linhas empilhadas (cada "/" é uma quebra de linha), centralizado';
+  } else if (o.type === 'image') what = en ? `the artwork "${o.name || 'image'}" (copy it exactly from the attached reference)` : `a arte "${o.name || 'imagem'}" (copie exatamente da imagem de referência anexada)`;
+  else if (o.type === 'circle') what = en ? `a solid circle, color ${colorName(o.fill, true)}` : `um círculo chapado na cor ${colorName(o.fill, false)}`;
+  else what = en ? `a solid band/rectangle, color ${colorName(o.fill, true)}` : `uma faixa/retângulo chapado na cor ${colorName(o.fill, false)}`;
+  const size = en ? `about ${n1(w)} × ${n1(h)} cm` : `com cerca de ${n1(w)} × ${n1(h)} cm`;
+  let where = '';
+  if (pc.id === 'front' || pc.id === 'back') {
+    const drop = pc.id === 'front' ? G.DROP_F : G.DROP_B, below = ly - drop, dx = lx - W / 2;
+    const vert = below < 1.5 ? (en ? 'right below the collar' : 'logo abaixo da gola') : (en ? `its center ${n1(below)} cm below the collar` : `com o centro a ${n1(below)} cm abaixo da gola`);
+    // na frente, +x do molde = esquerda de quem veste; nas costas, +x do molde = direita de quem veste
+    const wearerLeft = pc.id === 'front' ? dx > 0 : dx < 0;
+    const hor = Math.abs(dx) < 1.2 ? (en ? 'horizontally centered' : 'centralizado')
+      : en ? `shifted ${n1(Math.abs(dx))} cm toward the wearer's ${wearerLeft ? 'left' : 'right'}` : `deslocado ${n1(Math.abs(dx))} cm para o lado ${wearerLeft ? 'esquerdo' : 'direito'} de quem veste`;
+    where = `${hor}, ${vert}`;
+    if (pc.id === 'front' && below > G.H - drop - 16) where += en ? ' (near the hem)' : ' (perto da barra)';
+  } else if (pc.id === 'sleeveR' || pc.id === 'sleeveL') {
+    const t = ly / G.SL;
+    where = t < 0.4 ? (en ? 'on the outer side of the sleeve, near the shoulder' : 'na parte de fora da manga, perto do ombro')
+      : t < 0.75 ? (en ? 'on the outer side, middle of the sleeve' : 'na parte de fora, no meio da manga') : (en ? 'at the sleeve hem (cuff)' : 'na barra da manga (punho)');
+  } else where = en ? 'on the collar rib' : 'na ribana da gola';
+  const rot = Math.round(((o.angle + 540) % 360) - 180);
+  const extra = Math.abs(rot) > 2 ? (en ? `, rotated ${rot}°` : `, girado ${rot}°`) : '';
+  const op = o.opacity < 0.97 ? (en ? `, ${Math.round(o.opacity * 100)}% opacity` : `, ${Math.round(o.opacity * 100)}% de opacidade`) : '';
+  return `- ${what}, ${size}, ${where}${extra}${op}.`;
+}
+function buildPrompt() {
+  const en = AI.lang === 'en', L = (pt, eng) => (en ? eng : pt);
+  const body = pieceColors.front, groups = {};
+  for (const o of userObjs()) {
+    if (!o.visible) continue;
+    const pc = pieceAt(o.getCenterPoint()); if (!pc) continue;
+    const key = pc.id === 'ribB' ? 'ribF' : pc.id;
+    (groups[key] = groups[key] || []).push(describeItem(o, pc, en));
+  }
+  const show = AI.view === 'both' ? ['front', 'back', 'sleeveR', 'sleeveL', 'ribF'] : AI.view === 'front' ? ['front', 'sleeveR', 'sleeveL', 'ribF'] : ['back', 'sleeveR', 'sleeveL', 'ribF'];
+  const lines = [];
+  lines.push(L(`Crie uma ${AI_STYLES[AI.style][1]}.`, `Create a ${AI_STYLES[AI.style][2]}.`), '');
+  lines.push(L('PEÇA', 'GARMENT'));
+  lines.push(L('- Camiseta de malha 100% algodão, gola careca com ribana, manga curta, modelagem tradicional (regular), comprimento de cerca de 74 cm.',
+               '- 100% cotton jersey t-shirt, crew neck with rib collar, short sleeves, regular fit, about 74 cm long.'));
+  lines.push(L(`- Cor do tecido: ${colorName(body, false)}.`, `- Fabric color: ${colorName(body, true)}.`));
+  const diff = (id) => toHex(pieceColors[id]).toLowerCase() !== toHex(body).toLowerCase();
+  if (diff('ribF') || diff('ribB')) lines.push(L(`- Gola (ribana) em contraste: ${colorName(pieceColors.ribF, false)}.`, `- Contrast rib collar: ${colorName(pieceColors.ribF, true)}.`));
+  if (diff('back')) lines.push(L(`- Costas na cor ${colorName(pieceColors.back, false)}.`, `- Back panel color: ${colorName(pieceColors.back, true)}.`));
+  if (diff('sleeveR') || diff('sleeveL')) lines.push(L(`- Mangas na cor ${colorName(pieceColors.sleeveR, false)}.`, `- Sleeves color: ${colorName(pieceColors.sleeveR, true)}.`));
+  lines.push(L('- Marca: 148 (streetwear).', '- Brand: 148 (streetwear).'), '');
+  const shown = show.filter((k) => groups[k] && groups[k].length);
+  lines.push(L('ESTAMPA (reproduza exatamente: mesmos textos, letras, cores, tamanhos e posições)', 'PRINT (reproduce exactly: same text, letters, colors, sizes and positions)'));
+  if (!shown.length) lines.push(L('- Camiseta lisa, sem estampa.', '- Plain t-shirt, no print.'));
+  for (const k of shown) lines.push(`${PIECE_TXT[k][en ? 1 : 0]}:`, ...groups[k]);
+  lines.push('');
+  lines.push(L('CENA', 'SCENE'));
+  lines.push(L(`- Mostrar: ${AI_VIEWS[AI.view][1]}.`, `- Show: ${AI_VIEWS[AI.view][2]}.`));
+  lines.push(L(`- Fundo: ${colorName(S.backdrop, false)}, liso.`, `- Background: plain ${colorName(S.backdrop, true)}.`));
+  lines.push(L(`- Formato: ${AI_RATIOS[AI.ratio][1]}.`, `- Aspect ratio: ${AI_RATIOS[AI.ratio][2]}.`), '');
+  lines.push(L('REGRAS', 'RULES'));
+  lines.push(L('- Use as imagens anexadas (mockup da frente e das costas) como referência exata da estampa, das cores e das proporções.',
+               '- Use the attached images (front and back mockups) as the exact reference for the print, colors and proportions.'));
+  lines.push(L('- Texto da estampa idêntico e legível. Não invente nem adicione textos, logos, etiquetas ou marca d’água.',
+               '- Print text must be identical and legible. Do not invent or add any text, logos, labels or watermarks.'));
+  lines.push(L('- A estampa deve parecer silk/serigrafia real sobre o tecido, acompanhando dobras, caimento e luz.',
+               '- The print must look like real screen printing on the fabric, following folds, drape and lighting.'));
+  lines.push(L('- Fotorrealista, alta resolução, textura da malha e costuras visíveis.', '- Photorealistic, high resolution, visible jersey texture and stitching.'));
+  return lines.join('\n');
+}
+function aiChips(el, map, key, idx = 0) {
+  el.innerHTML = '';
+  for (const [id, v] of Object.entries(map)) {
+    const b = document.createElement('button'); b.className = 'chip'; b.textContent = Array.isArray(v) ? v[idx] : v;
+    b.setAttribute('aria-pressed', String(AI[key] === id));
+    b.onclick = () => { AI[key] = id; aiChips(el, map, key, idx); $('#aiText').value = buildPrompt(); };
+    el.appendChild(b);
+  }
+}
+const aiRefs = {};
+$('#aiPrompt').onclick = () => {
+  if (texDirty) renderTexture();
+  AI.view = S.view === 'back' ? 'back' : 'front';
+  aiChips($('#aiStyle'), AI_STYLES, 'style'); aiChips($('#aiView'), AI_VIEWS, 'view'); aiChips($('#aiRatio'), AI_RATIOS, 'ratio');
+  aiChips($('#aiLang'), { pt: 'Português', en: 'Inglês' }, 'lang');
+  $('#aiText').value = buildPrompt();
+  $('#aiModal').hidden = false; $('#aiCopy').focus();
+  setTimeout(() => {
+    if (!photo.ready) { $('#aiRefF').alt = 'A foto do mockup ainda está carregando'; return; }
+    aiRefs.front = exportPhoto('front'); aiRefs.back = exportPhoto('back');
+    $('#aiRefF').src = aiRefs.front; $('#aiRefB').src = aiRefs.back;
+  }, 30);
+};
+$('#aiCopy').onclick = () => {
+  const ta = $('#aiText');
+  const fallback = () => { ta.focus(); ta.select(); toast('Texto selecionado: use Ctrl+C para copiar'); };
+  try { navigator.clipboard.writeText(ta.value).then(() => toast('Texto copiado'), fallback); } catch { fallback(); }
+};
+$('#aiDlF').onclick = () => aiRefs.front && downloadURL(aiRefs.front, '148-referencia-frente.png');
+$('#aiDlB').onclick = () => aiRefs.back && downloadURL(aiRefs.back, '148-referencia-costas.png');
+$('#aiClose').onclick = () => ($('#aiModal').hidden = true);
+$('#aiModal').onclick = (e) => { if (e.target.id === 'aiModal') $('#aiModal').hidden = true; };
+
 $('#exportPng').onclick = () => {
   if (texDirty) renderTexture();
   if (S.mode === 'foto' && photo.ready) { showModal('Mockup pronto', exportPhoto(), SAVE_NOTE, `148-atelie-${VIEW_NAME[S.view].toLowerCase()}.png`); return; }
