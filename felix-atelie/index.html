@@ -3,44 +3,45 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ateliê 3D Felix</title>
+<title>148 Ateliê</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:wght@700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Bebas+Neue&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:wght@700&display=swap">
 <style>
-/* Layout: bancada de ateliê — ferramentas à esquerda, vitrine 3D em cima, mesa de corte (moldes 2D) embaixo, ficha técnica à direita. */
+/* Layout: bancada da 148 — ferramentas à esquerda, vitrine em cima, mesa de corte (moldes) embaixo, ficha técnica à direita.
+   Identidade 148: tinta (ink) e papel (paper), Anton em caixa-alta, rótulos pequenos bem espaçados, cantos retos. */
 :root {
-  --bg: #141416;
-  --panel: #1c1c20;
-  --panel-2: #24242a;
-  --line: #303037;
-  --fg: #ececef;
-  --muted: #9b9ba6;
-  --chalk: #f0b429;          /* giz de alfaiate */
-  --chalk-fg: #1f1604;
-  --danger: #ef5f5f;
-  --table: #19191d;           /* mesa de corte */
-  --grid: rgba(255,255,255,.04);
-  --guide: #6a6a75;
-  --shadow: 0 10px 30px rgba(0,0,0,.35);
-  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --radius: 12px;
+  --bg: #0a0a0a;              /* ink */
+  --panel: #121212;
+  --panel-2: #1a1a1a;          /* ink-soft */
+  --line: rgba(231,225,207,.14);
+  --fg: #e7e1cf;              /* paper */
+  --muted: rgba(231,225,207,.55);
+  --chalk: #e7e1cf;           /* destaque = papel sobre tinta */
+  --chalk-fg: #0a0a0a;
+  --danger: #e0806f;
+  --table: #0f0f0f;            /* mesa de corte */
+  --grid: rgba(231,225,207,.045);
+  --guide: rgba(231,225,207,.42);
+  --shadow: 0 14px 34px rgba(0,0,0,.55);
+  --font-display: "Anton", "Bebas Neue", Impact, "Arial Narrow", sans-serif;
+  --font-body: "Geist", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 0px;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
-    --bg: #efeee9; --panel: #fbfaf7; --panel-2: #f1f0ea; --line: #dcdad2; --fg: #1d1c1a; --muted: #6c6a63;
-    --chalk: #b7791f; --chalk-fg: #ffffff; --danger: #c93a3a; --table: #e6e4dd; --grid: rgba(0,0,0,.05);
-    --guide: #8f8d86; --shadow: 0 10px 30px rgba(40,30,10,.12); color-scheme: light;
+    --bg: #e7e1cf; --panel: #eee9da; --panel-2: #dfd8c3; --line: rgba(10,10,10,.16); --fg: #0a0a0a; --muted: rgba(10,10,10,.56);
+    --chalk: #0a0a0a; --chalk-fg: #e7e1cf; --danger: #9e3328; --table: #dbd4bf; --grid: rgba(10,10,10,.06);
+    --guide: rgba(10,10,10,.42); --shadow: 0 14px 34px rgba(40,30,10,.18); color-scheme: light;
   }
 }
 :root[data-theme="light"] {
-  --bg: #efeee9; --panel: #fbfaf7; --panel-2: #f1f0ea; --line: #dcdad2; --fg: #1d1c1a; --muted: #6c6a63;
-  --chalk: #b7791f; --chalk-fg: #ffffff; --danger: #c93a3a; --table: #e6e4dd; --grid: rgba(0,0,0,.05);
-  --guide: #8f8d86; --shadow: 0 10px 30px rgba(40,30,10,.12); color-scheme: light;
+  --bg: #e7e1cf; --panel: #eee9da; --panel-2: #dfd8c3; --line: rgba(10,10,10,.16); --fg: #0a0a0a; --muted: rgba(10,10,10,.56);
+    --chalk: #0a0a0a; --chalk-fg: #e7e1cf; --danger: #9e3328; --table: #dbd4bf; --grid: rgba(10,10,10,.06);
+    --guide: rgba(10,10,10,.42); --shadow: 0 14px 34px rgba(40,30,10,.18); color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -64,30 +65,30 @@ button { cursor: pointer; }
 /* ---------- topo ---------- */
 .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.mark {
-  width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
-  background: var(--chalk); color: var(--chalk-fg); flex: none;
-}
-.brand h1 { margin: 0; font: 700 18px/1.1 var(--font-display); letter-spacing: -.01em; }
-.brand p { margin: 2px 0 0; color: var(--muted); font: 12px/1.3 var(--font-mono); }
+.mark { width: 30px; height: 30px; display: grid; place-items: center; color: var(--fg); flex: none; }
+.mark svg { width: 26px; height: 26px; fill: currentColor; animation: spark 3.6s ease-in-out infinite; }
+@keyframes spark { 0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; } 50% { transform: scale(.78) rotate(45deg); opacity: .75; } }
+.brand h1 { margin: 0; display: flex; align-items: baseline; gap: 10px; font: 400 30px/1 var(--font-display); text-transform: uppercase; letter-spacing: .02em; }
+.brand h1 span { font: 500 10px/1 var(--font-body); letter-spacing: .3em; color: var(--muted); }
+.brand p { margin: 5px 0 0; color: var(--muted); font: 500 10px/1.3 var(--font-body); text-transform: uppercase; letter-spacing: .25em; }
 .top-actions { display: flex; gap: 8px; align-items: center; }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 14px;
-  border-radius: 9px; border: 1px solid var(--line); background: var(--panel-2); font-weight: 600; font-size: 13px;
-  white-space: nowrap;
+  border-radius: 0; border: 1px solid var(--line); background: transparent; font-weight: 500; font-size: 11px;
+  text-transform: uppercase; letter-spacing: .18em; white-space: nowrap;
 }
-.btn:hover { border-color: var(--muted); }
+.btn:hover { border-color: var(--fg); }
 .btn.primary { background: var(--chalk); color: var(--chalk-fg); border-color: transparent; }
-.btn.primary:hover { filter: brightness(1.06); }
+.btn.primary:hover { filter: none; background: transparent; color: var(--fg); border-color: var(--fg); }
 .btn.danger { color: var(--danger); }
-.btn.small { height: 30px; padding: 0 10px; font-size: 12px; }
+.btn.small { height: 32px; padding: 0 10px; font-size: 10px; letter-spacing: .16em; }
 .btn:disabled, .icon-btn:disabled { opacity: .4; cursor: default; }
 .icon-btn {
-  width: 36px; height: 36px; display: grid; place-items: center; border-radius: 9px;
-  border: 1px solid var(--line); background: var(--panel-2);
+  width: 36px; height: 36px; display: grid; place-items: center; border-radius: 0;
+  border: 1px solid var(--line); background: transparent;
 }
-.icon-btn:hover:not(:disabled) { border-color: var(--muted); }
+.icon-btn:hover:not(:disabled) { border-color: var(--fg); }
 svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
 /* ---------- área de trabalho ---------- */
@@ -97,8 +98,8 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
   background: var(--panel); border: 1px solid var(--line); overflow: auto;
 }
 .tool {
-  display: grid; justify-items: center; gap: 3px; padding: 9px 2px 7px; border-radius: 9px; border: 1px solid transparent;
-  background: transparent; color: var(--muted); font-size: 10.5px; font-weight: 500; letter-spacing: .01em;
+  display: grid; justify-items: center; gap: 3px; padding: 9px 2px 7px; border-radius: 0; border: 1px solid transparent;
+  background: transparent; color: var(--muted); font-size: 9px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase;
 }
 .tool svg.i { width: 20px; height: 20px; }
 .tool:hover { color: var(--fg); background: var(--panel-2); }
@@ -107,30 +108,32 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 
 .stage { min-height: 0; display: grid; grid-template-rows: minmax(0, 1.25fr) minmax(0, 1fr); gap: 10px; }
 .view3d, .view2d { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); min-height: 0; }
-.view3d { background: #b9b6b0; }
+.view3d { background: #e7e1cf; }
 #c3d { display: block; width: 100%; height: 100%; touch-action: pan-y; cursor: grab; }
 #c3d:active { cursor: grabbing; }
 .overlay-chip {
-  position: absolute; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 999px;
-  background: rgba(18,18,20,.72); color: #f1f1f3; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  font: 500 11px/1.2 var(--font-mono); letter-spacing: .04em;
+  position: absolute; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 0;
+  background: rgba(10,10,10,.82); color: #e7e1cf; border: 1px solid rgba(231,225,207,.28);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  font: 500 10px/1.2 var(--font-body); letter-spacing: .22em; text-transform: uppercase;
 }
 .badge3d { top: 12px; left: 12px; text-transform: uppercase; }
-.badge3d b { color: #f0b429; font-weight: 500; }
+.badge3d b { display: inline-grid; color: #e7e1cf; }
+.badge3d b svg { width: 11px; height: 11px; fill: currentColor; animation: spark 3.6s ease-in-out infinite; }
 .pill3d { bottom: 12px; left: 50%; transform: translateX(-50%); padding: 4px; gap: 2px; }
 .pill3d button {
-  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 999px; border: 0;
-  background: transparent; color: #f1f1f3; font: 500 12px var(--font-body); white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 0; border: 0;
+  background: transparent; color: #e7e1cf; font: 500 10px var(--font-body); letter-spacing: .18em; text-transform: uppercase; white-space: nowrap;
 }
-.pill3d button:hover { background: rgba(255,255,255,.12); }
-.pill3d button[aria-pressed="true"] { background: #f0b429; color: #1f1604; }
+.pill3d button:hover { background: rgba(231,225,207,.12); }
+.pill3d button[aria-pressed="true"] { background: #e7e1cf; color: #0a0a0a; }
 .pill3d svg.i { width: 15px; height: 15px; }
 .pill3d.modes { top: 12px; bottom: auto; left: auto; right: 12px; transform: none; }
 #photoView { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .view3d.foto #spin { display: none; }
 .pill3d { max-width: calc(100% - 20px); }
 @media (max-width: 560px) { .pill3d .lbl { display: none; } .pill3d button { padding: 0 10px; } }
-.loading3d { position: absolute; inset: 0; display: grid; place-items: center; color: #2b2b2e; font: 500 13px var(--font-mono); pointer-events: none; }
+.loading3d { position: absolute; inset: 0; display: grid; place-items: center; color: #0a0a0a; font: 500 10px var(--font-body); letter-spacing: .3em; text-transform: uppercase; pointer-events: none; }
 
 .view2d {
   background-color: var(--table);
@@ -144,13 +147,13 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 .zoom2d .icon-btn { width: 32px; height: 32px; background: var(--panel); }
 .zoom2d .btn { height: 32px; background: var(--panel); }
 .hint2d {
-  position: absolute; left: 10px; bottom: 10px; margin: 0; padding: 6px 10px; border-radius: 8px;
+  position: absolute; left: 10px; bottom: 10px; margin: 0; padding: 6px 10px; border-radius: 0;
   background: var(--panel); border: 1px solid var(--line); color: var(--muted); font: 11px/1.3 var(--font-mono);
   max-width: calc(100% - 200px);
 }
 .fillbar {
   position: absolute; top: 10px; left: 10px; display: flex; align-items: center; gap: 8px; max-width: min(232px, calc(100% - 20px));
-  padding: 8px 10px; border-radius: 10px; background: var(--panel); border: 1px solid var(--chalk); box-shadow: var(--shadow);
+  padding: 8px 10px; border-radius: 0; background: var(--panel); border: 1px solid var(--chalk); box-shadow: var(--shadow);
   font-size: 12px; font-weight: 600; flex-wrap: wrap;
 }
 
@@ -159,7 +162,7 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px 14px; display: grid; gap: 10px; }
 .panel h2 {
   margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  font: 600 11px/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+  font: 500 10px/1.2 var(--font-body); letter-spacing: .25em; text-transform: uppercase; color: var(--muted);
 }
 .panel h2 .sub { text-transform: none; letter-spacing: 0; font-family: var(--font-body); color: var(--fg); font-size: 12px; font-weight: 600; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .panel.sel { border-color: var(--chalk); }
@@ -170,13 +173,13 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 .field output, .unit { font: 12px var(--font-mono); color: var(--fg); font-variant-numeric: tabular-nums; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 input[type="number"], select, textarea {
-  width: 100%; border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px; padding: 7px 9px; min-width: 0;
+  width: 100%; border: 1px solid var(--line); background: var(--panel-2); border-radius: 0; padding: 7px 9px; min-width: 0;
 }
 textarea { resize: vertical; min-height: 54px; }
 .num { display: flex; align-items: center; gap: 6px; }
 .num input { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 input[type="range"] { width: 100%; accent-color: var(--chalk); }
-input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: none; cursor: pointer; }
+input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid var(--line); border-radius: 0; background: none; cursor: pointer; }
 .swatches { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .sw {
   width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(127,127,127,.45); padding: 0;
@@ -185,10 +188,10 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
 .sw[aria-pressed="true"] { outline: 2px solid var(--chalk); outline-offset: 2px; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip {
-  height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2);
-  font-size: 12px; font-weight: 500;
+  height: 28px; padding: 0 10px; border-radius: 0; border: 1px solid var(--line); background: transparent;
+  font-size: 10px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase;
 }
-.chip:hover { border-color: var(--muted); }
+.chip:hover { border-color: var(--fg); }
 .chip[aria-pressed="true"] { background: var(--chalk); color: var(--chalk-fg); border-color: transparent; }
 .note { margin: 0; color: var(--muted); font-size: 12px; }
 .switch { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; }
@@ -198,23 +201,23 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
 .layers li { display: flex; align-items: center; gap: 4px; }
 .layer {
   flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; text-align: left; height: 34px; padding: 0 10px;
-  border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); font-size: 12.5px;
+  border: 1px solid var(--line); border-radius: 0; background: var(--panel-2); font-size: 12.5px;
 }
 .layer span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .layer.on { border-color: var(--chalk); }
 .layer svg.i { width: 15px; height: 15px; color: var(--muted); }
 .layers .icon-btn { width: 34px; height: 34px; }
 .layers .icon-btn.off { color: var(--muted); opacity: .55; }
-.empty { margin: 0; padding: 12px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); font-size: 12px; text-align: center; }
+.empty { margin: 0; padding: 12px; border: 1px dashed var(--line); border-radius: 0; color: var(--muted); font-size: 12px; text-align: center; }
 
 /* ---------- modal e aviso ---------- */
 .modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(0,0,0,.55); padding: 16px; }
-.modal-card { width: min(560px, 100%); max-height: 100%; overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 12px; box-shadow: var(--shadow); }
-.modal-card h3 { margin: 0; font: 600 16px var(--font-display); }
-.modal-card img { width: 100%; border-radius: 10px; background: var(--panel-2); }
+.modal-card { width: min(560px, 100%); max-height: 100%; overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 0; padding: 16px; display: grid; gap: 12px; box-shadow: var(--shadow); }
+.modal-card h3 { margin: 0; font: 400 26px/1 var(--font-display); text-transform: uppercase; letter-spacing: .02em; }
+.modal-card img { width: 100%; border-radius: 0; background: var(--panel-2); }
 .toast {
   position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60;
-  padding: 10px 16px; border-radius: 10px; background: var(--fg); color: var(--bg); font-weight: 600; font-size: 13px; box-shadow: var(--shadow);
+  padding: 11px 18px; border-radius: 0; background: var(--fg); color: var(--bg); font-weight: 500; font-size: 10px; letter-spacing: .22em; text-transform: uppercase; box-shadow: var(--shadow);
 }
 
 /* ---------- celular / tela estreita ---------- */
@@ -232,17 +235,17 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
   .hint2d { display: none; }
   .brand p { display: none; }
 }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
 <div class="app">
   <header class="top">
     <div class="brand">
-      <span class="mark" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M20 4 6 18"/><path d="M17 3.5a1.8 1.8 0 1 1 3.5 3.5"/><path d="M6 18c-1.5 1.5-3 2-3 2s.5-1.5 2-3"/><path d="M14 9c-3 0-6 1-8 4"/></svg></span>
+      <span class="mark" aria-hidden="true"><svg viewBox="-2.2 0 28.4 28.4"><path d="M12 0c.7 4.6 2.1 7.9 4.2 10 2.1 2.1 5.4 3.5 10 4.2-4.6.7-7.9 2.1-10 4.2-2.1 2.1-3.5 5.4-4.2 10-.7-4.6-2.1-7.9-4.2-10-2.1-2.1-5.4-3.5-10-4.2 4.6-.7 7.9-2.1 10-4.2 2.1-2.1 3.5-5.4 4.2-10Z"/></svg></span>
       <div>
-        <h1>Ateliê 3D</h1>
-        <p>Camiseta tradicional · gola careca · 100% algodão</p>
+        <h1>148 <span>Ateliê</span></h1>
+        <p>Toda a criação louva · estúdio de mockup</p>
       </div>
     </div>
     <div class="top-actions">
@@ -267,9 +270,9 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
     <main class="stage">
       <section class="view3d" id="view3d" aria-label="Vitrine 3D">
         <canvas id="c3d"></canvas>
-        <div class="loading3d" id="loading3d">carregando a vitrine 3D…</div>
+        <div class="loading3d" id="loading3d">carregando a vitrine…</div>
         <canvas id="photoView" hidden></canvas>
-        <div class="overlay-chip badge3d"><b>●</b> <span id="badgeText">Camiseta no corpo invisível</span></div>
+        <div class="overlay-chip badge3d"><b><svg viewBox="-2.2 0 28.4 28.4"><path d="M12 0c.7 4.6 2.1 7.9 4.2 10 2.1 2.1 5.4 3.5 10 4.2-4.6.7-7.9 2.1-10 4.2-2.1 2.1-3.5 5.4-4.2 10-.7-4.6-2.1-7.9-4.2-10-2.1-2.1-5.4-3.5-10-4.2 4.6-.7 7.9-2.1 10-4.2 2.1-2.1 3.5-5.4 4.2-10Z"/></svg></b> <span id="badgeText">Camiseta no corpo invisível</span></div>
         <div class="overlay-chip pill3d modes" role="group" aria-label="Tipo de vitrine">
           <button data-mode="foto" aria-pressed="true">Foto</button>
           <button data-mode="3d" aria-pressed="false">3D</button>
@@ -287,7 +290,7 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
         <div class="fillbar" id="fillbar" hidden>
           <span>Cor do balde</span>
           <div class="swatches" id="fillSwatches"></div>
-          <input type="color" id="fillColor" value="#6b1d2a" aria-label="Cor personalizada do balde">
+          <input type="color" id="fillColor" value="#e7e1cf" aria-label="Cor personalizada do balde">
         </div>
         <p class="hint2d" id="hint2d">Arraste o fundo para mover · roda do mouse para zoom · duplo clique no texto para editar</p>
         <div class="zoom2d">
@@ -346,7 +349,7 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
       <section class="panel">
         <h2>Tecido</h2>
         <div class="swatches" id="fabricSwatches"></div>
-        <div class="field-line"><span class="note">Cor personalizada</span><input type="color" id="fabricColor" value="#f2f0eb" aria-label="Cor personalizada do tecido"></div>
+        <div class="field-line"><span class="note">Cor personalizada</span><input type="color" id="fabricColor" value="#141414" aria-label="Cor personalizada do tecido"></div>
         <p class="note">Pinta a camiseta inteira. Para gola ou punho de outra cor (estilo ringer), use o <b>Balde</b> e clique na peça.</p>
       </section>
 
@@ -537,27 +540,27 @@ const PX = 10;          // unidades do editor 2D por cm
 const TEX = 18;         // pixels de textura por cm
 const TW = Math.round(AW * TEX), TH = Math.round(AH * TEX);
 
-const FONTS = ['Anton', 'Bebas Neue', 'Archivo Black', 'Playfair Display', 'Permanent Marker', 'Pacifico', 'Space Grotesk', 'Inter', 'JetBrains Mono'];
-const INK = ['#1d1d1f', '#f4f2ee', '#6b1d2a', '#c8462b', '#f0b429', '#2f5d50', '#1f2a44', '#8fb3d9'];
-const FABRICS = [
-  ['Branco', '#f2f0eb'], ['Off-white', '#e8e0cc'], ['Areia', '#c9b897'], ['Cinza mescla', '#9c9ca0'], ['Preto', '#1e1e21'],
-  ['Marinho', '#1f2a44'], ['Vinho', '#6b1d2a'], ['Verde musgo', '#4a5a3a'], ['Azul céu', '#a9c5e0'], ['Terracota', '#b4583b'],
-];
+const FONTS = ['Anton', 'Bebas Neue', 'Archivo Black', 'Geist', 'Geist Mono', 'Playfair Display', 'Permanent Marker', 'Pacifico'];
+const INK = ['#e7e1cf', '#141414', '#16213f', '#6f4e30', '#a3a3a0', '#f4f2ee', '#6b1d2a', '#c8462b'];
+const FABRICS = [ // cores das peças da 148 primeiro
+  ['Preto', '#141414'], ['Off-white', '#e7e1cf'], ['Navy', '#16213f'], ['Marrom', '#6f4e30'], ['Cinza', '#a3a3a0'],
+  ['Branco', '#f4f2ee'], ['Areia', '#c9b897'], ['Verde musgo', '#4a5a3a'], ['Vinho', '#6b1d2a'],
+]
 const BACKDROPS = [
-  ['Concreto', '#c3c0b9'], ['Sálvia', '#b4bfac'], ['Areia', '#e0d3bf'], ['Rosa poeira', '#d6b8b0'], ['Estúdio', '#8e9196'], ['Grafite', '#36383d'],
-];
+  ['Papel', '#e7e1cf'], ['Concreto', '#c3c0b9'], ['Cinza', '#8e9196'], ['Navy', '#16213f'], ['Marrom', '#6f4e30'], ['Tinta', '#1a1a1a'],
+]
 const GOBOS = [['nenhuma', 'Nenhuma'], ['persiana', 'Persiana'], ['folhas', 'Folhas'], ['janela', 'Janela']];
 
 /* =====================================================================
    Estado
    ===================================================================== */
-const DEFAULT_SETTINGS = { mode: 'foto', view: 'front', wrinkles: 12, ao: 90, knit: 45, sheen: 40, backdrop: '#c3c0b9', gobo: 'nenhuma', goboStr: 60, light: 25, spin: false, guides: true };
+const DEFAULT_SETTINGS = { mode: 'foto', view: 'front', wrinkles: 12, ao: 90, knit: 45, sheen: 40, backdrop: '#e7e1cf', gobo: 'nenhuma', goboStr: 60, light: 25, spin: false, guides: true };
 let S = { ...DEFAULT_SETTINGS };
-try { Object.assign(S, JSON.parse(store.get('atelie3d:settings3') || '{}')); } catch {}
-const saveSettings = debounce(() => store.set('atelie3d:settings3', JSON.stringify(S)), 300);
-const pieceColors = Object.fromEntries(PIECES.map((p) => [p.id, '#f2f0eb']));
+try { Object.assign(S, JSON.parse(store.get('atelie3d:settings4') || '{}')); } catch {}
+const saveSettings = debounce(() => store.set('atelie3d:settings4', JSON.stringify(S)), 300);
+const pieceColors = Object.fromEntries(PIECES.map((p) => [p.id, '#141414']));
 let tool = 'select';
-let fillPaint = '#6b1d2a';
+let fillPaint = '#e7e1cf';
 
 /* =====================================================================
    Editor 2D (Fabric.js)
@@ -582,7 +585,7 @@ function buildGuides() {
     const out = new fabric.Polygon(polyPts(p, PX), { fill: '', stroke: col, strokeWidth: 2.4, strokeDashArray: [10, 7], selectable: false, evented: false });
     out.kind = 'guide'; guideObjs.push(out);
     const label = new fabric.Text(`${p.name.toUpperCase()}  ${p.w.toFixed(1)} × ${p.h.toFixed(1)} cm`, {
-      left: p.x * PX, top: (p.y - 0.9) * PX, originX: 'left', originY: 'bottom', fontSize: 15, fontFamily: 'JetBrains Mono', fill: col, selectable: false, evented: false,
+      left: p.x * PX, top: (p.y - 0.9) * PX, originX: 'left', originY: 'bottom', fontSize: 15, fontFamily: 'Geist Mono', fill: col, selectable: false, evented: false,
     });
     label.kind = 'guide'; guideObjs.push(label);
     if (p.id === 'front' || p.id === 'back') {
@@ -678,7 +681,7 @@ function snapshot() {
   hist = hist.slice(0, hi + 1); hist.push(s);
   if (hist.length > 40) hist.shift();
   hi = hist.length - 1;
-  if (!store.set('atelie3d:project2', s)) { /* imagens grandes podem passar do limite do navegador */ }
+  if (!store.set('atelie3d:project3', s)) { /* imagens grandes podem passar do limite do navegador */ }
   updateUndo();
 }
 const snapshotSoon = debounce(snapshot, 250);
@@ -689,7 +692,7 @@ function restore(s, cb) {
   restoring = true;
   fc.discardActiveObject();
   userObjs().forEach((o) => fc.remove(o));
-  for (const p of PIECES) setPieceColor(p.id, (data.colors && data.colors[p.id]) || '#f2f0eb');
+  for (const p of PIECES) setPieceColor(p.id, (data.colors && data.colors[p.id]) || '#141414');
   fabric.util.enlivenObjects(data.objects, (objs) => {
     objs.forEach((o) => fc.add(o));
     normalizeOrder(); fc.requestRenderAll();
@@ -697,8 +700,8 @@ function restore(s, cb) {
     cb && cb();
   });
 }
-function undo() { if (hi > 0) { hi--; restore(hist[hi], () => { store.set('atelie3d:project2', hist[hi]); updateUndo(); }); } }
-function redo() { if (hi < hist.length - 1) { hi++; restore(hist[hi], () => { store.set('atelie3d:project2', hist[hi]); updateUndo(); }); } }
+function undo() { if (hi > 0) { hi--; restore(hist[hi], () => { store.set('atelie3d:project3', hist[hi]); updateUndo(); }); } }
+function redo() { if (hi < hist.length - 1) { hi++; restore(hist[hi], () => { store.set('atelie3d:project3', hist[hi]); updateUndo(); }); } }
 
 /* =====================================================================
    Itens: criar, posicionar, editar
@@ -715,7 +718,8 @@ function addObj(o, preset = 'peito') {
   fc.add(o); normalizeOrder(); fc.setActiveObject(o); fc.requestRenderAll();
   setTool('select');
 }
-function newText(txt = 'SEU TEXTO', font = 'Anton', fill = '#1d1d1f') {
+const isDark = (hex) => { const [r, g, b] = [1, 3, 5].map((i) => parseInt(toHex(hex).slice(i, i + 2), 16)); return 0.299 * r + 0.587 * g + 0.114 * b < 140; };
+function newText(txt = 'SEU TEXTO', font = 'Anton', fill = isDark(pieceColors.front) ? '#e7e1cf' : '#141414') {
   return new fabric.IText(txt, { fontFamily: font, fontSize: 100, fill, textAlign: 'center', lineHeight: 0.95, name: 'Texto' });
 }
 function textName(o) { return (o.text || '').replace(/\s+/g, ' ').trim().slice(0, 22) || 'Texto'; }
@@ -1372,7 +1376,7 @@ $('#spin').onclick = () => { S.spin = !S.spin; $('#spin').setAttribute('aria-pre
 function paintAll(hex) { for (const p of PIECES) setPieceColor(p.id, hex); $('#fabricColor').value = hex; fc.requestRenderAll(); snapshotSoon(); refreshFabric(); }
 function refreshFabric() { swatchRow($('#fabricSwatches'), FABRICS, paintAll, pieceColors.front); }
 $('#fabricColor').oninput = (e) => paintAll(e.target.value);
-function refreshFillbar() { swatchRow($('#fillSwatches'), FABRICS.slice(0, 8).concat([['Mostarda', '#f0b429']]), (hex) => { fillPaint = hex; $('#fillColor').value = hex; refreshFillbar(); }, fillPaint); }
+function refreshFillbar() { swatchRow($('#fillSwatches'), FABRICS, (hex) => { fillPaint = hex; $('#fillColor').value = hex; refreshFillbar(); }, fillPaint); }
 $('#fillColor').oninput = (e) => { fillPaint = e.target.value; refreshFillbar(); };
 
 const sliders = [['Wrinkles', 'wrinkles', applyDrape], ['Ao', 'ao', setMaterial], ['Knit', 'knit', setMaterial], ['Sheen', 'sheen', setMaterial], ['Gobo', 'goboStr', setGobo], ['Light', 'light', setLight]];
@@ -1406,26 +1410,26 @@ $('#modal').onclick = (e) => { if (e.target.id === 'modal') $('#modal').hidden =
 const SAVE_NOTE = 'O download deve começar sozinho. Se não começar, clique com o botão direito na imagem (ou segure o dedo no celular) e escolha salvar.';
 $('#exportPng').onclick = () => {
   if (texDirty) renderTexture();
-  if (S.mode === 'foto' && photo.ready) { showModal('Mockup pronto', exportPhoto(), SAVE_NOTE, `atelie3d-${VIEW_NAME[S.view].toLowerCase()}.png`); return; }
+  if (S.mode === 'foto' && photo.ready) { showModal('Mockup pronto', exportPhoto(), SAVE_NOTE, `148-atelie-${VIEW_NAME[S.view].toLowerCase()}.png`); return; }
   const pr = renderer.getPixelRatio();
   renderer.setPixelRatio(Math.min(3, Math.max(2, pr * 1.5))); layout3D(); placeCamera();
   renderer.render(scene, camera);
   const url = c3d.toDataURL('image/png');
   renderer.setPixelRatio(pr); layout3D();
-  showModal('Mockup pronto', url, SAVE_NOTE, 'atelie3d-mockup.png');
+  showModal('Mockup pronto', url, SAVE_NOTE, '148-atelie-mockup.png');
 };
 $('#exportFlat').onclick = () => {
   renderTexture();
   const c = document.createElement('canvas'); c.width = TW; c.height = TH;
   const x = c.getContext('2d'); x.fillStyle = '#ffffff'; x.fillRect(0, 0, TW, TH); x.drawImage(texCanvas, 0, 0);
   x.setLineDash([12, 8]); x.strokeStyle = '#8f8d86'; x.lineWidth = 3; x.stroke(maskPath);
-  x.fillStyle = '#55534d'; x.font = `${Math.round(1.4 * TEX)}px "JetBrains Mono", monospace`;
+  x.fillStyle = '#55534d'; x.font = `${Math.round(1.4 * TEX)}px "Geist Mono", monospace`;
   for (const p of PIECES) x.fillText(`${p.name.toUpperCase()}  ${p.w.toFixed(1)} × ${p.h.toFixed(1)} cm`, p.x * TEX, (p.y - 0.9) * TEX);
-  showModal('Molde para impressão', c.toDataURL('image/png'), `Escala: ${TEX} px por cm. ${SAVE_NOTE}`, 'atelie3d-molde.png');
+  showModal('Molde para impressão', c.toDataURL('image/png'), `Escala: ${TEX} px por cm. ${SAVE_NOTE}`, '148-atelie-molde.png');
 };
 $('#saveProj').onclick = () => {
   const blob = new Blob([JSON.stringify({ ...JSON.parse(serialize()), settings: S }, null, 1)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob); downloadURL(url, 'meu-projeto.atelie3d.json');
+  const url = URL.createObjectURL(blob); downloadURL(url, '148-atelie-projeto.json');
   setTimeout(() => URL.revokeObjectURL(url), 4000);
   toast('Projeto exportado');
 };
@@ -1451,32 +1455,32 @@ $('#zoomIn').onclick = () => zoom2D(1.25); $('#zoomOut').onclick = () => zoom2D(
 /* =====================================================================
    Exemplo inicial
    ===================================================================== */
-function sunsetEmblem() {
-  const c = document.createElement('canvas'); c.width = 640; c.height = 760;
-  const x = c.getContext('2d');
-  x.save(); x.beginPath(); x.arc(320, 300, 270, 0, Math.PI * 2); x.clip();
-  const g = x.createLinearGradient(0, 30, 0, 570);
-  g.addColorStop(0, '#f6c445'); g.addColorStop(0.5, '#e0602f'); g.addColorStop(1, '#6b1d2a');
-  x.fillStyle = g; x.fillRect(0, 0, 640, 600);
-  for (let i = 0; i < 7; i++) { const y = 330 + i * 34 + i * i * 2; x.clearRect(0, y, 640, 6 + i * 3); }
-  x.restore();
-  x.fillStyle = '#6b1d2a'; x.textAlign = 'center';
-  x.font = '120px "Anton", Impact, sans-serif'; x.fillText('BOA ONDA', 320, 710);
+// Estrela da 148 como imagem (para usar na estampa)
+function starMark(color = '#e7e1cf', size = 512) {
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const x = c.getContext('2d'), k = size / 28.4;
+  x.setTransform(k, 0, 0, k, 2.2 * k, 0); x.fillStyle = color; x.fill(new Path2D('M12 0c.7 4.6 2.1 7.9 4.2 10 2.1 2.1 5.4 3.5 10 4.2-4.6.7-7.9 2.1-10 4.2-2.1 2.1-3.5 5.4-4.2 10-.7-4.6-2.1-7.9-4.2-10-2.1-2.1-5.4-3.5-10-4.2 4.6-.7 7.9-2.1 10-4.2 2.1-2.1 3.5-5.4 4.2-10Z'));
   return c.toDataURL('image/png');
 }
+const scaleTo = (o, cm) => o.set({ scaleX: (cm * PX) / o.width, scaleY: (cm * PX) / o.width });
 function loadSample(done) {
-  for (const p of PIECES) setPieceColor(p.id, '#f2f0eb');
-  setPieceColor('ribF', '#6b1d2a'); setPieceColor('ribB', '#6b1d2a');
-  const t1 = newText('FELIX', 'Anton', '#6b1d2a'); placeAt(t1, 'peito'); t1.top -= 30; fc.add(t1);
-  const t2 = newText('CÓDIGO & CORTE · 2026', 'JetBrains Mono', '#1d1d1f'); t2.set('fontSize', 40); placeAt(t2, 'peito');
-  t2.set({ scaleX: (16 * PX) / t2.width, scaleY: (16 * PX) / t2.width }); t2.top = t1.top + t1.getScaledHeight() / 2 + 34; fc.add(t2);
-  const t3 = newText('F', 'Playfair Display', '#6b1d2a'); placeAt(t3, 'mangaE'); t3.set({ scaleX: (3.5 * PX) / t3.width, scaleY: (3.5 * PX) / t3.width }); fc.add(t3);
-  for (const id of ['sleeveR', 'sleeveL']) {
-    const p = PIECE[id];
-    const r = new fabric.Rect({ width: (CB + 2) * PX, height: 2.2 * PX, fill: '#6b1d2a', left: (p.x + CT / 2) * PX, top: (p.y + G.SL - 1.1) * PX, name: 'Punho' });
-    fc.add(r);
-  }
-  fabric.Image.fromURL(sunsetEmblem(), (img) => { img.name = 'Pôr do sol'; placeAt(img, 'costas'); fc.add(img); normalizeOrder(); done && done(); });
+  const ink = '#141414', paper = '#e7e1cf';
+  for (const p of PIECES) setPieceColor(p.id, ink);
+  const front = PIECE.front, back = PIECE.back, cx = (pc) => (pc.x + W / 2) * PX;
+  // frente: 148 no peito
+  const t1 = newText('148', 'Anton', paper); scaleTo(t1, 9); t1.set({ left: cx(front), top: (front.y + 20) * PX }); fc.add(t1);
+  const t2 = newText('TODA A CRIAÇÃO LOUVA', 'Geist', paper); t2.set({ fontSize: 40, charSpacing: 380 }); scaleTo(t2, 11);
+  t2.set({ left: cx(front), top: (front.y + 26.2) * PX }); fc.add(t2);
+  // manga: 148 pequeno
+  const t3 = newText('148', 'Anton', paper); placeAt(t3, 'mangaE'); scaleTo(t3, 3.6); fc.add(t3);
+  // costas: frase em blocos + referência
+  const t4 = newText('TODA A\nCRIAÇÃO\nLOUVA', 'Anton', paper); t4.set({ lineHeight: 0.9 }); scaleTo(t4, 24);
+  t4.set({ left: cx(back), top: (back.y + 34) * PX }); fc.add(t4);
+  const t5 = newText('SALMO 148', 'Geist Mono', paper); t5.set({ fontSize: 40, charSpacing: 300 }); scaleTo(t5, 8);
+  t5.set({ left: cx(back), top: (back.y + 34) * PX + t4.getScaledHeight() / 2 + 32 }); fc.add(t5);
+  fabric.Image.fromURL(starMark(paper), (img) => {
+    img.name = 'Estrela 148'; scaleTo(img, 6); img.set({ left: cx(back), top: (back.y + 15.5) * PX }); fc.add(img); normalizeOrder(); done && done();
+  });
 }
 
 /* =====================================================================
@@ -1513,7 +1517,7 @@ async function boot() {
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyGuideColors);
   new MutationObserver(applyGuideColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   layout3D(); fit2D(); applySettings();
-  const saved = store.get('atelie3d:project2');
+  const saved = store.get('atelie3d:project3');
   const finish = () => { snapshot(); refreshLayers(); refreshFabric(); markTex(); $('#loading3d').hidden = true; };
   if (saved) restore(saved, finish); else loadSample(finish);
   requestAnimationFrame(frame);

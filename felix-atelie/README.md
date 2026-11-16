@@ -1,6 +1,6 @@
-# Ateliê 3D
+# 148 Ateliê
 
-Editor pessoal de mockup de camiseta: você monta a estampa nos **moldes 2D** (frente, costas, mangas e gola) e vê o resultado em tempo real numa **camiseta 3D** tradicional (gola careca), com dobras reais, textura de malha e luz de estúdio.
+Estúdio de mockup da **148** (toda a criação louva). Editor de camiseta: você monta a estampa nos **moldes 2D** (frente, costas, mangas e gola) e vê o resultado em tempo real numa **camiseta 3D** tradicional (gola careca), com dobras reais, textura de malha e luz de estúdio.
 
 ## Como usar
 

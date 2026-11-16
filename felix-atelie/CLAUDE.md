@@ -1,6 +1,16 @@
-# Ateliê 3D: guia para o Claude
+# 148 Ateliê: guia para o Claude
 
 Editor pessoal de mockup de camiseta. A pessoa monta a arte nos **moldes 2D** e vê o resultado no **modo Foto** (padrão, fotorrealista) ou no **modo 3D** (gira livre). Tudo é um arquivo só: `index.html` (sem build). Responda e escreva textos de interface em **português do Brasil**.
+
+## Identidade visual (marca 148)
+
+O app segue a marca de roupa **148** ("Toda a criação louva", streetwear com raízes no Salmo 148). Mantenha:
+- **Cores**: tinta `#0a0a0a` (fundo) e papel `#e7e1cf` (texto/destaque) no tema escuro; invertido no claro. Sem cor de destaque extra: o destaque é o próprio papel sobre tinta.
+- **Tipos**: Anton (títulos, caixa-alta), Geist (texto), Geist Mono (medidas). Rótulos pequenos (9–11 px), caixa-alta, `letter-spacing` entre .14em e .3em.
+- **Forma**: cantos retos (`border-radius: 0`, exceto as bolinhas de cor), bordas finas de 1 px, botões transparentes com borda.
+- **Símbolo**: estrela de quatro pontas (`STAR` no path SVG, `viewBox="-2.2 0 28.4 28.4"`), animada com `spark`.
+- **Cores das peças 148** (tecidos): Preto `#141414`, Off-white `#e7e1cf`, Navy `#16213f`, Marrom `#6f4e30`, Cinza `#a3a3a0`.
+- Exemplo inicial: camiseta preta, "148" no peito, estrela + "TODA A CRIAÇÃO LOUVA" + "SALMO 148" nas costas (`loadSample`).
 
 ## Arquivos
 
@@ -40,7 +50,7 @@ Editor pessoal de mockup de camiseta. A pessoa monta a arte nos **moldes 2D** e 
 | Resolução | `TEX` (textura, px/cm) e `--escala` do gerador (atlas da foto). |
 | Padrões da interface | `DEFAULT_SETTINGS`. |
 
-**Ao mudar medidas dos moldes ou padrões salvos**, troque as chaves do `localStorage` (`atelie3d:project2`, `atelie3d:settings3`) para versões novas. Senão, projetos antigos abrem com as artes fora do lugar.
+**Ao mudar medidas dos moldes ou padrões salvos**, troque as chaves do `localStorage` (`atelie3d:project3`, `atelie3d:settings4`) para versões novas. Senão, projetos antigos abrem com as artes fora do lugar.
 
 ## Trocar ou adicionar um mockup
 
@@ -57,7 +67,7 @@ node testar.js                      # capturas em tools/capturas
 ```
 - Compare `foto-*.png` e `3d-*.png` com o mockup. Para comparar o formato, deixe o tecido cinza e esconda as camadas.
 - Em sessões na nuvem do Claude Code a CDN pode estar bloqueada: o script já serve `three` e `fabric` do `node_modules`. O Playwright global da nuvem funciona; não instale outro navegador. As fontes do Google ficam bloqueadas, então os textos usam fonte reserva nas capturas.
-- O app abre com uma arte de exemplo (FELIX, pôr do sol nas costas, gola e punhos vinho), útil para checar o encaixe.
+- O app abre com a arte de exemplo da 148 (veja Identidade visual), útil para checar o encaixe.
 
 ## Armadilhas já resolvidas (não repetir)
 
