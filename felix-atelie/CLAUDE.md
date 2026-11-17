@@ -41,6 +41,10 @@ O app segue a marca de roupa **148** ("Toda a criação louva", streetwear com r
 
 `drawDims(ctx)` roda no `after:render` do Fabric (fora do render da textura, por causa do `texBusy`) e desenha cotas com `dimLine`/`dimsFor` a partir de `o.oCoords` (largura embaixo, altura à direita, seguindo a rotação). Imagens sempre (se `S.dims`), textos/formas só selecionados. O molde exportado usa `calcACoords()` × `TEX / PX` com linhas `#ff3b6b`. `sizeLabel(o)` alimenta a lista de camadas.
 
+## Movimento do tecido
+
+`SWAY_GLSL` (injetado no vertex shader do `cloth`, depois de `vObjPos`) gira cada vértice em torno do eixo Y do mundo por `uLag × peso` (peso 0 nos ombros → 1 na barra, + pontas das mangas) e abre a barra com `uFlare`; `uWave` é uma ondulação leve. `updateSway()` no `frame` faz a mola: alvo = −velocidade de giro × 0,09, rigidez 70, amortecimento 6,5. `S.motion` (0–100) e `prefers-reduced-motion` controlam a intensidade; `calmRender()` zera tudo nas exportações. A sombra projetada usa a malha parada.
+
 ## Guias de alinhamento
 
 No `object:moving`, a arte gruda (a menos de `SNAP_PX` px na tela) no centro da peça (`pieceAt` do centro) e no centro/bordas das outras artes, usando `getBoundingRect(true, true)`. As linhas e o aviso de posição ficam em `snap` e são desenhados por `drawSnap` no `after:render`; somem no `mouse:up`. Alt desliga o grude.

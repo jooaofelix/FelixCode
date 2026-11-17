@@ -366,6 +366,7 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
         <h2>Acabamento</h2>
         <label class="field" for="rWrinkles"><span class="field-line">Rugas do tecido <output id="oWrinkles"></output></span><input type="range" id="rWrinkles" min="0" max="100"></label>
         <label class="field" for="rAo"><span class="field-line">Dobras reais (foto) <output id="oAo"></output></span><input type="range" id="rAo" min="0" max="100"></label>
+        <label class="field" for="rMotion"><span class="field-line">Movimento do tecido <output id="oMotion"></output></span><input type="range" id="rMotion" min="0" max="100"></label>
         <label class="field" for="rKnit"><span class="field-line">Textura da malha <output id="oKnit"></output></span><input type="range" id="rKnit" min="0" max="100"></label>
         <label class="field" for="rSheen"><span class="field-line">Brilho do algodão <output id="oSheen"></output></span><input type="range" id="rSheen" min="0" max="100"></label>
       </section>
@@ -609,7 +610,7 @@ const GOBOS = [['nenhuma', 'Nenhuma'], ['persiana', 'Persiana'], ['folhas', 'Fol
 /* =====================================================================
    Estado
    ===================================================================== */
-const DEFAULT_SETTINGS = { mode: 'foto', view: 'front', wrinkles: 12, ao: 90, knit: 45, sheen: 40, backdrop: '#e7e1cf', gobo: 'nenhuma', goboStr: 60, light: 25, spin: false, guides: true, dims: true };
+const DEFAULT_SETTINGS = { mode: 'foto', view: 'front', wrinkles: 12, ao: 90, knit: 45, sheen: 40, motion: 60, backdrop: '#e7e1cf', gobo: 'nenhuma', goboStr: 60, light: 25, spin: false, guides: true, dims: true };
 let S = { ...DEFAULT_SETTINGS };
 try { Object.assign(S, JSON.parse(store.get('atelie3d:settings4') || '{}')); } catch {}
 const saveSettings = debounce(() => store.set('atelie3d:settings4', JSON.stringify(S)), 300);
@@ -1229,11 +1230,34 @@ const cloth = new THREE.MeshPhysicalMaterial({
 const shadeTex = new THREE.TextureLoader().load(SHADE_URL);
 shadeTex.colorSpace = THREE.NoColorSpace; shadeTex.anisotropy = 4;
 const shadeUniform = { value: 0.9 };
+// Movimento do tecido: ao girar a camiseta, a barra e as mangas atrasam em relação
+// aos ombros (como um pêndulo) e a barra abre um pouco; ao parar, balançam e assentam.
+const sway = {
+  uLag: { value: 0 }, uFlare: { value: 0 }, uWave: { value: 0 }, uTime: { value: 0 },
+  uTop: { value: IS_OVR ? 28 : 34 }, uBottom: { value: IS_OVR ? -34 : -40 },
+};
+const SWAY_GLSL = `
+{
+  vec4 wp = modelMatrix * vec4(transformed, 1.0);
+  float k = clamp((uTop - wp.y) / (uTop - uBottom), 0.0, 1.0);
+  k = k * k * (3.0 - 2.0 * k);                              // 0 nos ombros, 1 na barra
+  float side = smoothstep(18.0, 30.0, length(wp.xz));       // pontas das mangas
+  float ang = uLag * (k + 0.5 * side)
+            + uWave * (k + side) * sin(wp.y * 0.18 + uTime * 6.5 + atan(wp.z, wp.x) * 2.0);
+  float c = cos(ang), s = sin(ang);
+  vec3 q = wp.xyz;
+  q.xz = vec2(c * q.x - s * q.z, s * q.x + c * q.z);
+  float r = length(q.xz);
+  if (r > 0.001) q.xz += (q.xz / r) * uFlare * k;
+  transformed = (inverse(modelMatrix) * vec4(q, 1.0)).xyz;
+}`;
 const A = MODEL.atlas, fl = (n) => n.toFixed(5);
 cloth.onBeforeCompile = (sh) => {
   sh.uniforms.shadeMap = { value: shadeTex };
   sh.uniforms.uShadeAmt = shadeUniform;
-  sh.vertexShader = 'varying vec3 vObjPos;\nvarying vec3 vObjN;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvObjPos = transformed; vObjN = objectNormal;');
+  Object.assign(sh.uniforms, sway);
+  sh.vertexShader = 'varying vec3 vObjPos;\nvarying vec3 vObjN;\nuniform float uLag, uFlare, uWave, uTime, uTop, uBottom;\n' +
+    sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvObjPos = transformed; vObjN = objectNormal;' + SWAY_GLSL);
   sh.fragmentShader = 'varying vec3 vObjPos;\nvarying vec3 vObjN;\nuniform sampler2D shadeMap;\nuniform float uShadeAmt;\n' +
     sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
 {
@@ -1613,7 +1637,7 @@ $('#fabricColor').oninput = (e) => paintAll(e.target.value);
 function refreshFillbar() { swatchRow($('#fillSwatches'), FABRICS, (hex) => { fillPaint = hex; $('#fillColor').value = hex; refreshFillbar(); }, fillPaint); }
 $('#fillColor').oninput = (e) => { fillPaint = e.target.value; refreshFillbar(); };
 
-const sliders = [['Wrinkles', 'wrinkles', applyDrape], ['Ao', 'ao', setMaterial], ['Knit', 'knit', setMaterial], ['Sheen', 'sheen', setMaterial], ['Gobo', 'goboStr', setGobo], ['Light', 'light', setLight]];
+const sliders = [['Wrinkles', 'wrinkles', applyDrape], ['Ao', 'ao', setMaterial], ['Knit', 'knit', setMaterial], ['Sheen', 'sheen', setMaterial], ['Gobo', 'goboStr', setGobo], ['Light', 'light', setLight], ['Motion', 'motion', () => {}]];
 for (const [id, key, fn] of sliders) {
   const r = $('#r' + id), o = $('#o' + id);
   const show = () => (o.textContent = key === 'light' ? `${S[key] > 0 ? '+' : ''}${S[key]}°` : `${S[key]}%`);
@@ -1753,12 +1777,19 @@ function aiChips(el, map, key, idx = 0) {
 }
 const aiRefs = {};
 // imagem do 3D numa vista fixa (frente = 0, costas = π), sem mexer na vitrine
+// renderiza com o tecido em repouso (sem o balanço do momento)
+function calmRender() {
+  const keep = [sway.uLag.value, sway.uFlare.value, sway.uWave.value];
+  sway.uLag.value = sway.uFlare.value = sway.uWave.value = 0;
+  renderer.render(scene, camera);
+  [sway.uLag.value, sway.uFlare.value, sway.uWave.value] = keep;
+}
 function still3D(rot) {
   if (texDirty) renderTexture();
   const prevRot = shirt.rotation.y, prevTilt = tilt, prevZoom = zoom, pr = renderer.getPixelRatio();
   shirt.rotation.y = rot; tilt = 0; zoom = 1; placeCamera();
   renderer.setPixelRatio(Math.min(3, Math.max(2, pr * 1.5))); layout3D();
-  renderer.render(scene, camera);
+  calmRender();
   const url = c3d.toDataURL('image/png');
   renderer.setPixelRatio(pr); layout3D();
   shirt.rotation.y = prevRot; tilt = prevTilt; zoom = prevZoom; placeCamera();
@@ -1793,7 +1824,7 @@ $('#exportPng').onclick = () => {
   if (S.mode === 'foto' && photo.ready) { showModal('Mockup pronto', exportPhoto(), SAVE_NOTE, `148-atelie-${VIEW_NAME[S.view].toLowerCase()}.png`); return; }
   const pr = renderer.getPixelRatio();
   renderer.setPixelRatio(Math.min(3, Math.max(2, pr * 1.5))); layout3D(); placeCamera();
-  renderer.render(scene, camera);
+  calmRender();
   const url = c3d.toDataURL('image/png');
   renderer.setPixelRatio(pr); layout3D();
   showModal('Mockup pronto', url, SAVE_NOTE, '148-atelie-mockup.png');
@@ -1901,11 +1932,26 @@ function applySettings() {
   refreshScene(); refreshFabric(); refreshFillbar();
 }
 let last = performance.now();
+const calmMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+let prevRotY = rotY, swayLag = 0, swayVel = 0, swayFlare = 0;
+function updateSway(dt, now) {
+  const amt = calmMotion.matches ? 0 : (S.motion ?? 60) / 100;
+  const omega = (rotY - prevRotY) / dt; prevRotY = rotY;            // velocidade de giro (rad/s)
+  const target = clamp(-omega * 0.09, -0.42, 0.42) * amt;            // a barra fica para trás
+  swayVel += ((target - swayLag) * 70 - swayVel * 6.5) * dt;         // mola amortecida: balança ao parar
+  swayLag += swayVel * dt;
+  swayFlare += (Math.min(1, Math.abs(omega) / 6) * 2.6 * amt - swayFlare) * (1 - Math.exp(-dt * 6));
+  sway.uLag.value = swayLag;
+  sway.uFlare.value = swayFlare;
+  sway.uWave.value = (0.004 + Math.min(0.05, Math.abs(swayVel) * 0.03)) * amt; // brisa leve + tremida
+  sway.uTime.value = now / 1000;
+}
 function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000)); last = now;
   if (!dragging) { rotYTarget += vel; vel *= 0.92; if (S.spin) rotYTarget += dt * 0.6; }
   rotY = lerp(rotY, rotYTarget, 0.18); tilt = lerp(tilt, tiltTarget, 0.15); zoom = lerp(zoom, zoomTarget, 0.15);
   shirt.rotation.y = rotY; placeCamera();
+  updateSway(dt, now);
   if (texDirty && now - lastTex > 33) { texDirty = false; lastTex = now; renderTexture(); photo.dirty = true; }
   if (S.mode === 'foto') {
     if (photo.ready && photo.dirty && now - photo.last > 140) { photo.dirty = false; photo.last = now; renderPhoto(); }

@@ -36,6 +36,7 @@ O modelo oversized fica em `modelo-oversized.js` (moldes + malha 3D otimizada, ~
 - **Modo Foto** (padrão): o resultado usa a própria foto do mockup (silhueta, dobras e luz originais) com a sua cor e estampa aplicadas por cima, como num mockup de PSD. É o modo para exportar a imagem final.
 - **Modo 3D**: a camiseta gira livremente; serve para conferir a estampa por todos os ângulos.
 - **Vistas**: botões Frente, Lado e Costas, nos dois modos.
+- **Movimento do tecido**: ao girar a camiseta no 3D, a barra e as mangas ficam um pouco para trás, a barra abre levemente e, ao soltar, o tecido balança até assentar. Ajuste a intensidade em Acabamento → Movimento do tecido (0 desliga). As imagens exportadas saem sempre com o tecido parado.
 - **Acabamento**: dobras reais (da foto), rugas extras, textura da malha e brilho do algodão.
 - **Cenário e luz**: cor do fundo, sombra projetada (persiana, folhas, janela), força e direção da luz, giro 360°.
 - **Prompt p/ IA**: gera um texto pronto para colar no ChatGPT, Gemini ou Claude (tipo de foto, frente/costas, formato, português ou inglês) com a peça e cada estampa descritas em cm e posição, mais as imagens de referência da frente e das costas para anexar.
