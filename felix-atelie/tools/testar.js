@@ -37,6 +37,8 @@ const lib = (p) => { const [name, ...rest] = p.split('/'); return path.join(pkgD
   page.on('console', (m) => { if (m.type() === 'error' && !/ERR_FAILED|ERR_NAME|net::/.test(m.text())) errors.push('console: ' + m.text()); });
   await page.route('**/*', (r) => {
     const u = r.request().url();
+    const jsm = u.split('/examples/jsm/')[1];
+    if (u.includes('/three@') && jsm) return r.fulfill({ path: lib('three/examples/jsm/' + jsm), contentType: 'text/javascript' });
     if (u.includes('/three@')) return r.fulfill({ path: lib('three/build/three.module.js'), contentType: 'text/javascript' });
     if (u.includes('/fabric@')) return r.fulfill({ path: lib('fabric/dist/fabric.min.js'), contentType: 'text/javascript' });
     if (u.startsWith('file:')) return r.continue();

@@ -22,6 +22,13 @@ O app segue a marca de roupa **148** ("Toda a criação louva", streetwear com r
 | `wrangler.jsonc`, `.assetsignore` | Publicação na Cloudflare (Workers Static Assets). `tools/` e os `.md` não sobem. |
 | `README.md` | Manual para a pessoa usuária. Mantenha em dia quando mudar funcionalidades. |
 
+## Dois modelos
+
+- `IS_OVR` (padrão quando `modelo-oversized.js` existe e `localStorage['atelie3d:model'] !== 'tradicional'`): moldes de `OVR.meta.pieces` (contornos reais do UV do CLO, em cm, com `group` para pintar a gola de duas camadas junto), malha glTF em `OVR.glb` carregada com `GLTFLoader` (importmap `three` / `three/addons/`). `texture.flipY = false` (UV do glTF começa no topo). Sem modo Foto, sem `applyDrape` e sem sombreamento da foto; referências da IA vêm de `still3D()`. Projeto salvo em `atelie3d:project3:oversized`.
+- Tradicional: tudo como descrito abaixo (moldes procedurais, modo Foto).
+- Cada peça tem `neckY` (profundidade da gola a partir do topo); use `pc.neckY`, `pc.w`, `pc.h` em vez de constantes do modelo tradicional.
+- `tools/preparar_modelo_clo.py obj.obj [--cm-uv 170] [--reducao 0.45]`: camada externa + bordas + ribanas, sem costuras 3D, UV normalizado, contornos em cm e gltfpack (`-kv -vtf`, senão perde/quantiza o UV). `--cm-uv` calibra o tamanho real (170 → frente de 59,8 cm).
+
 ## Como a imagem vai do 2D para a camiseta
 
 1. **Editor 2D (Fabric.js)** em escala real: `PX = 10` unidades por cm. Os moldes ficam em `PIECES` (frente, costas, 2 mangas, gola frente/costas), dispostos numa "mesa de corte" de `AW × AH` cm. Cada peça tem `x, y, w, h` (cm) e `poly` (contorno, cm, y para baixo a partir do topo da peça).

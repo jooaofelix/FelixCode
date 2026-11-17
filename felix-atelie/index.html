@@ -380,6 +380,7 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
 
       <section class="panel">
         <h2>Projeto</h2>
+        <div class="field" id="modelField">Modelo da camiseta<div class="chips" id="modelChips"></div></div>
         <p class="note">Tudo fica salvo automaticamente neste navegador.</p>
         <div class="row">
           <button class="btn small" id="saveProj">Salvar arquivo .json</button>
@@ -429,8 +430,11 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
 <div class="toast" id="toast" hidden></div>
 
 <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
+<script src="modelo-oversized.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 /* =====================================================================
    Utilidades
@@ -532,10 +536,15 @@ const LRF = curveLen(NECK_F), LRB = curveLen(NECK_B);
 /* =====================================================================
    Moldes (peças) e disposição na mesa de corte
    ===================================================================== */
+// Modelo da camiseta: "oversized" (CLO 3D, moldes reais) ou "tradicional" (mockup com modo Foto)
+const OVR = window.ATELIE_OVERSIZED || null;
+const MODEL_KEY = 'atelie3d:model';
+const IS_OVR = !!OVR && (store.get(MODEL_KEY) || 'oversized') !== 'tradicional';
+const PROJECT_KEY = IS_OVR ? 'atelie3d:project3:oversized' : 'atelie3d:project3';
 const M = 6, LAB = 3.4;
 const yRib = M + LAB, yBody = yRib + G.RIB + M + LAB, ySl = yBody + G.H + M + LAB;
-const AW = Math.max(M + W + M + W + M, M + CT + M + CT + M, M + LRF + M + LRB + M);
-const AH = ySl + G.SL + M;
+const AW = IS_OVR ? OVR.meta.AW : Math.max(M + W + M + W + M, M + CT + M + CT + M, M + LRF + M + LRB + M);
+const AH = IS_OVR ? OVR.meta.AH : ySl + G.SL + M;
 
 function bodyShape(drop) {
   const p = [[0, 0], [W, 0]];
@@ -544,7 +553,7 @@ function bodyShape(drop) {
   for (let i = 0; i <= 16; i++) { const s = (W / 2 - G.NW) * (1 - i / 16); p.push([s, hTop(s)]); }
   return p.map(([s, h]) => [s, G.H - h]); // y para baixo a partir do topo da peça
 }
-const PIECES = [
+const PIECES_TRAD = [
   { id: 'ribF', name: 'Gola · frente', x: M, y: yRib, w: LRF, h: G.RIB, poly: [[0, 0], [LRF, 0], [LRF, G.RIB], [0, G.RIB]] },
   { id: 'ribB', name: 'Gola · costas', x: M + LRF + M, y: yRib, w: LRB, h: G.RIB, poly: [[0, 0], [LRB, 0], [LRB, G.RIB], [0, G.RIB]] },
   { id: 'front', name: 'Frente', x: M, y: yBody, w: W, h: G.H, poly: bodyShape(G.DROP_F) },
@@ -552,10 +561,26 @@ const PIECES = [
   { id: 'sleeveR', name: 'Manga direita', x: M, y: ySl, w: CT, h: G.SL, poly: [[0, 0], [CT, 0], [CT / 2 + CB / 2, G.SL], [CT / 2 - CB / 2, G.SL]] },
   { id: 'sleeveL', name: 'Manga esquerda', x: M + CT + M, y: ySl, w: CT, h: G.SL, poly: [[0, 0], [CT, 0], [CT / 2 + CB / 2, G.SL], [CT / 2 - CB / 2, G.SL]] },
 ];
+// neckY: profundidade da gola (cm a partir do topo da peça); group: peças pintadas juntas pelo balde
+const PIECES = IS_OVR
+  ? OVR.meta.pieces.map((p) => ({ ...p, neckY: p.id === 'front' ? OVR.meta.neck.front : p.id === 'back' ? OVR.meta.neck.back : 0 }))
+  : PIECES_TRAD.map((p) => ({ ...p, group: p.id, neckY: p.id === 'front' ? G.DROP_F : p.id === 'back' ? G.DROP_B : 0 }));
 const PIECE = Object.fromEntries(PIECES.map((p) => [p.id, p]));
 
 // Posições prontas (centro em cm, relativo ao topo-esquerdo da peça) e largura
-const PRESETS = [
+const PRESETS = IS_OVR ? (() => {
+  const f = PIECE.front, b = PIECE.back, r = PIECE.sleeveR, l = PIECE.sleeveL;
+  return [
+    { id: 'peito', label: 'Peito', piece: 'front', x: f.w / 2, y: f.neckY + 14, w: 24 },
+    { id: 'logo', label: 'Logo no peito', piece: 'front', x: f.w / 2 + 11, y: f.neckY + 8.5, w: 7 },
+    { id: 'barraF', label: 'Barra da frente', piece: 'front', x: f.w / 2, y: f.h - 11, w: 18 },
+    { id: 'costas', label: 'Costas', piece: 'back', x: b.w / 2, y: b.neckY + 21, w: 28 },
+    { id: 'nuca', label: 'Nuca', piece: 'back', x: b.w / 2, y: b.neckY + 4.5, w: 7 },
+    { id: 'barraC', label: 'Barra das costas', piece: 'back', x: b.w / 2, y: b.h - 11, w: 18 },
+    { id: 'mangaD', label: 'Manga direita', piece: 'sleeveR', x: r.w / 2, y: r.h * 0.62, w: 6 },
+    { id: 'mangaE', label: 'Manga esquerda', piece: 'sleeveL', x: l.w / 2, y: l.h * 0.62, w: 6 },
+  ];
+})() : [
   { id: 'peito', label: 'Peito', piece: 'front', x: W / 2, y: 24, w: 23 },
   { id: 'logo', label: 'Logo no peito', piece: 'front', x: W / 2 + 8.5, y: 18, w: 7 },
   { id: 'barraF', label: 'Barra da frente', piece: 'front', x: W / 2, y: G.H - 11, w: 18 },
@@ -683,7 +708,7 @@ fc.on('mouse:down', (opt) => {
     const t = opt.target;
     if (t && isUser(t) && t.type !== 'image') { t.set('fill', fillPaint); fc.requestRenderAll(); snapshotSoon(); refreshInspector(); return; }
     const p = pieceAt(fc.getPointer(e));
-    if (p) { setPieceColor(p.id, fillPaint); fc.requestRenderAll(); snapshotSoon(); toast(`${p.name} pintada`); }
+    if (p) { PIECES.filter((q) => q.group === p.group).forEach((q) => setPieceColor(q.id, fillPaint)); fc.requestRenderAll(); snapshotSoon(); toast(`${p.name} pintada`); }
     return;
   }
   if (!opt.target) {
@@ -711,7 +736,7 @@ function snapshot() {
   hist = hist.slice(0, hi + 1); hist.push(s);
   if (hist.length > 40) hist.shift();
   hi = hist.length - 1;
-  if (!store.set('atelie3d:project3', s)) { /* imagens grandes podem passar do limite do navegador */ }
+  if (!store.set(PROJECT_KEY, s)) { /* imagens grandes podem passar do limite do navegador */ }
   updateUndo();
 }
 const snapshotSoon = debounce(snapshot, 250);
@@ -730,8 +755,8 @@ function restore(s, cb) {
     cb && cb();
   });
 }
-function undo() { if (hi > 0) { hi--; restore(hist[hi], () => { store.set('atelie3d:project3', hist[hi]); updateUndo(); }); } }
-function redo() { if (hi < hist.length - 1) { hi++; restore(hist[hi], () => { store.set('atelie3d:project3', hist[hi]); updateUndo(); }); } }
+function undo() { if (hi > 0) { hi--; restore(hist[hi], () => { store.set(PROJECT_KEY, hist[hi]); updateUndo(); }); } }
+function redo() { if (hi < hist.length - 1) { hi++; restore(hist[hi], () => { store.set(PROJECT_KEY, hist[hi]); updateUndo(); }); } }
 
 /* =====================================================================
    Itens: criar, posicionar, editar
@@ -1030,7 +1055,7 @@ fc.on('object:moving', (e) => {
     const hor = Math.abs(dx) < 0.05 ? 'Centralizado' : `${cmFmt(Math.abs(dx))} cm à ${dx > 0 ? 'direita' : 'esquerda'} do centro`;
     let ver = '';
     if (pc.id === 'front' || pc.id === 'back') {
-      const below = c.y / PX - pc.y - (pc.id === 'front' ? G.DROP_F : G.DROP_B);
+      const below = c.y / PX - pc.y - pc.neckY;
       ver = below < 0 ? ' · na gola' : ` · ${cmFmt(below)} cm abaixo da gola`;
     } else if (pc.id === 'sleeveR' || pc.id === 'sleeveL') {
       ver = ` · ${cmFmt(c.y / PX - pc.y)} cm do ombro`;
@@ -1146,10 +1171,12 @@ function drawStitches() {
   };
   for (const id of ['front', 'back']) { const p = PIECE[id]; line(p.x + 0.4, p.y + p.h - 2.2, p.x + p.w - 0.4, p.y + p.h - 2.2); }
   for (const id of ['sleeveR', 'sleeveL']) {
-    const p = PIECE[id], c = lerp(CB, CT, 2.2 / G.SL);
+    const p = PIECE[id];
+    if (IS_OVR) { line(p.x + 0.3, p.y + p.h - 2.2, p.x + p.w - 0.3, p.y + p.h - 2.2); continue; }
+    const c = lerp(CB, CT, 2.2 / G.SL);
     line(p.x + CT / 2 - c / 2 + 0.3, p.y + G.SL - 2.2, p.x + CT / 2 + c / 2 - 0.3, p.y + G.SL - 2.2);
   }
-  for (const id of ['ribF', 'ribB']) { const p = PIECE[id]; line(p.x + 0.2, p.y + p.h - 0.45, p.x + p.w - 0.2, p.y + p.h - 0.45); }
+  for (const p of PIECES.filter((q) => q.id.startsWith('rib'))) line(p.x + 0.2, p.y + p.h - 0.45, p.x + p.w - 0.2, p.y + p.h - 0.45);
   tctx.restore();
 }
 
@@ -1166,6 +1193,7 @@ const camera = new THREE.PerspectiveCamera(30, 1, 10, 3000);
 
 const texture = new THREE.CanvasTexture(texCanvas);
 texture.colorSpace = THREE.SRGBColorSpace;
+texture.flipY = !IS_OVR;
 texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
 
 // Mapa normal da malha (ponto de meia) gerado na hora
@@ -1311,12 +1339,30 @@ function ribGeo(id, curve) {
 }
 
 const shirt = new THREE.Group();
-const meshes = [
+const meshes = IS_OVR ? [] : [
   bodyGeo('front', 1), bodyGeo('back', -1), sleeveGeo('sleeveR', -1), sleeveGeo('sleeveL', 1), ribGeo('ribF', NECK_F), ribGeo('ribB', NECK_B),
 ].map((g) => { const m = new THREE.Mesh(g, cloth); m.castShadow = true; m.receiveShadow = true; shirt.add(m); return m; });
 scene.add(shirt);
 
+// Modelo oversized do CLO 3D (glTF otimizado, embutido em modelo-oversized.js)
+let modelReady = !IS_OVR;
+if (IS_OVR) {
+  const bin = Uint8Array.from(atob(OVR.glb), (c) => c.charCodeAt(0));
+  new GLTFLoader().parse(bin.buffer, '', (gltf) => {
+    gltf.scene.traverse((o) => {
+      if (!o.isMesh) return;
+      const g = o.geometry;
+      if (!g.attributes.color) g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 3).fill(1), 3));
+      o.material = cloth; o.castShadow = true; o.receiveShadow = true;
+    });
+    gltf.scene.position.y = -3;
+    shirt.add(gltf.scene);
+    modelReady = true; $('#loading3d').hidden = true;
+  }, () => toast('Não consegui carregar o modelo 3D'));
+}
+
 function applyDrape() {
+  if (IS_OVR) return; // o modelo do CLO já tem as dobras de verdade
   const amp = (S.wrinkles / 100) * 0.9;
   for (const m of meshes) {
     const g = m.geometry, base = g.userData.base, pos = g.attributes.position, col = g.attributes.color;
@@ -1397,7 +1443,7 @@ function setBackdrop() {
   markPhoto();
 }
 function setMaterial() {
-  shadeUniform.value = S.ao / 100;
+  shadeUniform.value = IS_OVR ? 0 : S.ao / 100; // sombreamento da foto só no modelo tradicional
   cloth.normalScale.setScalar((S.knit / 100) * 0.9);
   cloth.sheen = (S.sheen / 100) * 1.0;
   markPhoto();
@@ -1412,7 +1458,7 @@ function layout3D() {
 }
 function placeCamera() {
   const tanH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-  const fitH = 104 / (2 * tanH), fitW = 84 / (2 * tanH * camera.aspect);
+  const fitH = (IS_OVR ? 84 : 104) / (2 * tanH), fitW = (IS_OVR ? 80 : 84) / (2 * tanH * camera.aspect);
   const d = Math.max(fitH, fitW) * zoom;
   camera.position.set(0, -3 + d * Math.sin(tilt), d * Math.cos(tilt));
   camera.lookAt(0, -3, 0);
@@ -1447,6 +1493,7 @@ document.querySelectorAll('[data-view]').forEach((b) => (b.onclick = () => {
 }));
 function updateBadge() { $('#badgeText').textContent = S.mode === 'foto' ? `Foto · ${VIEW_NAME[S.view] || 'Frente'}` : 'Camiseta no corpo invisível'; }
 function setMode(m) {
+  if (IS_OVR) m = '3d'; // o oversized não tem foto de mockup: sempre 3D
   S.mode = m; saveSettings();
   document.querySelectorAll('[data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
   view3d.classList.toggle('foto', m === 'foto');
@@ -1463,7 +1510,7 @@ document.querySelectorAll('[data-mode]').forEach((b) => (b.onclick = () => setMo
 const photo = { ready: false, dirty: true, last: 0, shade: null, mask: null, aw: 0, ah: 0, crop: {} };
 function markPhoto() { photo.dirty = true; }
 function loadImg(src) { return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; }); }
-Promise.all([loadImg(SHADE_URL), loadImg(MASK_URL)]).then(([si, mi]) => {
+if (!IS_OVR) Promise.all([loadImg(SHADE_URL), loadImg(MASK_URL)]).then(([si, mi]) => {
   const grab = (im) => { const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; const x = c.getContext('2d'); x.drawImage(im, 0, 0); return x.getImageData(0, 0, c.width, c.height).data; };
   photo.aw = si.naturalWidth; photo.ah = si.naturalHeight; photo.shade = grab(si); photo.mask = grab(mi);
   // o tom mais claro da camiseta na foto vira o "branco" do tecido
@@ -1637,16 +1684,16 @@ function describeItem(o, pc, en) {
   const size = en ? `about ${n1(w)} × ${n1(h)} cm` : `com cerca de ${n1(w)} × ${n1(h)} cm`;
   let where = '';
   if (pc.id === 'front' || pc.id === 'back') {
-    const drop = pc.id === 'front' ? G.DROP_F : G.DROP_B, below = ly - drop, dx = lx - W / 2;
+    const drop = pc.neckY, below = ly - drop, dx = lx - pc.w / 2;
     const vert = below < 1.5 ? (en ? 'right below the collar' : 'logo abaixo da gola') : (en ? `its center ${n1(below)} cm below the collar` : `com o centro a ${n1(below)} cm abaixo da gola`);
     // na frente, +x do molde = esquerda de quem veste; nas costas, +x do molde = direita de quem veste
     const wearerLeft = pc.id === 'front' ? dx > 0 : dx < 0;
     const hor = Math.abs(dx) < 1.2 ? (en ? 'horizontally centered' : 'centralizado')
       : en ? `shifted ${n1(Math.abs(dx))} cm toward the wearer's ${wearerLeft ? 'left' : 'right'}` : `deslocado ${n1(Math.abs(dx))} cm para o lado ${wearerLeft ? 'esquerdo' : 'direito'} de quem veste`;
     where = `${hor}, ${vert}`;
-    if (pc.id === 'front' && below > G.H - drop - 16) where += en ? ' (near the hem)' : ' (perto da barra)';
+    if (pc.id === 'front' && below > pc.h - drop - 16) where += en ? ' (near the hem)' : ' (perto da barra)';
   } else if (pc.id === 'sleeveR' || pc.id === 'sleeveL') {
-    const t = ly / G.SL;
+    const t = ly / pc.h;
     where = t < 0.4 ? (en ? 'on the outer side of the sleeve, near the shoulder' : 'na parte de fora da manga, perto do ombro')
       : t < 0.75 ? (en ? 'on the outer side, middle of the sleeve' : 'na parte de fora, no meio da manga') : (en ? 'at the sleeve hem (cuff)' : 'na barra da manga (punho)');
   } else where = en ? 'on the collar rib' : 'na ribana da gola';
@@ -1661,15 +1708,15 @@ function buildPrompt() {
   for (const o of userObjs()) {
     if (!o.visible) continue;
     const pc = pieceAt(o.getCenterPoint()); if (!pc) continue;
-    const key = pc.id === 'ribB' ? 'ribF' : pc.id;
+    const key = pc.id.startsWith('rib') ? 'ribF' : pc.id;
     (groups[key] = groups[key] || []).push(describeItem(o, pc, en));
   }
   const show = AI.view === 'both' ? ['front', 'back', 'sleeveR', 'sleeveL', 'ribF'] : AI.view === 'front' ? ['front', 'sleeveR', 'sleeveL', 'ribF'] : ['back', 'sleeveR', 'sleeveL', 'ribF'];
   const lines = [];
   lines.push(L(`Crie uma ${AI_STYLES[AI.style][1]}.`, `Create a ${AI_STYLES[AI.style][2]}.`), '');
   lines.push(L('PEÇA', 'GARMENT'));
-  lines.push(L('- Camiseta de malha 100% algodão, gola careca com ribana, manga curta, modelagem tradicional (regular), comprimento de cerca de 74 cm.',
-               '- 100% cotton jersey t-shirt, crew neck with rib collar, short sleeves, regular fit, about 74 cm long.'));
+  lines.push(L('- Camiseta de malha 100% algodão, gola careca com ribana, manga curta, ' + (IS_OVR ? 'modelagem oversized boxy, ombro caído, comprimento de cerca de 62 cm.' : 'modelagem tradicional (regular), comprimento de cerca de 74 cm.'),
+               '- 100% cotton jersey t-shirt, crew neck with rib collar, short sleeves, ' + (IS_OVR ? 'oversized boxy fit with dropped shoulders, about 62 cm long.' : 'regular fit, about 74 cm long.')));
   lines.push(L(`- Cor do tecido: ${colorName(body, false)}.`, `- Fabric color: ${colorName(body, true)}.`));
   const diff = (id) => toHex(pieceColors[id]).toLowerCase() !== toHex(body).toLowerCase();
   if (diff('ribF') || diff('ribB')) lines.push(L(`- Gola (ribana) em contraste: ${colorName(pieceColors.ribF, false)}.`, `- Contrast rib collar: ${colorName(pieceColors.ribF, true)}.`));
@@ -1705,6 +1752,18 @@ function aiChips(el, map, key, idx = 0) {
   }
 }
 const aiRefs = {};
+// imagem do 3D numa vista fixa (frente = 0, costas = π), sem mexer na vitrine
+function still3D(rot) {
+  if (texDirty) renderTexture();
+  const prevRot = shirt.rotation.y, prevTilt = tilt, prevZoom = zoom, pr = renderer.getPixelRatio();
+  shirt.rotation.y = rot; tilt = 0; zoom = 1; placeCamera();
+  renderer.setPixelRatio(Math.min(3, Math.max(2, pr * 1.5))); layout3D();
+  renderer.render(scene, camera);
+  const url = c3d.toDataURL('image/png');
+  renderer.setPixelRatio(pr); layout3D();
+  shirt.rotation.y = prevRot; tilt = prevTilt; zoom = prevZoom; placeCamera();
+  return url;
+}
 $('#aiPrompt').onclick = () => {
   if (texDirty) renderTexture();
   AI.view = S.view === 'back' ? 'back' : 'front';
@@ -1713,8 +1772,9 @@ $('#aiPrompt').onclick = () => {
   $('#aiText').value = buildPrompt();
   $('#aiModal').hidden = false; $('#aiCopy').focus();
   setTimeout(() => {
-    if (!photo.ready) { $('#aiRefF').alt = 'A foto do mockup ainda está carregando'; return; }
-    aiRefs.front = exportPhoto('front'); aiRefs.back = exportPhoto('back');
+    if (IS_OVR) { aiRefs.front = still3D(0); aiRefs.back = still3D(Math.PI); }
+    else if (!photo.ready) { $('#aiRefF').alt = 'A foto do mockup ainda está carregando'; return; }
+    else { aiRefs.front = exportPhoto('front'); aiRefs.back = exportPhoto('back'); }
     $('#aiRefF').src = aiRefs.front; $('#aiRefB').src = aiRefs.back;
   }, 30);
 };
@@ -1794,7 +1854,7 @@ const scaleTo = (o, cm) => o.set({ scaleX: (cm * PX) / o.width, scaleY: (cm * PX
 function loadSample(done) {
   const ink = '#141414', paper = '#e7e1cf';
   for (const p of PIECES) setPieceColor(p.id, ink);
-  const front = PIECE.front, back = PIECE.back, cx = (pc) => (pc.x + W / 2) * PX;
+  const front = PIECE.front, back = PIECE.back, cx = (pc) => (pc.x + pc.w / 2) * PX;
   // frente: 148 no peito
   const t1 = newText('148', 'Anton', paper); scaleTo(t1, 9); t1.set({ left: cx(front), top: (front.y + 20) * PX }); fc.add(t1);
   const t2 = newText('TODA A CRIAÇÃO LOUVA', 'Geist', paper); t2.set({ fontSize: 40, charSpacing: 380 }); scaleTo(t2, 11);
@@ -1814,6 +1874,23 @@ function loadSample(done) {
 /* =====================================================================
    Inicialização e laço de animação
    ===================================================================== */
+function setupModelUI() {
+  const box = $('#modelChips');
+  if (!OVR) { $('#modelField').hidden = true; return; }
+  for (const [id, label] of [['oversized', 'Oversized 148 · CLO 3D'], ['tradicional', 'Tradicional · Foto']]) {
+    const b = document.createElement('button'); b.className = 'chip'; b.textContent = label;
+    b.setAttribute('aria-pressed', String((id === 'oversized') === IS_OVR));
+    b.onclick = () => { if ((id === 'oversized') === IS_OVR) return; store.set(MODEL_KEY, id); location.reload(); };
+    box.appendChild(b);
+  }
+  if (IS_OVR) {
+    // sem foto de mockup: some o seletor Foto/3D e os ajustes que vêm da foto
+    document.querySelector('.pill3d.modes').hidden = true;
+    $('#rWrinkles').closest('.field').hidden = true;
+    $('#rAo').closest('.field').hidden = true;
+    $('.brand p').textContent = 'Toda a criação louva · oversized 148';
+  }
+}
 function applySettings() {
   setMaterial(); setBackdrop(); setGobo(); setLight(); applyDrape(); applyGuideColors();
   for (const [id, key] of sliders) { const r = $('#r' + id); if (r) { r.value = S[key]; r.dispatchEvent(new Event('input')); } }
@@ -1840,14 +1917,15 @@ async function boot() {
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   try { await Promise.race([Promise.all(FONTS.map((f) => document.fonts.load(`60px "${f}"`))), wait(3000)]); } catch {}
   FONTS.forEach((f) => fabric.util.clearFabricFontCache(f));
+  setupModelUI();
   buildGuides(); normalizeOrder();
   new ResizeObserver(() => { layout3D(); fit2D(); markPhoto(); }).observe(view3d);
   new ResizeObserver(() => fit2D()).observe(wrap2d);
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyGuideColors);
   new MutationObserver(applyGuideColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   layout3D(); fit2D(); applySettings();
-  const saved = store.get('atelie3d:project3');
-  const finish = () => { snapshot(); refreshLayers(); refreshFabric(); markTex(); $('#loading3d').hidden = true; };
+  const saved = store.get(PROJECT_KEY);
+  const finish = () => { snapshot(); refreshLayers(); refreshFabric(); markTex(); if (modelReady) $('#loading3d').hidden = true; };
   if (saved) restore(saved, finish); else loadSample(finish);
   requestAnimationFrame(frame);
 }
