@@ -32,7 +32,7 @@ O modelo oversized fica em `modelo-oversized.js` (moldes + malha 3D otimizada, ~
 - **Guias de alinhamento (como no Canva)**: ao arrastar uma arte, uma linha rosa aparece quando ela passa pelo centro da peça ou se alinha com o centro/bordas de outra arte, e a arte gruda na linha. Um aviso mostra a posição (ex.: "Frente: Centralizado · 15,5 cm abaixo da gola"). Segure **Alt** para arrastar sem grudar.
 - **Balde**: pinta uma peça só (por exemplo, gola e punhos de outra cor, no estilo *ringer*) ou muda a cor de um item.
 - **Posicionar em**: atalhos para peito, logo no peito, costas, nuca, barras e mangas, já no tamanho certo em cm.
-- **Tecido**: cor da camiseta inteira.
+- **Tecido**: cor da camiseta inteira — paleta da 148 ou **qualquer cor**: clique no quadrado colorido (seletor do sistema), digite o código hex (ex.: `#1A3D2B` ou `1a3d2b`) ou use o **conta-gotas** (Chrome/Edge) para pegar uma cor da tela. As cores usadas ficam em **Suas cores** (e também no Balde).
 - **Modo Foto** (padrão): o resultado usa a própria foto do mockup (silhueta, dobras e luz originais) com a sua cor e estampa aplicadas por cima, como num mockup de PSD. É o modo para exportar a imagem final.
 - **Modo 3D**: a camiseta gira livremente; serve para conferir a estampa por todos os ângulos.
 - **Vistas**: botões Frente, Lado e Costas, nos dois modos.

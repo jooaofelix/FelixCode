@@ -181,6 +181,15 @@ textarea { resize: vertical; min-height: 54px; }
 input[type="range"] { width: 100%; accent-color: var(--chalk); }
 input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid var(--line); border-radius: 0; background: none; cursor: pointer; }
 .swatches { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.anycolor { display: flex; align-items: center; gap: 12px; }
+.bigwell { position: relative; width: 52px; height: 52px; flex: none; cursor: pointer; border: 1px solid var(--line); }
+.bigwell input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; }
+.bigwell span { position: absolute; inset: 4px; pointer-events: none; background: conic-gradient(from 0deg, #e5484d, #f0b429, #46a758, #12a594, #3e63dd, #8e4ec6, #e5484d); }
+.bigwell span::after { content: ""; position: absolute; inset: 9px; background: var(--well, #141414); border: 2px solid var(--panel); }
+.anycolor-fields { display: grid; gap: 5px; min-width: 0; flex: 1; }
+.hexrow { display: flex; gap: 6px; }
+.hexrow input { width: 100%; min-width: 0; border: 1px solid var(--line); background: var(--panel-2); padding: 7px 9px; font: 13px var(--font-mono); text-transform: uppercase; }
+.hexrow input[aria-invalid="true"] { border-color: var(--danger); }
 .sw {
   width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(127,127,127,.45); padding: 0;
   box-shadow: inset 0 0 0 2px var(--panel);
@@ -358,8 +367,18 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
       <section class="panel">
         <h2>Tecido</h2>
         <div class="swatches" id="fabricSwatches"></div>
-        <div class="field-line"><span class="note">Cor personalizada</span><input type="color" id="fabricColor" value="#141414" aria-label="Cor personalizada do tecido"></div>
-        <p class="note">Pinta a camiseta inteira. Para gola ou punho de outra cor (estilo ringer), use o <b>Balde</b> e clique na peça.</p>
+        <div class="anycolor">
+          <label class="bigwell" title="Abrir o seletor de cores"><input type="color" id="fabricColor" value="#141414" aria-label="Escolher qualquer cor para a camiseta"><span id="fabricWell"></span></label>
+          <div class="anycolor-fields">
+            <span class="note">Qualquer cor</span>
+            <div class="hexrow">
+              <input type="text" id="fabricHex" value="#141414" maxlength="7" spellcheck="false" autocomplete="off" aria-label="Código da cor (hex)">
+              <button class="icon-btn" id="fabricDrop" title="Conta-gotas: pegar uma cor da tela" aria-label="Conta-gotas" hidden><svg class="i" viewBox="0 0 24 24"><path d="m14 4 6 6"/><path d="M17 7 7.5 16.5 5 19l-1 1"/><path d="m9 15-2 2"/><path d="M15.5 4.5a2.1 2.1 0 0 1 3 0l1 1a2.1 2.1 0 0 1 0 3L18 10l-4-4 1.5-1.5z"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="field" id="recentField" hidden>Suas cores<div class="swatches" id="recentSwatches"></div></div>
+        <p class="note">Clique no quadrado colorido para escolher qualquer cor, ou digite o código (ex.: #1A3D2B). Pinta a camiseta inteira. Para gola ou punho de outra cor (estilo ringer), use o <b>Balde</b> e clique na peça.</p>
       </section>
 
       <section class="panel">
@@ -1631,11 +1650,52 @@ $('#spin').onclick = () => { S.spin = !S.spin; $('#spin').setAttribute('aria-pre
 /* =====================================================================
    Painéis de tecido, acabamento e cenário
    ===================================================================== */
-function paintAll(hex) { for (const p of PIECES) setPieceColor(p.id, hex); $('#fabricColor').value = hex; fc.requestRenderAll(); snapshotSoon(); refreshFabric(); }
-function refreshFabric() { swatchRow($('#fabricSwatches'), FABRICS, paintAll, pieceColors.front); }
+/* ---------- cor do tecido: paleta 148, qualquer cor (seletor, código hex, conta-gotas) e "Suas cores" ---------- */
+const normHex = (v) => {
+  let h = String(v || '').trim().replace(/^#/, '');
+  if (/^[0-9a-f]{3}$/i.test(h)) h = h.split('').map((c) => c + c).join('');
+  return /^[0-9a-f]{6}$/i.test(h) ? '#' + h.toLowerCase() : null;
+};
+function rememberColor(hex) {
+  if (FABRICS.some(([, f]) => f.toLowerCase() === hex)) return;
+  S.recent = [hex, ...(S.recent || []).filter((c) => c !== hex)].slice(0, 10);
+  saveSettings();
+}
+function paintAll(hex, remember = false) {
+  hex = normHex(hex) || '#141414';
+  for (const p of PIECES) setPieceColor(p.id, hex);
+  fc.requestRenderAll(); snapshotSoon();
+  if (remember) rememberColor(hex);
+  refreshFabric();
+}
+function refreshFabric() {
+  const cur = toHex(pieceColors.front);
+  swatchRow($('#fabricSwatches'), FABRICS, (h) => paintAll(h), cur);
+  const recent = (S.recent || []).map((c) => [c.toUpperCase(), c]);
+  $('#recentField').hidden = !recent.length;
+  swatchRow($('#recentSwatches'), recent, (h) => paintAll(h), cur);
+  $('#fabricColor').value = cur;
+  if (document.activeElement !== $('#fabricHex')) { $('#fabricHex').value = cur.toUpperCase(); $('#fabricHex').removeAttribute('aria-invalid'); }
+  $('.bigwell').style.setProperty('--well', cur);
+}
 $('#fabricColor').oninput = (e) => paintAll(e.target.value);
-function refreshFillbar() { swatchRow($('#fillSwatches'), FABRICS, (hex) => { fillPaint = hex; $('#fillColor').value = hex; refreshFillbar(); }, fillPaint); }
+$('#fabricColor').onchange = (e) => paintAll(e.target.value, true);
+$('#fabricHex').oninput = (e) => {
+  const h = normHex(e.target.value);
+  e.target.setAttribute('aria-invalid', String(!h && e.target.value.replace('#', '').length >= 3));
+  if (h) paintAll(h);
+};
+$('#fabricHex').onchange = (e) => { const h = normHex(e.target.value); if (h) paintAll(h, true); else refreshFabric(); };
+$('#fabricHex').onkeydown = (e) => { if (e.key === 'Enter') e.target.blur(); };
+if ('EyeDropper' in window) {
+  $('#fabricDrop').hidden = false;
+  $('#fabricDrop').onclick = async () => {
+    try { const { sRGBHex } = await new window.EyeDropper().open(); paintAll(sRGBHex, true); } catch { /* cancelado */ }
+  };
+}
+function refreshFillbar() { swatchRow($('#fillSwatches'), FABRICS.concat((S.recent || []).map((c) => [c.toUpperCase(), c])), (hex) => { fillPaint = hex; $('#fillColor').value = hex; refreshFillbar(); }, fillPaint); }
 $('#fillColor').oninput = (e) => { fillPaint = e.target.value; refreshFillbar(); };
+$('#fillColor').onchange = (e) => { rememberColor(e.target.value.toLowerCase()); refreshFillbar(); };
 
 const sliders = [['Wrinkles', 'wrinkles', applyDrape], ['Ao', 'ao', setMaterial], ['Knit', 'knit', setMaterial], ['Sheen', 'sheen', setMaterial], ['Gobo', 'goboStr', setGobo], ['Light', 'light', setLight], ['Motion', 'motion', () => {}]];
 for (const [id, key, fn] of sliders) {
