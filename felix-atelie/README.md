@@ -19,6 +19,7 @@ python -m http.server 8000
 - **Imagem**: envie PNG/JPG (de preferência PNG com fundo transparente) e posicione nos moldes.
 - **Texto**: 9 fontes (Anton, Bebas Neue, Archivo Black, Playfair, Permanent Marker, Pacifico…). Dê dois cliques no texto para editar direto no molde.
 - **Faixa / Círculo**: formas para punhos, faixas e detalhes.
+- **Medidas em cm**: cada imagem mostra no molde a largura e a altura em cm (cotas que acompanham rotação e tamanho em tempo real); textos e formas mostram quando selecionados. O botão **Medidas** liga/desliga. As camadas também mostram o tamanho de cada item, e o **molde baixado** sai com as medidas de todas as artes.
 - **Balde**: pinta uma peça só (por exemplo, gola e punhos de outra cor, no estilo *ringer*) ou muda a cor de um item.
 - **Posicionar em**: atalhos para peito, logo no peito, costas, nuca, barras e mangas, já no tamanho certo em cm.
 - **Tecido**: cor da camiseta inteira.

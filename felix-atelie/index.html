@@ -99,7 +99,7 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 }
 .tool {
   display: grid; justify-items: center; gap: 3px; padding: 9px 2px 7px; border-radius: 0; border: 1px solid transparent;
-  background: transparent; color: var(--muted); font-size: 9px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase;
+  background: transparent; color: var(--muted); font-size: 9px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase;
 }
 .tool svg.i { width: 20px; height: 20px; }
 .tool:hover { color: var(--fg); background: var(--panel-2); }
@@ -204,6 +204,7 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
   border: 1px solid var(--line); border-radius: 0; background: var(--panel-2); font-size: 12.5px;
 }
 .layer span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.layer small { margin-left: auto; padding-left: 6px; color: var(--muted); font: 10.5px var(--font-mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .layer.on { border-color: var(--chalk); }
 .layer svg.i { width: 15px; height: 15px; color: var(--muted); }
 .layers .icon-btn { width: 34px; height: 34px; }
@@ -272,6 +273,7 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
       <hr>
       <button class="tool" data-tool="fill" title="Balde: pinta uma peça (B)"><svg class="i" viewBox="0 0 24 24"><path d="m4 12 7-7 8 8-7 7z"/><path d="M4 12h15"/><path d="M20 16s2 2.4 2 3.5a2 2 0 0 1-4 0c0-1.1 2-3.5 2-3.5z"/></svg>Balde</button>
       <button class="tool" id="toggleGuides" title="Mostrar ou ocultar as linhas de molde"><svg class="i" viewBox="0 0 24 24"><path d="M3 7h18M3 17h18M7 3v18M17 3v18" stroke-dasharray="2 3"/></svg>Guias</button>
+      <button class="tool" id="toggleDims" title="Mostrar a medida em cm das imagens nos moldes"><svg class="i" viewBox="0 0 24 24"><path d="M3 8h18v8H3z"/><path d="M7 8v3M11 8v4M15 8v3M19 8v4"/></svg>Medidas</button>
     </nav>
 
     <main class="stage">
@@ -582,7 +584,7 @@ const GOBOS = [['nenhuma', 'Nenhuma'], ['persiana', 'Persiana'], ['folhas', 'Fol
 /* =====================================================================
    Estado
    ===================================================================== */
-const DEFAULT_SETTINGS = { mode: 'foto', view: 'front', wrinkles: 12, ao: 90, knit: 45, sheen: 40, backdrop: '#e7e1cf', gobo: 'nenhuma', goboStr: 60, light: 25, spin: false, guides: true };
+const DEFAULT_SETTINGS = { mode: 'foto', view: 'front', wrinkles: 12, ao: 90, knit: 45, sheen: 40, backdrop: '#e7e1cf', gobo: 'nenhuma', goboStr: 60, light: 25, spin: false, guides: true, dims: true };
 let S = { ...DEFAULT_SETTINGS };
 try { Object.assign(S, JSON.parse(store.get('atelie3d:settings4') || '{}')); } catch {}
 const saveSettings = debounce(() => store.set('atelie3d:settings4', JSON.stringify(S)), 300);
@@ -900,7 +902,8 @@ function refreshLayers() {
     const li = document.createElement('li');
     const b = document.createElement('button'); b.className = 'layer' + (o === a ? ' on' : '');
     const kind = o.type === 'image' ? 'image' : /text/.test(o.type) ? 'text' : 'shape';
-    b.innerHTML = ICONS[kind] + '<span></span>'; b.querySelector('span').textContent = displayName(o);
+    b.innerHTML = ICONS[kind] + '<span></span><small></small>'; b.querySelector('span').textContent = displayName(o);
+    b.querySelector('small').textContent = sizeLabel(o);
     b.onclick = () => { setTool('select'); fc.setActiveObject(o); fc.requestRenderAll(); refreshInspector(); };
     const eye = document.createElement('button'); eye.className = 'icon-btn' + (o.visible ? '' : ' off');
     eye.innerHTML = ICONS.eye; eye.title = o.visible ? 'Ocultar' : 'Mostrar'; eye.setAttribute('aria-label', eye.title);
@@ -912,11 +915,68 @@ function refreshLayers() {
 /* ---------- eventos do editor ---------- */
 fc.on('object:added', (e) => { if (isUser(e.target) && !restoring) { snapshotSoon(); refreshLayers(); } });
 fc.on('object:removed', (e) => { if (isUser(e.target) && !restoring) { snapshotSoon(); refreshLayers(); } });
-fc.on('object:modified', () => { snapshotSoon(); refreshInspector(); });
+fc.on('object:modified', () => { snapshotSoon(); refreshInspector(); refreshLayers(); });
 fc.on('text:changed', () => { snapshotSoon(); refreshInspector(); });
 ['object:moving', 'object:scaling', 'object:rotating'].forEach((ev) => fc.on(ev, () => refreshInspector()));
 ['selection:created', 'selection:updated', 'selection:cleared'].forEach((ev) => fc.on(ev, refreshInspector));
-fc.on('after:render', () => { if (!texBusy) markTex(); });
+fc.on('after:render', (opt) => { if (texBusy) return; markTex(); if (opt && opt.ctx) drawDims(opt.ctx); });
+
+/* ---------- medidas em cm sobre as artes ---------- */
+const cmFmt = (v) => v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const sizeLabel = (o) => `${cmFmt(o.getScaledWidth() / PX)} × ${cmFmt(o.getScaledHeight() / PX)} cm`;
+// Desenha uma cota (linha de medida com traços nas pontas e o valor no meio)
+// paralela à aresta pA→pB, afastada `off` px na direção n (para fora da arte).
+function dimLine(ctx, pA, pB, n, text, st) {
+  const ax = pA.x + n.x * st.off, ay = pA.y + n.y * st.off, bx = pB.x + n.x * st.off, by = pB.y + n.y * st.off;
+  ctx.strokeStyle = st.line; ctx.lineWidth = st.lw; ctx.setLineDash([]);
+  ctx.globalAlpha = st.alpha * 0.45;
+  ctx.beginPath(); // linhas de chamada
+  ctx.moveTo(pA.x + n.x * st.gap, pA.y + n.y * st.gap); ctx.lineTo(ax + n.x * st.tick, ay + n.y * st.tick);
+  ctx.moveTo(pB.x + n.x * st.gap, pB.y + n.y * st.gap); ctx.lineTo(bx + n.x * st.tick, by + n.y * st.tick);
+  ctx.stroke();
+  ctx.globalAlpha = st.alpha;
+  ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+  ctx.beginPath(); // traços nas pontas
+  for (const [x, y] of [[ax, ay], [bx, by]]) { ctx.moveTo(x - n.x * st.tick, y - n.y * st.tick); ctx.lineTo(x + n.x * st.tick, y + n.y * st.tick); }
+  ctx.stroke();
+  let ang = Math.atan2(by - ay, bx - ax);
+  if (ang > Math.PI / 2) ang -= Math.PI; else if (ang < -Math.PI / 2) ang += Math.PI;
+  ctx.save();
+  ctx.translate((ax + bx) / 2, (ay + by) / 2); ctx.rotate(ang);
+  const tw = ctx.measureText(text).width, ph = st.font * 1.6;
+  ctx.fillStyle = st.bg; ctx.fillRect(-tw / 2 - st.font * 0.5, -ph / 2, tw + st.font, ph);
+  ctx.strokeRect(-tw / 2 - st.font * 0.5, -ph / 2, tw + st.font, ph);
+  ctx.fillStyle = st.text; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, 0, 1);
+  ctx.restore();
+}
+function dimsFor(ctx, o, pts, st) {
+  const { tl, tr, br, bl } = pts;
+  const unit = (p, q) => { const dx = q.x - p.x, dy = q.y - p.y, l = Math.hypot(dx, dy) || 1; return { x: dx / l, y: dy / l }; };
+  dimLine(ctx, bl, br, unit(tl, bl), `${cmFmt(o.getScaledWidth() / PX)} cm`, st); // largura, embaixo
+  dimLine(ctx, tr, br, unit(tl, tr), `${cmFmt(o.getScaledHeight() / PX)} cm`, st); // altura, à direita
+}
+function drawDims(ctx) {
+  const a = act();
+  // imagens mostram a medida sempre (botão Medidas); textos e formas, só quando selecionados
+  const objs = userObjs().filter((o) => o.visible && (o === a || (S.dims !== false && o.type === 'image')));
+  if (!objs.length || tool === 'fill') return;
+  ctx.save();
+  const font = 11;
+  ctx.font = `500 ${font}px "Geist Mono", ui-monospace, monospace`;
+  for (const o of objs) {
+    o.setCoords(); // garante a posição certa depois de zoom/arrasto da mesa
+    const pts = o.oCoords; if (!pts || !pts.tl) continue;
+    const sel = o === a;
+    dimsFor(ctx, o, pts, { off: sel ? 26 : 14, gap: sel ? 12 : 4, tick: 4, lw: 1, font, alpha: sel ? 1 : 0.8,
+      line: cssVar('--chalk') || '#e7e1cf', text: cssVar('--fg') || '#e7e1cf', bg: cssVar('--panel') || '#121212' });
+  }
+  ctx.restore();
+}
+$('#toggleDims').onclick = () => {
+  S.dims = S.dims === false; saveSettings();
+  $('#toggleDims').classList.toggle('active', S.dims !== false); fc.requestRenderAll();
+  toast(S.dims !== false ? 'Medidas em cm nas imagens' : 'Medidas só no item selecionado');
+};
 
 window.addEventListener('keydown', (e) => {
   const tag = (document.activeElement && document.activeElement.tagName) || '';
@@ -1586,7 +1646,15 @@ $('#exportFlat').onclick = () => {
   x.setLineDash([12, 8]); x.strokeStyle = '#8f8d86'; x.lineWidth = 3; x.stroke(maskPath);
   x.fillStyle = '#55534d'; x.font = `${Math.round(1.4 * TEX)}px "Geist Mono", monospace`;
   for (const p of PIECES) x.fillText(`${p.name.toUpperCase()}  ${p.w.toFixed(1)} × ${p.h.toFixed(1)} cm`, p.x * TEX, (p.y - 0.9) * TEX);
-  showModal('Molde para impressão', c.toDataURL('image/png'), `Escala: ${TEX} px por cm. ${SAVE_NOTE}`, '148-atelie-molde.png');
+  // medidas de cada arte no molde (para a estamparia)
+  const k = TEX / PX, font = Math.round(1.1 * TEX);
+  x.font = `500 ${font}px "Geist Mono", monospace`;
+  for (const o of userObjs().filter((o) => o.visible)) {
+    const ac = o.calcACoords(), pts = {};
+    for (const key of ['tl', 'tr', 'br', 'bl']) pts[key] = { x: ac[key].x * k, y: ac[key].y * k };
+    dimsFor(x, o, pts, { off: 1.6 * TEX, gap: 0.4 * TEX, tick: 0.35 * TEX, lw: 2, font, alpha: 1, line: '#ff3b6b', text: '#0a0a0a', bg: '#ffffff' });
+  }
+  showModal('Molde para impressão', c.toDataURL('image/png'), `Escala: ${TEX} px por cm, com a medida de cada arte. ${SAVE_NOTE}`, '148-atelie-molde.png');
 };
 $('#saveProj').onclick = () => {
   const blob = new Blob([JSON.stringify({ ...JSON.parse(serialize()), settings: S }, null, 1)], { type: 'application/json' });
@@ -1653,6 +1721,7 @@ function applySettings() {
   $('#spin').setAttribute('aria-pressed', String(S.spin));
   setMode(S.mode || 'foto'); setView(S.view || 'front');
   $('#toggleGuides').classList.toggle('active', S.guides);
+  $('#toggleDims').classList.toggle('active', S.dims !== false);
   refreshScene(); refreshFabric(); refreshFillbar();
 }
 let last = performance.now();
