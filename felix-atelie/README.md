@@ -20,6 +20,7 @@ python -m http.server 8000
 - **Texto**: 9 fontes (Anton, Bebas Neue, Archivo Black, Playfair, Permanent Marker, Pacifico…). Dê dois cliques no texto para editar direto no molde.
 - **Faixa / Círculo**: formas para punhos, faixas e detalhes.
 - **Medidas em cm**: cada imagem mostra no molde a largura e a altura em cm (cotas que acompanham rotação e tamanho em tempo real); textos e formas mostram quando selecionados. O botão **Medidas** liga/desliga. As camadas também mostram o tamanho de cada item, e o **molde baixado** sai com as medidas de todas as artes.
+- **Guias de alinhamento (como no Canva)**: ao arrastar uma arte, uma linha rosa aparece quando ela passa pelo centro da peça ou se alinha com o centro/bordas de outra arte, e a arte gruda na linha. Um aviso mostra a posição (ex.: "Frente: Centralizado · 15,5 cm abaixo da gola"). Segure **Alt** para arrastar sem grudar.
 - **Balde**: pinta uma peça só (por exemplo, gola e punhos de outra cor, no estilo *ringer*) ou muda a cor de um item.
 - **Posicionar em**: atalhos para peito, logo no peito, costas, nuca, barras e mangas, já no tamanho certo em cm.
 - **Tecido**: cor da camiseta inteira.

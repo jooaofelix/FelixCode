@@ -697,7 +697,7 @@ fc.on('mouse:move', (opt) => {
   fc.relativePan(new fabric.Point(pt.clientX - panning.x, pt.clientY - panning.y));
   panning = { x: pt.clientX, y: pt.clientY };
 });
-fc.on('mouse:up', () => { panning = null; });
+fc.on('mouse:up', () => { panning = null; if (snap.guides.length || snap.tip) { snap.guides = []; snap.tip = null; fc.requestRenderAll(); } });
 
 /* =====================================================================
    Histórico, salvamento automático
@@ -919,7 +919,7 @@ fc.on('object:modified', () => { snapshotSoon(); refreshInspector(); refreshLaye
 fc.on('text:changed', () => { snapshotSoon(); refreshInspector(); });
 ['object:moving', 'object:scaling', 'object:rotating'].forEach((ev) => fc.on(ev, () => refreshInspector()));
 ['selection:created', 'selection:updated', 'selection:cleared'].forEach((ev) => fc.on(ev, refreshInspector));
-fc.on('after:render', (opt) => { if (texBusy) return; markTex(); if (opt && opt.ctx) drawDims(opt.ctx); });
+fc.on('after:render', (opt) => { if (texBusy) return; markTex(); if (opt && opt.ctx) { drawDims(opt.ctx); drawSnap(opt.ctx); } });
 
 /* ---------- medidas em cm sobre as artes ---------- */
 const cmFmt = (v) => v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -972,6 +972,105 @@ function drawDims(ctx) {
   }
   ctx.restore();
 }
+/* ---------- guias inteligentes (como no Canva) ----------
+   Ao arrastar uma arte, ela "gruda" no centro da peça e no centro/bordas das
+   outras artes; linhas rosa mostram o alinhamento. Segure Alt para soltar livre. */
+const SNAP_PX = 7; // distância na tela para grudar
+const snap = { guides: [], tip: null };
+function snapAxis(cands, values) {
+  // cands: [{ v, ...meta }], values: posições da arte (centro, borda 1, borda 2)
+  let best = null;
+  for (const c of cands) for (const [k, val] of values.entries()) {
+    const d = c.v - val;
+    if (!best || Math.abs(d) < Math.abs(best.d)) best = { d, c, k };
+  }
+  return best;
+}
+fc.on('object:moving', (e) => {
+  const o = e.target;
+  snap.guides = []; snap.tip = null;
+  if (!o || !isUser(o)) return;
+  const th = SNAP_PX / fc.getZoom();
+  const pc = pieceAt(o.getCenterPoint());
+  const bb = () => o.getBoundingRect(true, true);
+  const others = userObjs().filter((x) => x !== o && x.visible);
+  if (!(e.e && e.e.altKey)) {
+    let r = bb();
+    // eixo vertical (posição x)
+    const xc = [];
+    if (pc) xc.push({ v: (pc.x + pc.w / 2) * PX, center: true, y1: pc.y * PX, y2: (pc.y + pc.h) * PX });
+    for (const x of others) {
+      const b = x.getBoundingRect(true, true);
+      for (const v of [b.left + b.width / 2, b.left, b.left + b.width]) xc.push({ v, y1: Math.min(b.top, r.top), y2: Math.max(b.top + b.height, r.top + r.height) });
+    }
+    const bx = snapAxis(xc, [r.left + r.width / 2, r.left, r.left + r.width]);
+    if (bx && Math.abs(bx.d) < th) {
+      o.set('left', o.left + bx.d);
+      snap.guides.push({ x1: bx.c.v, y1: bx.c.y1, x2: bx.c.v, y2: bx.c.y2, center: !!bx.c.center });
+    }
+    // eixo horizontal (posição y)
+    r = bb();
+    const yc = [];
+    if (pc) yc.push({ v: (pc.y + pc.h / 2) * PX, center: true, x1: pc.x * PX, x2: (pc.x + pc.w) * PX });
+    for (const x of others) {
+      const b = x.getBoundingRect(true, true);
+      for (const v of [b.top + b.height / 2, b.top, b.top + b.height]) yc.push({ v, x1: Math.min(b.left, r.left), x2: Math.max(b.left + b.width, r.left + r.width) });
+    }
+    const by = snapAxis(yc, [r.top + r.height / 2, r.top, r.top + r.height]);
+    if (by && Math.abs(by.d) < th) {
+      o.set('top', o.top + by.d);
+      snap.guides.push({ x1: by.c.x1, y1: by.c.v, x2: by.c.x2, y2: by.c.v, center: !!by.c.center });
+    }
+    o.setCoords();
+  }
+  // aviso de posição em relação ao centro da peça e à gola
+  if (pc) {
+    const c = o.getCenterPoint();
+    const dx = c.x / PX - (pc.x + pc.w / 2);
+    const hor = Math.abs(dx) < 0.05 ? 'Centralizado' : `${cmFmt(Math.abs(dx))} cm à ${dx > 0 ? 'direita' : 'esquerda'} do centro`;
+    let ver = '';
+    if (pc.id === 'front' || pc.id === 'back') {
+      const below = c.y / PX - pc.y - (pc.id === 'front' ? G.DROP_F : G.DROP_B);
+      ver = below < 0 ? ' · na gola' : ` · ${cmFmt(below)} cm abaixo da gola`;
+    } else if (pc.id === 'sleeveR' || pc.id === 'sleeveL') {
+      ver = ` · ${cmFmt(c.y / PX - pc.y)} cm do ombro`;
+    }
+    snap.tip = { text: `${pc.name}: ${hor}${ver}`, obj: o };
+  }
+});
+function drawSnap(ctx) {
+  if (!snap.guides.length && !snap.tip) return;
+  const v = fc.viewportTransform, sx = (x) => x * v[0] + v[4], sy = (y) => y * v[3] + v[5];
+  const pink = '#ff3b6b';
+  ctx.save();
+  ctx.lineWidth = 1; ctx.strokeStyle = pink; ctx.fillStyle = pink;
+  for (const g of snap.guides) {
+    ctx.setLineDash(g.center ? [] : [5, 4]);
+    ctx.beginPath(); ctx.moveTo(sx(g.x1), sy(g.y1)); ctx.lineTo(sx(g.x2), sy(g.y2)); ctx.stroke();
+    if (g.center) { // marcador "centro" na ponta da linha
+      ctx.setLineDash([]);
+      const x = sx(g.x1), y = sy(g.y1);
+      ctx.font = '500 10px "Geist Mono", ui-monospace, monospace';
+      const t = 'CENTRO', tw = ctx.measureText(t).width;
+      const lx = g.x1 === g.x2 ? x - tw / 2 - 5 : x + 4, ly = g.x1 === g.x2 ? y - 18 : y - 8;
+      ctx.fillRect(lx, ly, tw + 10, 16);
+      ctx.fillStyle = '#ffffff'; ctx.textBaseline = 'middle'; ctx.fillText(t, lx + 5, ly + 8.5); ctx.fillStyle = pink;
+    }
+  }
+  if (snap.tip && snap.tip.obj.oCoords) {
+    const pts = ['tl', 'tr', 'br', 'bl'].map((k) => snap.tip.obj.oCoords[k]);
+    const cx = pts.reduce((a, p) => a + p.x, 0) / 4, top = Math.min(...pts.map((p) => p.y));
+    ctx.setLineDash([]);
+    ctx.font = '500 11px "Geist Mono", ui-monospace, monospace';
+    const tw = ctx.measureText(snap.tip.text).width;
+    const w = tw + 16, h = 22, x = Math.max(4, Math.min(fc.width - w - 4, cx - w / 2)), y = Math.max(4, top - 62);
+    ctx.fillStyle = 'rgba(10,10,10,.9)'; ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = pink; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+    ctx.fillStyle = '#ffffff'; ctx.textBaseline = 'middle'; ctx.fillText(snap.tip.text, x + 8, y + h / 2 + 0.5);
+  }
+  ctx.restore();
+}
+
 $('#toggleDims').onclick = () => {
   S.dims = S.dims === false; saveSettings();
   $('#toggleDims').classList.toggle('active', S.dims !== false); fc.requestRenderAll();

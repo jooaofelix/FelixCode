@@ -34,6 +34,10 @@ O app segue a marca de roupa **148** ("Toda a criação louva", streetwear com r
 
 `drawDims(ctx)` roda no `after:render` do Fabric (fora do render da textura, por causa do `texBusy`) e desenha cotas com `dimLine`/`dimsFor` a partir de `o.oCoords` (largura embaixo, altura à direita, seguindo a rotação). Imagens sempre (se `S.dims`), textos/formas só selecionados. O molde exportado usa `calcACoords()` × `TEX / PX` com linhas `#ff3b6b`. `sizeLabel(o)` alimenta a lista de camadas.
 
+## Guias de alinhamento
+
+No `object:moving`, a arte gruda (a menos de `SNAP_PX` px na tela) no centro da peça (`pieceAt` do centro) e no centro/bordas das outras artes, usando `getBoundingRect(true, true)`. As linhas e o aviso de posição ficam em `snap` e são desenhados por `drawSnap` no `after:render`; somem no `mouse:up`. Alt desliga o grude.
+
 ## Prompt para IA
 
 `buildPrompt()` monta o texto do botão "Prompt p/ IA": percorre `userObjs()`, acha a peça pelo centro (`pieceAt`) e descreve cada item em `describeItem` (texto/fonte/cor, tamanho em cm, distância abaixo da gola, lado de quem veste). Cores viram nomes pela mais próxima em `NAMED` + hex. Estilos, vistas e formatos ficam em `AI_STYLES`, `AI_VIEWS`, `AI_RATIOS` (português e inglês). As referências vêm de `exportPhoto('front'|'back')`. Lembrete: na frente, +x do molde é a esquerda de quem veste; nas costas, a direita.
