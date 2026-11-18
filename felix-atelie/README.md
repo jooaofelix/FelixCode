@@ -19,9 +19,9 @@ python -m http.server 8000
 - **Oversized 148 (CLO 3D)** — padrão. Modelo 3D de verdade, feito no CLO 3D (o mesmo programa do vídeo de referência), com os **moldes reais** da peça no editor: frente (59,8 × 60,8 cm), costas (59,8 × 63,2 cm), mangas (47,4 × 24,1 cm) e gola em ribana dobrada. A arte cai exatamente onde ficaria na peça costurada. Vitrine sempre em 3D.
 - **Tradicional** — o modelo anterior, com o **modo Foto** (mockup fotográfico).
 
-Troque no **canto superior direito da vitrine** (Oversized | Tradicional) ou em **Projeto → Modelo da camiseta**. Cada modelo guarda o seu próprio projeto no navegador.
+Troque no **canto superior direito da vitrine** (Oversized | Tradicional) ou em **Projeto → Modelo da camiseta**. Cada modelo guarda o seu próprio projeto no navegador. Na primeira vez que o Oversized abre, ele traz automaticamente as artes feitas no Tradicional (mesmo tamanho em cm e mesma posição em relação ao centro e à gola); depois, use **Projeto → Trazer artes do Tradicional** quando quiser.
 
-O modelo oversized fica em `modelo-oversized.js` (moldes + malha 3D otimizada, ~1,7 MB). Para gerar de novo ou trazer outra peça do CLO, use `tools/preparar_modelo_clo.py` (veja o CLAUDE.md). Fonte do modelo: [Male oversized tshirt (CGTrader)](https://www.cgtrader.com/free-3d-models/character/clothing/male-oversized-tshirt) — confira a licença antes de uso comercial.
+O modelo oversized fica embutido no próprio `index.html` (moldes + malha 3D otimizada, ~1,7 MB), entre os marcadores `MODELO-OVERSIZED`, para nunca abrir sem ele. Para gerar de novo ou trazer outra peça do CLO, use `tools/preparar_modelo_clo.py` (veja o CLAUDE.md). Fonte do modelo: [Male oversized tshirt (CGTrader)](https://www.cgtrader.com/free-3d-models/character/clothing/male-oversized-tshirt) — confira a licença antes de uso comercial.
 
 ## O que dá para fazer
 

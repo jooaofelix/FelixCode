@@ -7,8 +7,8 @@ as ribanas e as costuras 3D (pesadas). Este script:
   1. escolhe a camada externa de cada peça e mantém bordas e ribanas;
   2. descarta as costuras 3D;
   3. normaliza o UV para o retângulo dos moldes e tira o contorno de cada molde em cm;
-  4. reduz a malha com o gltfpack (npm) e grava ../modelo-oversized.js
-     (moldes + malha em base64), que o index.html carrega.
+  4. reduz a malha com o gltfpack (npm) e embute no index.html (moldes + malha
+     em base64), entre os marcadores MODELO-OVERSIZED.
 
 Uso:
   pip install numpy
@@ -26,7 +26,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument('obj')
 ap.add_argument('--cm-uv', type=float, default=170.0, help='cm por unidade de UV (calibração do tamanho real)')
 ap.add_argument('--reducao', type=float, default=0.45, help='fração de triângulos mantida pelo gltfpack')
-ap.add_argument('--saida', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'modelo-oversized.js'))
+ap.add_argument('--html', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'index.html'), help='index.html onde o modelo é embutido')
 args = ap.parse_args()
 CMU = args.cm_uv
 tmp = tempfile.mkdtemp()
@@ -178,5 +178,10 @@ subprocess.run(cmd, check=True, shell=(os.name == 'nt'))
 js = ("/* 148 Ateliê — modelo Oversized (CLO 3D, otimizado). Gerado por tools/preparar_modelo_clo.py. Moldes em cm. */\n"
       "window.ATELIE_OVERSIZED = {\n  meta: " + json.dumps(json.load(open(OUT_JSON)), ensure_ascii=False, separators=(',', ':')) +
       ",\n  glb: '" + base64.b64encode(open(glb, 'rb').read()).decode() + "'\n};\n")
-open(args.saida, 'w', encoding='utf-8').write(js)
-print('gravado', os.path.abspath(args.saida), f'({len(js) / 1e6:.1f} MB)')
+# embute no index.html, entre os marcadores (um arquivo só: funciona em qualquer lugar)
+html = open(args.html, encoding='utf-8').read()
+ini, fim = '<!-- MODELO-OVERSIZED:INICIO', '<!-- MODELO-OVERSIZED:FIM -->'
+a = html.index(ini); a = html.index('-->', a) + 3; b = html.index(fim)
+html = html[:a] + '\n<script>\n' + js + '</script>\n' + html[b:]
+open(args.html, 'w', encoding='utf-8').write(html)
+print('modelo embutido em', os.path.abspath(args.html), f'({len(js) / 1e6:.1f} MB)')
