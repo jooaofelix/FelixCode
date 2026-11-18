@@ -377,7 +377,17 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); return true; } catch { return false; } } };
 function toast(msg, ms = 2600) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), ms); }
-function download(url, name) { try { const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); } catch {} }
+// dentro do claude.ai o download passa pela permissão da página; fora dele, link normal
+let saver = null;
+try { if (window.claude && typeof window.claude.use === 'function') window.claude.use('downloads').then((n) => (saver = n)).catch(() => {}); } catch {}
+async function download(url, name) {
+  if (saver) {
+    try { const blob = await (await fetch(url)).blob(); await saver.save({ filename: name, data: blob }); toast('Arquivo salvo'); }
+    catch (e) { if (!e || e.code !== 'declined') toast('Não deu para baixar aqui — clique com o botão direito na prévia e salve'); }
+    return;
+  }
+  try { const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); } catch {}
+}
 const fmt = (v, d = 1) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
 
 /* ---------- documento ---------- */
