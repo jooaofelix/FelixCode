@@ -129,6 +129,8 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 .pill3d button[aria-pressed="true"] { background: #e7e1cf; color: #0a0a0a; }
 .pill3d svg.i { width: 15px; height: 15px; }
 .pill3d.modes { top: 12px; bottom: auto; left: auto; right: 12px; transform: none; }
+.pill3d.models { top: 12px; bottom: auto; left: auto; right: 12px; transform: none; }
+.pill3d.models:not([hidden]) ~ .pill3d.modes { top: 54px; }
 #photoView { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .view3d.foto #spin { display: none; }
 .pill3d { max-width: calc(100% - 20px); }
@@ -291,6 +293,7 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
         <div class="loading3d" id="loading3d">carregando a vitrine…</div>
         <canvas id="photoView" hidden></canvas>
         <div class="overlay-chip badge3d"><b><svg viewBox="-2.2 0 28.4 28.4"><path d="M12 0c.7 4.6 2.1 7.9 4.2 10 2.1 2.1 5.4 3.5 10 4.2-4.6.7-7.9 2.1-10 4.2-2.1 2.1-3.5 5.4-4.2 10-.7-4.6-2.1-7.9-4.2-10-2.1-2.1-5.4-3.5-10-4.2 4.6-.7 7.9-2.1 10-4.2 2.1-2.1 3.5-5.4 4.2-10Z"/></svg></b> <span id="badgeText">Camiseta no corpo invisível</span></div>
+        <div class="overlay-chip pill3d models" id="modelSwitch" role="group" aria-label="Modelo da camiseta" hidden></div>
         <div class="overlay-chip pill3d modes" role="group" aria-label="Tipo de vitrine">
           <button data-mode="foto" aria-pressed="true">Foto</button>
           <button data-mode="3d" aria-pressed="false">3D</button>
@@ -451,10 +454,8 @@ input[type="color"] { width: 36px; height: 30px; padding: 0; border: 1px solid v
 
 <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
 <script src="modelo-oversized.js"></script>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
 <script type="module">
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
 
 /* =====================================================================
    Utilidades
@@ -1387,21 +1388,63 @@ const meshes = IS_OVR ? [] : [
 ].map((g) => { const m = new THREE.Mesh(g, cloth); m.castShadow = true; m.receiveShadow = true; shirt.add(m); return m; });
 scene.add(shirt);
 
-// Modelo oversized do CLO 3D (glTF otimizado, embutido em modelo-oversized.js)
+// Modelo oversized do CLO 3D (glTF binário embutido em modelo-oversized.js).
+// Leitor próprio e mínimo: não depende de importmap nem de carregar outro arquivo.
+function parseGLB(buf) {
+  const dv = new DataView(buf);
+  if (dv.getUint32(0, true) !== 0x46546c67) throw new Error('arquivo 3D inválido');
+  let off = 12, json = null, bin = null;
+  while (off < buf.byteLength) {
+    const len = dv.getUint32(off, true), type = dv.getUint32(off + 4, true);
+    const chunk = buf.slice(off + 8, off + 8 + len);
+    if (type === 0x4e4f534a) json = JSON.parse(new TextDecoder().decode(chunk));
+    else if (type === 0x004e4942) bin = chunk;
+    off += 8 + len;
+  }
+  const TYPES = { 5120: Int8Array, 5121: Uint8Array, 5122: Int16Array, 5123: Uint16Array, 5125: Uint32Array, 5126: Float32Array };
+  const SIZE = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 };
+  const read = (i) => {
+    const a = json.accessors[i], bv = json.bufferViews[a.bufferView], T = TYPES[a.componentType], n = SIZE[a.type];
+    const bvOff = bv.byteOffset || 0, aOff = a.byteOffset || 0, el = T.BYTES_PER_ELEMENT;
+    if (bv.byteStride && bv.byteStride !== el * n) {
+      const ib = new THREE.InterleavedBuffer(new T(bin, bvOff, bv.byteLength / el), bv.byteStride / el);
+      return new THREE.InterleavedBufferAttribute(ib, n, aOff / el, !!a.normalized);
+    }
+    return new THREE.BufferAttribute(new T(bin, bvOff + aOff, a.count * n), n, !!a.normalized);
+  };
+  const group = new THREE.Group();
+  for (const node of json.nodes) {
+    if (node.mesh === undefined) continue;
+    for (const prim of json.meshes[node.mesh].primitives) {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', read(prim.attributes.POSITION));
+      if (prim.attributes.NORMAL !== undefined) g.setAttribute('normal', read(prim.attributes.NORMAL));
+      if (prim.attributes.TEXCOORD_0 !== undefined) g.setAttribute('uv', read(prim.attributes.TEXCOORD_0));
+      if (prim.indices !== undefined) g.setIndex(read(prim.indices));
+      if (!g.attributes.normal) g.computeVertexNormals();
+      g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 3).fill(1), 3));
+      const m = new THREE.Mesh(g, cloth);
+      if (node.translation) m.position.fromArray(node.translation);
+      if (node.rotation) m.quaternion.fromArray(node.rotation);
+      if (node.scale) m.scale.fromArray(node.scale);
+      m.castShadow = true; m.receiveShadow = true;
+      group.add(m);
+    }
+  }
+  return group;
+}
 let modelReady = !IS_OVR;
 if (IS_OVR) {
-  const bin = Uint8Array.from(atob(OVR.glb), (c) => c.charCodeAt(0));
-  new GLTFLoader().parse(bin.buffer, '', (gltf) => {
-    gltf.scene.traverse((o) => {
-      if (!o.isMesh) return;
-      const g = o.geometry;
-      if (!g.attributes.color) g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 3).fill(1), 3));
-      o.material = cloth; o.castShadow = true; o.receiveShadow = true;
-    });
-    gltf.scene.position.y = -3;
-    shirt.add(gltf.scene);
-    modelReady = true; $('#loading3d').hidden = true;
-  }, () => toast('Não consegui carregar o modelo 3D'));
+  try {
+    const bin = Uint8Array.from(atob(OVR.glb), (c) => c.charCodeAt(0));
+    const model = parseGLB(bin.buffer);
+    model.position.y = -3;
+    shirt.add(model);
+    modelReady = true;
+  } catch (err) {
+    console.error(err);
+    setTimeout(() => toast('Não consegui abrir o modelo oversized. Troque para "Tradicional" no canto da vitrine.'), 800);
+  }
 }
 
 function applyDrape() {
@@ -1968,12 +2011,18 @@ function loadSample(done) {
 function setupModelUI() {
   const box = $('#modelChips');
   if (!OVR) { $('#modelField').hidden = true; return; }
-  for (const [id, label] of [['oversized', 'Oversized 148 · CLO 3D'], ['tradicional', 'Tradicional · Foto']]) {
+  const choose = (id) => { if ((id === 'oversized') === IS_OVR) return; store.set(MODEL_KEY, id); location.reload(); };
+  for (const [id, label, short] of [['oversized', 'Oversized 148 · CLO 3D', 'Oversized'], ['tradicional', 'Tradicional · Foto', 'Tradicional']]) {
     const b = document.createElement('button'); b.className = 'chip'; b.textContent = label;
     b.setAttribute('aria-pressed', String((id === 'oversized') === IS_OVR));
-    b.onclick = () => { if ((id === 'oversized') === IS_OVR) return; store.set(MODEL_KEY, id); location.reload(); };
+    b.onclick = () => choose(id);
     box.appendChild(b);
+    const v = document.createElement('button'); v.textContent = short; // atalho no canto da vitrine
+    v.setAttribute('aria-pressed', String((id === 'oversized') === IS_OVR));
+    v.onclick = () => choose(id);
+    $('#modelSwitch').appendChild(v);
   }
+  $('#modelSwitch').hidden = false;
   if (IS_OVR) {
     // sem foto de mockup: some o seletor Foto/3D e os ajustes que vêm da foto
     document.querySelector('.pill3d.modes').hidden = true;

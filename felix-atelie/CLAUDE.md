@@ -24,7 +24,7 @@ O app segue a marca de roupa **148** ("Toda a criação louva", streetwear com r
 
 ## Dois modelos
 
-- `IS_OVR` (padrão quando `modelo-oversized.js` existe e `localStorage['atelie3d:model'] !== 'tradicional'`): moldes de `OVR.meta.pieces` (contornos reais do UV do CLO, em cm, com `group` para pintar a gola de duas camadas junto), malha glTF em `OVR.glb` carregada com `GLTFLoader` (importmap `three` / `three/addons/`). `texture.flipY = false` (UV do glTF começa no topo). Sem modo Foto, sem `applyDrape` e sem sombreamento da foto; referências da IA vêm de `still3D()`. Projeto salvo em `atelie3d:project3:oversized`.
+- `IS_OVR` (padrão quando `modelo-oversized.js` existe e `localStorage['atelie3d:model'] !== 'tradicional'`): moldes de `OVR.meta.pieces` (contornos reais do UV do CLO, em cm, com `group` para pintar a gola de duas camadas junto), malha glTF em `OVR.glb` lida por `parseGLB()` (leitor próprio, sem GLTFLoader nem importmap, que falhavam em alguns navegadores/visualizadores). `texture.flipY = false` (UV do glTF começa no topo). Sem modo Foto, sem `applyDrape` e sem sombreamento da foto; referências da IA vêm de `still3D()`. Projeto salvo em `atelie3d:project3:oversized`.
 - Tradicional: tudo como descrito abaixo (moldes procedurais, modo Foto).
 - Cada peça tem `neckY` (profundidade da gola a partir do topo); use `pc.neckY`, `pc.w`, `pc.h` em vez de constantes do modelo tradicional.
 - `tools/preparar_modelo_clo.py obj.obj [--cm-uv 170] [--reducao 0.45]`: camada externa + bordas + ribanas, sem costuras 3D, UV normalizado, contornos em cm e gltfpack (`-kv -vtf`, senão perde/quantiza o UV). `--cm-uv` calibra o tamanho real (170 → frente de 59,8 cm).
