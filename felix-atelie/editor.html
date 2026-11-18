@@ -143,6 +143,24 @@ input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid v
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { height: 28px; padding: 0 10px; border: 1px solid var(--line); background: transparent; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
 .chip[aria-pressed="true"] { background: var(--chalk); color: var(--chalk-fg); border-color: transparent; }
+.ps-card { width: min(1440px, 100%); height: min(940px, calc(100vh - 32px)); height: min(940px, calc(100dvh - 32px)); display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.ps-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.ps-top h3 { margin: 0 8px 0 0; font: 400 24px/1 var(--font-display); text-transform: uppercase; }
+.ps-top .grow { flex: 1; }
+.ps-body { display: grid; grid-template-columns: minmax(0, 1fr) 360px; min-height: 0; }
+.ps-stage { position: relative; min-height: 0; overflow: hidden; background: #efe9da; }
+.ps-stage .hint { left: 10px; bottom: 10px; max-width: calc(100% - 20px); }
+.ps-status { position: absolute; top: 10px; left: 10px; right: 10px; margin: 0; padding: 8px 10px; background: var(--panel); border: 1px solid var(--warn); color: var(--fg); font-size: 12px; }
+.ps-side { overflow: auto; padding: 12px; display: grid; gap: 10px; align-content: start; border-left: 1px solid var(--line); }
+.ps-side .panel { padding: 10px 12px 12px; }
+.ps-shapes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.ps-shape { display: grid; justify-items: center; gap: 3px; padding: 6px 2px; border: 1px solid var(--line); background: var(--panel-2); font-size: 10px; color: var(--muted); }
+.ps-shape canvas { filter: invert(var(--inv, 0)); opacity: .85; }
+.ps-shape[aria-pressed="true"] { border-color: var(--chalk); color: var(--fg); }
+.ps-side .chips .chip { text-transform: none; letter-spacing: 0; font-size: 12px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ps-shape canvas { --inv: 1; } }
+:root[data-theme="dark"] .ps-shape canvas { --inv: 1; }
+@media (max-width: 960px) { .ps-body { grid-template-columns: 1fr; grid-template-rows: 55vh auto; overflow: auto; } .ps-side { border-left: 0; overflow: visible; } .ps-card { height: 100%; overflow: auto; } }
 .tx-quick { display: grid; gap: 6px; }
 .tx-quick button { text-align: left; padding: 10px 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); }
 .tx-quick button:hover, .tx-combo:hover { border-color: var(--fg); }
@@ -211,7 +229,7 @@ input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid v
       <button class="tool" data-mode="bg" title="Remover fundo liso da imagem selecionada"><svg class="i" viewBox="0 0 24 24"><path d="M4 20 20 4"/><rect x="3" y="3" width="18" height="18" stroke-dasharray="2 3"/></svg>Fundo</button>
       <button class="tool" data-mode="erase" title="Apagar o texto original de uma área da imagem e reconstruir o fundo"><svg class="i" viewBox="0 0 24 24"><path d="m7 21-4-4 11-11 7 7-7 7z"/><path d="M7 21h13"/><path d="m10 10 4 4"/></svg>Apagar</button>
       <hr>
-      <button class="tool" id="warpTool" title="Frase que preenche uma forma (cérebro, coração, círculo ou a silhueta de uma imagem)"><svg class="i" viewBox="0 0 24 24"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z"/><path d="M8 10h8M7.5 13h9M9.5 16h5"/></svg>Na forma</button>
+      <button class="tool" id="warpTool" title="Estúdio Frase na forma: cérebro, coração, círculo, estrela, onda ou a sua silhueta"><svg class="i" viewBox="0 0 24 24"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z"/><path d="M8 10h8M7.5 13h9M9.5 16h5"/></svg>Na forma</button>
     </nav>
 
     <main class="stage" id="stage" aria-label="Prancheta">
@@ -279,6 +297,7 @@ input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid v
         </div>
         <div id="curvesCtl" class="field" hidden>
           <p class="note">Letras em vetor. Desagrupe para mover, girar, inclinar ou pintar cada letra. O texto original está guardado (oculto).</p>
+          <button class="btn small" id="psEditBtn" hidden>Editar frase na forma</button>
           <button class="btn small" id="backTextBtn">Voltar ao texto editável</button>
         </div>
         <!-- cor: texto e forma -->
@@ -297,7 +316,7 @@ input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid v
             <button class="btn small" data-mode="brush" title="Pincel para apagar sobras do fundo ou restaurar partes apagadas por engano">Corrigir recorte</button>
           </div>
           <button class="btn small" id="warpEdit" hidden>Editar texto na forma</button>
-          <button class="btn small" id="warpFromImg" title="Usa a silhueta desta imagem (sem fundo) como forma para a frase">Preencher esta silhueta com texto</button>
+          <button class="btn small" id="warpFromImg" title="Abre o estúdio Frase na forma com a silhueta desta imagem (sem fundo)">Frase nesta silhueta</button>
         </div>
       </section>
 
@@ -366,6 +385,81 @@ input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid v
     <p class="note">Se o download não começar (alguns visualizadores bloqueiam), clique com o botão direito na prévia e salve.</p>
   </div>
 </div>
+<div class="modal" id="psModal" hidden>
+  <div class="ps-card" role="dialog" aria-modal="true" aria-labelledby="psTitle">
+    <div class="ps-top">
+      <h3 id="psTitle">Frase na forma</h3>
+      <div class="toggle" id="psEditMode" role="group" aria-label="O que editar"><button data-em="view">Ver</button><button data-em="env">Envelope</button><button data-em="letters">Letras</button><button data-em="ref">Referência</button></div>
+      <button class="icon-btn" id="psUndo" title="Desfazer (Ctrl+Z)" aria-label="Desfazer"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+      <button class="icon-btn" id="psRedo" title="Refazer (Ctrl+Shift+Z)" aria-label="Refazer"><svg class="i" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
+      <span class="grow"></span>
+      <button class="btn" id="psCancel">Fechar</button>
+      <button class="btn primary" id="psPlace">Colocar na prancheta</button>
+    </div>
+    <div class="ps-body">
+      <div class="ps-stage" id="psStage"><canvas id="psC"></canvas><p class="ps-status" id="psStatus" hidden></p><p class="hint" id="psHint"></p></div>
+      <div class="ps-side">
+        <section class="panel"><h2>Forma</h2>
+          <div class="ps-shapes" id="psShapes"></div>
+          <div class="row"><button class="btn small" id="psSilBtn" title="SVG ou PNG com fundo transparente">Importar silhueta</button></div>
+          <label class="note"><input type="checkbox" id="psShowShape" checked> Mostrar a forma como guia (não sai na exportação)</label>
+        </section>
+        <section class="panel"><h2>Frase</h2>
+          <label class="field" for="psText">Cada linha aqui é uma linha da arte<textarea id="psText" rows="4" spellcheck="true"></textarea></label>
+          <button class="btn small" id="psBreaks" title="Sugere onde quebrar as linhas para a forma. Não muda, repete nem tira palavras.">Propor quebras de linha</button>
+        </section>
+        <section class="panel"><h2>Fonte</h2>
+          <select id="psFont"></select>
+          <div class="row"><button class="btn small" id="psFontSearch">Buscar no catálogo</button><button class="btn small" id="psFontUpload">Importar OTF/TTF</button></div>
+          <p class="note" id="psFontInfo"></p>
+        </section>
+        <section class="panel"><h2>Modo</h2>
+          <div class="toggle" id="psMode"><button data-mode="fill">Preenchimento</button><button data-mode="lettering">Lettering com deformação</button></div>
+          <p class="note"><b>Preenchimento</b>: linhas de texto normais, sem deformar, no maior tamanho que cabe. <b>Lettering</b>: letras em vetor que esticam e curvam pelo envelope de cada linha; a frase forma o desenho.</p>
+        </section>
+        <section class="panel"><h2>Linhas</h2>
+          <div class="chips" id="psLines"></div>
+          <label class="field" for="psLineSize"><span class="field-line">Altura da linha escolhida <output id="psLineSizeOut">100%</output></span><input type="range" id="psLineSize" min="30" max="300" step="5"></label>
+          <label class="field" for="psGap"><span class="field-line">Espaço entre linhas <output id="psGapOut">2%</output></span><input type="range" id="psGap" min="0" max="10" step="0.5"></label>
+          <div class="row"><button class="btn small" id="psEnvReset">Refazer envelope da linha</button><button class="btn small" id="psEnvResetAll">Desfazer ajustes manuais</button></div>
+        </section>
+        <section class="panel" id="psWordBox"><h2>Palavra</h2>
+          <div class="chips" id="psWords"></div>
+          <label class="field" for="psWs"><span class="field-line">Tamanho <output id="psWsOut"></output></span><input type="range" id="psWs" min="40" max="250" step="5"></label>
+          <label class="field" for="psWw"><span class="field-line">Largura <output id="psWwOut"></output></span><input type="range" id="psWw" min="40" max="250" step="5"></label>
+          <label class="field" for="psWh"><span class="field-line">Altura <output id="psWhOut"></output></span><input type="range" id="psWh" min="40" max="250" step="5"></label>
+          <label class="field" for="psWtr"><span class="field-line">Espaço entre letras <output id="psWtrOut"></output></span><input type="range" id="psWtr" min="-8" max="40" step="1"></label>
+          <label class="field" for="psWsp"><span class="field-line">Espaço depois da palavra <output id="psWspOut"></output></span><input type="range" id="psWsp" min="0" max="400" step="10"></label>
+          <button class="btn small" id="psWordReset">Redefinir palavra</button>
+        </section>
+        <section class="panel" id="psLetterBox" hidden><h2>Letra <span class="sub" id="psLetterName"></span></h2>
+          <label class="field" for="psLa"><span class="field-line">Girar <output id="psLaOut">0°</output></span><input type="range" id="psLa" min="-90" max="90" step="1"></label>
+          <label class="field" for="psLk"><span class="field-line">Tamanho <output id="psLkOut">100%</output></span><input type="range" id="psLk" min="30" max="250" step="5"></label>
+          <button class="btn small" id="psLetterReset">Redefinir letra</button>
+        </section>
+        <section class="panel"><h2>Cores</h2>
+          <div class="colors3"><input type="color" id="psC1" aria-label="Cor 1"><input type="color" id="psC2" aria-label="Cor 2"><input type="color" id="psC3" aria-label="Cor 3"><button class="btn small" id="psOne">Uma cor</button></div>
+        </section>
+        <section class="panel"><h2>Referência</h2>
+          <p class="note">Sua imagem de referência fica por trás, bloqueada (mova no modo “Referência”). Não sai na exportação.</p>
+          <button class="btn small" id="psRefBtn">Escolher imagem de referência</button>
+          <div id="psRefBox" class="field" hidden>
+            <label class="field" for="psRefOp">Transparência<input type="range" id="psRefOp" min="5" max="100" step="5"></label>
+            <div class="row"><label class="note"><input type="checkbox" id="psRefShow" checked> Mostrar</label><button class="chip" id="psAB" aria-pressed="false" title="Esconde e mostra a sua arte para comparar com a referência">Comparar A/B</button><button class="btn small danger" id="psRefDel">Tirar</button></div>
+          </div>
+        </section>
+        <section class="panel"><h2>Exportar</h2>
+          <label class="field" for="psW"><span class="field-line">Largura da forma na impressão</span><span class="row"><input type="number" id="psW" min="3" max="60" step="0.5" style="flex:1"><span class="unit">cm</span></span></label>
+          <div class="row"><button class="btn small" id="psSvg">SVG vetorial</button><button class="btn small" id="psPng">PNG transparente</button></div>
+          <div class="row"><button class="btn small" id="psPngB">PNG preto</button><button class="btn small" id="psPngW">PNG branco</button></div>
+          <p class="note">O encaixe automático é uma proposta: em formas complexas, ajuste as linhas, o envelope e as letras.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+<input type="file" id="psSilFile" accept=".svg,image/svg+xml,image/png" hidden>
+<input type="file" id="psRefFile" accept="image/png,image/jpeg,image/webp" hidden>
 <div class="modal" id="fontSearchModal" hidden>
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="fsTitle" style="width:min(980px,100%)">
     <h3 id="fsTitle">Buscar fontes</h3>
@@ -497,7 +591,7 @@ Object.assign(fabric.Object.prototype, {
   originX: 'center', originY: 'center', objectCaching: false, transparentCorners: false, cornerStyle: 'circle', cornerSize: 11,
   cornerColor: '#e7e1cf', cornerStrokeColor: '#0a0a0a', borderColor: '#e7e1cf', borderScaleFactor: 1.5, padding: 4,
 });
-const PROPS = ['name', 'uid', 'locked', 'curve', 'srcKey', 'origKey', 'fromText', 'warp', 'effect', 'fxColor', 'fxAmt', 'baseFill', 'selectable', 'evented', 'lockMovementX', 'lockMovementY', 'lockScalingX', 'lockScalingY', 'lockRotation', 'hasControls'];
+const PROPS = ['name', 'uid', 'locked', 'curve', 'srcKey', 'origKey', 'fromText', 'shapeCfg', 'warp', 'effect', 'fxColor', 'fxAmt', 'baseFill', 'selectable', 'evented', 'lockMovementX', 'lockMovementY', 'lockScalingX', 'lockScalingY', 'lockRotation', 'hasControls'];
 const fc = new fabric.Canvas('c', { preserveObjectStacking: true, selection: true, stopContextMenu: true, fireRightClick: false, enableRetinaScaling: true });
 const wrap = $('#wrap');
 let uidSeq = 1;
@@ -618,7 +712,7 @@ $('#redo').onclick = () => { if (hi < hist.length - 1) { hi++; restoreState(hist
 function projectData() {
   const objects = serializeObjects();
   const keys = new Set();
-  const walk = (j) => { if (j.srcKey) keys.add(j.srcKey); if (j.origKey) keys.add(j.origKey); if (j.warp && j.warp.maskKey) keys.add(j.warp.maskKey); (j.objects || []).forEach(walk); };
+  const walk = (j) => { if (j.srcKey) keys.add(j.srcKey); if (j.origKey) keys.add(j.origKey); if (j.warp && j.warp.maskKey) keys.add(j.warp.maskKey); if (j.shapeCfg) { if (j.shapeCfg.maskKey) keys.add(j.shapeCfg.maskKey); if (j.shapeCfg.ref) keys.add(j.shapeCfg.ref.key); } (j.objects || []).forEach(walk); };
   objects.forEach(walk);
   const images = {}; keys.forEach((k) => (images[k] = imgStore.get(k)));
   return { app: '148-editor', v: 1, doc: DOC, catalogFonts: pickedFonts, fonts: userFonts.map(({ name, data, file }) => ({ name, data, file })), images, objects };
@@ -760,7 +854,7 @@ function refreshSel() {
   $('#opac').value = Math.round((o.opacity ?? 1) * 100); $('#opacOut').textContent = Math.round((o.opacity ?? 1) * 100) + '%';
   const txt = !multi && isText(o), img = !multi && o.type === 'image', curves = !multi && o.type === 'group' && !!o.fromText;
   const shape = !multi && (/rect|circle|path|polygon|ellipse/.test(o.type) || curves);
-  $('#textCtl').hidden = !txt; $('#imageCtl').hidden = !img; $('#colorCtl').hidden = !(txt || shape); $('#curvesCtl').hidden = !curves;
+  $('#textCtl').hidden = !txt; $('#imageCtl').hidden = !img; $('#colorCtl').hidden = !(txt || shape); $('#curvesCtl').hidden = !curves; $('#psEditBtn').hidden = !(curves && o.shapeCfg);
   $('#skX').value = Math.round(o.skewX || 0); $('#skXOut').textContent = Math.round(o.skewX || 0) + '°'; $('#skY').value = Math.round(o.skewY || 0); $('#skYOut').textContent = Math.round(o.skewY || 0) + '°';
   if (txt) {
     syncFx(o);
@@ -817,7 +911,7 @@ document.querySelectorAll('[data-align]').forEach((b) => (b.onclick = () => setP
 $('#charSp').oninput = (e) => setProp((o) => o.set('charSpacing', +e.target.value));
 $('#lineH').oninput = (e) => setProp((o) => o.set('lineHeight', +e.target.value));
 $('#curve').oninput = (e) => setProp((o) => { o.curve = +e.target.value; });
-const paintDeep = (o, props) => (o.type === 'group' && o.fromText ? o.getObjects().filter((c) => c.type === 'path').forEach((c) => c.set(props)) : o.set(props));
+const paintDeep = (o, props) => (o.type === 'group' && o.fromText ? o.getObjects().filter((c) => c.type === 'path' || /text/.test(c.type)).forEach((c) => c.set(props)) : o.set(props));
 $('#skX').oninput = (e) => setProp((o) => o.set('skewX', +e.target.value));
 $('#skY').oninput = (e) => setProp((o) => o.set('skewY', +e.target.value));
 $('#fillColor').oninput = (e) => setProp((o) => paintDeep(o, { fill: e.target.value }));
@@ -904,7 +998,10 @@ $('#fileFont').onchange = (e) => {
   const rd = new FileReader();
   rd.onload = async () => {
     const name = f.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').slice(0, 40);
-    if (await registerUserFont(name, rd.result, f.name, true)) setProp((o) => o.set('fontFamily', name));
+    if (await registerUserFont(name, rd.result, f.name, true)) {
+      if (!$('#psModal').hidden) { ps.cfg.font = name; ps.fonts.delete(name); fillPsFonts(); await psRender(); psPush(); }
+      else setProp((o) => o.set('fontFamily', name));
+    }
   };
   rd.readAsDataURL(f);
 };
@@ -1550,17 +1647,14 @@ function openWarp(cfg, target, srcImg) {
   $('#warpOk').textContent = warpTarget ? 'Atualizar' : 'Colocar na prancheta';
   syncWarpUI(); $('#warpModal').hidden = false; warpPreview();
 }
-$('#warpTool').onclick = () => { endMode(); openWarp(WARP_DEFAULT); };
+
 $('#warpEdit').onclick = () => { const o = act(); if (o && o.warp) openWarp(o.warp, o); };
-$('#warpFromImg').onclick = () => {
+$('#warpFromImg').onclick = async () => {
   const o = act(); if (!o || o.type !== 'image') return;
   const c = imageCanvas(o), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
   let clear = 0; for (let k = 3; k < d.length; k += 16) if (d[k] < 128) clear++;
   if (clear / (d.length / 16) < 0.03) { toast('Essa imagem não tem fundo transparente. Use “Remover fundo” antes, para o contorno virar a forma.', 4800); return; }
-  // máscara = silhueta da imagem (opaca em branco)
-  const m = document.createElement('canvas'); m.width = c.width; m.height = c.height; const mx = m.getContext('2d');
-  mx.drawImage(c, 0, 0); mx.globalCompositeOperation = 'source-in'; mx.fillStyle = '#fff'; mx.fillRect(0, 0, m.width, m.height);
-  openWarp({ ...WARP_DEFAULT, shape: 'imagem', maskKey: putImg(m.toDataURL('image/png')), srcName: o.name }, null, o);
+  await openPhraseStudio(); await psUseMask(c);
 };
 $('#warpText').oninput = (e) => { warpCfg.text = e.target.value; renderWarpSizes(); warpPreview(); };
 $('#warpFont').onchange = async (e) => { warpCfg.font = e.target.value; await loadFont(warpCfg.font); warpPreview(); };
@@ -1744,6 +1838,7 @@ async function pickCatalogFont(f) {
   }
   await loadFont(f.name);
   $('#fontSearchModal').hidden = true;
+  if (!$('#psModal').hidden) { ps.cfg.font = f.name; fillPsFonts(); await psRender(); psPush(); return; }
   if (isText(act())) setProp((o) => o.set('fontFamily', f.name)); else toast(`“${f.name}” adicionada ao seletor de fontes`);
 }
 $('#fontSearchBtn').onclick = openFontSearch;
@@ -1899,8 +1994,652 @@ function monoVersion(color) {
 $('#expBlack').onclick = () => download(monoVersion('#000000'), 'estampa-148-preta.png');
 $('#expWhite').onclick = () => download(monoVersion('#ffffff'), 'estampa-148-branca.png');
 
+/* =========================================================================
+   ESTÚDIO "FRASE NA FORMA"
+   Dois modos:
+   - Preenchimento: cada linha é um texto normal (sem deformação), no maior tamanho que
+     cabe inteiro dentro da silhueta naquela altura (medido pela tinta real, com acentos).
+   - Lettering: as letras viram contornos vetoriais (OpenType.js) e cada linha é deformada
+     por um envelope (retalho de Coons: curvas de cima, de baixo e laterais). A proposta
+     inicial sai da forma; o ajuste fino é manual (alças, palavras, letras).
+   Nada é recortado por máscara: os vetores ficam inteiros, com acentos e furos internos.
+   Unidades: "unidades da forma" (a forma tem PS_W de largura); na prancheta vira cm.
+   ========================================================================= */
+const PS_W = 1000;
+SHAPES.estrela = { label: 'Estrela', w: 100, h: 96, draw(x) {
+  x.beginPath();
+  for (let i = 0; i < 10; i++) { const r = i % 2 ? 23 : 50, a = -Math.PI / 2 + (i * Math.PI) / 5; x.lineTo(50 + r * Math.cos(a), 53 + r * Math.sin(a)); }
+  x.closePath(); x.fill();
+} };
+SHAPES.onda = { label: 'Onda', w: 100, h: 56, draw(x) {
+  x.beginPath();
+  for (let i = 0; i <= 100; i++) { const y = 12 + 9 * Math.sin((i / 100) * Math.PI * 2); i ? x.lineTo(i, y) : x.moveTo(i, y); }
+  for (let i = 100; i >= 0; i--) x.lineTo(i, 44 + 9 * Math.sin((i / 100) * Math.PI * 2));
+  x.closePath(); x.fill();
+} };
+const PS_ORDER = ['cerebro', 'coracao', 'circulo', 'estrela', 'onda', 'escudo'];
+const PS_DEF = () => ({ v: 1, text: 'VAMOS FALAR SOBRE SAÚDE MENTAL', font: 'Anton', mode: 'lettering', shape: 'coracao', maskKey: null,
+  colors: ['#e8335a', '#f27a94', '#f6a8ba'], gap: 2.5, wCm: 24, lines: [], ref: null, showShape: true });
+const ps = { cfg: null, geom: null, mask: null, c: null, em: 'view', sel: { li: 0, wi: 0, ci: null }, hist: [], hi: -1, target: null, job: 0, cache: {}, fonts: new Map() };
+
+/* ---------- geometria da forma ---------- */
+function psGeometry(mask) {
+  const W = mask.width, H = mask.height, d = mask.getContext('2d').getImageData(0, 0, W, H).data, ins = new Uint8Array(W * H);
+  for (let i = 0; i < W * H; i++) ins[i] = d[i * 4 + 3] > 127 ? 1 : 0;
+  const runL = new Int32Array(H).fill(-1), runR = new Int32Array(H).fill(-1); let top = -1, bot = -1;
+  for (let y = 0; y < H; y++) { // trecho contínuo mais longo de cada linha de pixels
+    let best = 0, s = -1;
+    for (let x = 0; x <= W; x++) {
+      const v = x < W && ins[y * W + x];
+      if (v && s < 0) s = x;
+      if (!v && s >= 0) { if (x - s > best) { best = x - s; runL[y] = s; runR[y] = x - 1; } s = -1; }
+    }
+    if (best) { if (top < 0) top = y; bot = y; }
+  }
+  return { W, H, ins, runL, runR, top, bot };
+}
+function trimMask(src) { // recorta a silhueta no limite da parte opaca
+  const w = src.width, h = src.height, d = src.getContext('2d').getImageData(0, 0, w, h).data;
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > 127) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 < x0) return null;
+  const c = document.createElement('canvas'); c.width = x1 - x0 + 1; c.height = y1 - y0 + 1;
+  const x = c.getContext('2d'); x.drawImage(src, -x0, -y0); x.globalCompositeOperation = 'source-in'; x.fillStyle = '#000'; x.fillRect(0, 0, c.width, c.height);
+  return c;
+}
+async function psLoadShape() {
+  let mask;
+  if (ps.cfg.shape === 'custom' && ps.cfg.maskKey && imgStore.get(ps.cfg.maskKey)) {
+    const el = await loadImgEl(imgStore.get(ps.cfg.maskKey));
+    mask = document.createElement('canvas'); mask.width = PS_W; mask.height = Math.max(10, Math.round((el.naturalHeight * PS_W) / el.naturalWidth));
+    mask.getContext('2d').drawImage(el, 0, 0, mask.width, mask.height);
+  } else {
+    if (!SHAPES[ps.cfg.shape]) ps.cfg.shape = 'coracao';
+    mask = shapeMask(ps.cfg.shape, PS_W);
+  }
+  ps.mask = mask; ps.geom = psGeometry(mask);
+  const t = document.createElement('canvas'); t.width = mask.width; t.height = mask.height; const x = t.getContext('2d');
+  x.drawImage(mask, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = 'rgba(120,110,90,.16)'; x.fillRect(0, 0, t.width, t.height);
+  ps.guideUrl = t.toDataURL('image/png');
+}
+function psCols(g, y0, y1) { // topo e base da forma em cada coluna, dentro da faixa [y0, y1]
+  const T = new Float32Array(g.W).fill(-1), B = new Float32Array(g.W).fill(-1);
+  const a = Math.max(0, Math.round(y0)), b = Math.min(g.H - 1, Math.round(y1));
+  for (let x = 0; x < g.W; x++) for (let y = a; y <= b; y++) if (g.ins[y * g.W + x]) { if (T[x] < 0) T[x] = y; B[x] = y; }
+  return { T, B };
+}
+
+/* ---------- envelope (retalho de Coons com curvas Catmull-Rom) ---------- */
+function crEval(P, t) {
+  const n = P.length - 1, f = clamp(t, 0, 1) * n, i = Math.min(n - 1, Math.floor(f)), s = f - i;
+  const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(n, i + 2)], s2 = s * s, s3 = s2 * s;
+  return [0, 1].map((k) => 0.5 * (2 * p1[k] + (-p0[k] + p2[k]) * s + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * s2 + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * s3));
+}
+function coons(env, u, v) {
+  const N = env.t.length - 1, TL = env.t[0], TR = env.t[N], BL = env.b[0], BR = env.b[N];
+  const ct = crEval(env.t, u), cb = crEval(env.b, u), cl = crEval([TL, env.l, BL], v), cr = crEval([TR, env.r, BR], v);
+  return [0, 1].map((k) => (1 - v) * ct[k] + v * cb[k] + (1 - u) * cl[k] + u * cr[k]
+    - ((1 - u) * (1 - v) * TL[k] + u * (1 - v) * TR[k] + (1 - u) * v * BL[k] + u * v * BR[k]));
+}
+// proposta de envelope para a faixa: começa/termina onde a forma ainda tem 2/3 da altura típica
+// (pontas finas ficam de fora para nenhuma letra virar fiapo); topo e base seguem o contorno, por dentro
+function psProposeEnv(g, y0, y1) {
+  const { T, B } = psCols(g, y0, y1), hs = [];
+  for (let x = 0; x < g.W; x++) if (T[x] >= 0) hs.push(B[x] - T[x] + 1);
+  if (!hs.length) return null;
+  hs.sort((a, b) => a - b); const ref = hs[Math.floor(hs.length * 0.7)];
+  const ok = (x, f) => T[x] >= 0 && B[x] - T[x] + 1 >= ref * f;
+  let f = 0.66, L, R;
+  for (;;) { L = 0; while (L < g.W && !ok(L, f)) L++; R = g.W - 1; while (R > L && !ok(R, f)) R--; if (R - L > g.W * 0.06 || f < 0.2) break; f -= 0.15; }
+  if (R <= L) return null;
+  const K = Math.max(2, Math.round((R - L) * 0.035)), inset = ref * 0.025;
+  const near = (arr, x) => { let s = 0, n = 0; for (let j = Math.max(L, x - K); j <= Math.min(R, x + K); j++) if (arr[j] >= 0) { s += arr[j]; n++; } return n ? s / n : -1; };
+  const N = 9, t = [], b = [];
+  for (let i = 0; i < N; i++) {
+    const x = Math.round(L + ((R - L) * i) / (N - 1));
+    let tv = near(T, x), bv = near(B, x);
+    if (T[x] >= 0) { tv = Math.max(tv, T[x]); bv = Math.min(bv, B[x]); } // nunca fora do contorno real
+    if (tv < 0) { tv = y0; bv = y1; }
+    t.push([x, tv + inset]); b.push([x, Math.max(tv + inset + 2, bv - inset)]);
+  }
+  return { t, b, l: [(t[0][0] + b[0][0]) / 2, (t[0][1] + b[0][1]) / 2], r: [(t[N - 1][0] + b[N - 1][0]) / 2, (t[N - 1][1] + b[N - 1][1]) / 2] };
+}
+
+/* ---------- linhas, palavras e letras ---------- */
+function psLines() { return ps.cfg.text.split('\n').map((t) => t.trim().replace(/\s+/g, ' ')).filter(Boolean); }
+function psSyncLines() { // reaproveita os ajustes de linhas cujo texto não mudou
+  const texts = psLines(), old = ps.cfg.lines || [], used = new Set();
+  ps.cfg.lines = texts.map((t, i) => {
+    let m = old[i] && old[i].text === t && !used.has(i) ? i : old.findIndex((o, j) => o.text === t && !used.has(j));
+    if (m >= 0) { used.add(m); return old[m]; }
+    return { text: t, size: 100, env: null, words: {}, letters: {}, fill: null };
+  });
+}
+const wordCfg = (line, wi) => ({ s: 1, w: 1, h: 1, tr: 0, sp: 1, ...((line.words || {})[wi] || {}) });
+async function psFontFile(family) {
+  if (ps.fonts.has(family)) return ps.fonts.get(family);
+  if (!window.opentype) return null;
+  try { const f = opentype.parse(await fontBinary(family, 400, false)); ps.fonts.set(family, f); return f; } catch { return null; }
+}
+function psMetrics(font, lines) { // altura da tinta comum a toda a frase (inclui acentos como o de "SAÚDE")
+  let minY = 0, maxY = 0;
+  for (const l of lines) for (const g of font.stringToGlyphs(l.text)) {
+    const p = g.getPath(0, 0, font.unitsPerEm);
+    for (const c of p.commands) for (const k of ['y', 'y1', 'y2']) if (k in c) { minY = Math.min(minY, c[k]); maxY = Math.max(maxY, c[k]); }
+  }
+  return { asc: -minY, desc: -maxY };
+}
+function psFlat(font, li, line, M) { // linha "plana" em unidades da fonte, com os ajustes por palavra
+  const upm = font.unitsPerEm, words = line.text.split(' ').filter(Boolean), out = { glyphs: [], words: [] };
+  const space = font.charToGlyph(' ').advanceWidth || upm * 0.26;
+  let x = 0, H = 0;
+  words.forEach((w, wi) => {
+    const wc = wordCfg(line, wi), sx = wc.s * wc.w, sy = wc.s * wc.h, gl = font.stringToGlyphs(w), chars = [...w], x0 = x;
+    gl.forEach((g, ci) => {
+      out.glyphs.push({ li, wi, ci, ch: chars[ci] || '', cmds: g.getPath(0, 0, upm).commands, x, sx, sy });
+      const nx = gl[ci + 1];
+      x += (g.advanceWidth + (nx ? font.getKerningValue(g, nx) : 0)) * sx + (nx ? (wc.tr / 100) * upm * sx : 0);
+    });
+    out.words.push({ wi, x0, x1: x, text: w });
+    H = Math.max(H, (M.asc - M.desc) * sy);
+    if (wi < words.length - 1) x += space * sx * wc.sp;
+  });
+  let xmin = Infinity, xmax = -Infinity;
+  for (const g of out.glyphs) for (const c of g.cmds) for (const k of ['x', 'x1', 'x2']) if (k in c) { const X = g.x + c[k] * g.sx; if (X < xmin) xmin = X; if (X > xmax) xmax = X; }
+  if (!isFinite(xmin)) { xmin = 0; xmax = 1; }
+  return Object.assign(out, { H: H || 1, xmin, xmax, a: (xmax - xmin) / (H || 1) });
+}
+// faixas das linhas: altura pela proporção de cada linha (amortecida) × tamanho escolhido
+function psBands(g, aspects, sizes, gapPct) {
+  const n = aspects.length, total = g.bot - g.top + 1, gap = (total * gapPct) / 100, avail = Math.max(n * 4, total - gap * (n - 1));
+  const rowW = (y0, y1) => { let s = 0, k = 0; for (let y = Math.max(g.top, Math.round(y0)); y <= Math.min(g.bot, Math.round(y1)); y++) if (g.runL[y] >= 0) { s += g.runR[y] - g.runL[y] + 1; k++; } return k ? s / k : 1; };
+  let h = sizes.map((s) => s); { const s0 = h.reduce((a, b) => a + b, 0); h = h.map((v) => (v * avail) / s0); }
+  for (let it = 0; it < 8; it++) {
+    let y = g.top; const ideal = aspects.map((a, i) => { const v = rowW(y, y + h[i]) / Math.max(0.2, a); y += h[i] + gap; return v; });
+    const damp = ideal.map((v, i) => Math.pow(v, 0.55) * sizes[i]), sum = damp.reduce((a, b) => a + b, 0), avg = avail / n;
+    h = damp.map((v, i) => clamp((v * avail) / sum, avg * 0.45 * sizes[i], avg * 2.2 * sizes[i]));
+    const s2 = h.reduce((a, b) => a + b, 0); h = h.map((v) => (v * avail) / s2);
+  }
+  let y = g.top; return h.map((v) => { const b = [y, y + v]; y += v + gap; return b; });
+}
+
+/* ---------- curvas: mapear os contornos da letra pelo envelope ---------- */
+const bz2 = (p0, p1, p2, a, b) => (1 - a) * (1 - b) * p0 + ((1 - a) * b + a * (1 - b)) * p1 + a * b * p2;
+const bz3 = (p0, p1, p2, p3, a, b, c) => p0 * (1 - a) * (1 - b) * (1 - c) + p1 * (a * (1 - b) * (1 - c) + (1 - a) * b * (1 - c) + (1 - a) * (1 - b) * c)
+  + p2 * (a * b * (1 - c) + a * (1 - b) * c + (1 - a) * b * c) + p3 * a * b * c;
+function warpCmds(cmds, mp) { // subdivide retas e curvas e mapeia os pontos (as retas também curvam no envelope)
+  const r = (n) => Math.round(n * 100) / 100, P = (x, y) => { const p = mp(x, y); return r(p[0]) + ' ' + r(p[1]); };
+  let d = '', cx = 0, cy = 0, sx = 0, sy = 0;
+  const seg = (x0, y0, x1, y1) => { for (let i = 1; i <= 6; i++) { const t = i / 6; d += 'L' + P(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t); } };
+  for (const c of cmds) {
+    if (c.type === 'M') { d += 'M' + P(c.x, c.y); cx = sx = c.x; cy = sy = c.y; }
+    else if (c.type === 'L') { seg(cx, cy, c.x, c.y); cx = c.x; cy = c.y; }
+    else if (c.type === 'Q') {
+      for (let i = 0; i < 3; i++) { const a = i / 3, b = (i + 1) / 3;
+        d += 'Q' + P(bz2(cx, c.x1, c.x, a, b), bz2(cy, c.y1, c.y, a, b)) + ' ' + P(bz2(cx, c.x1, c.x, b, b), bz2(cy, c.y1, c.y, b, b)); }
+      cx = c.x; cy = c.y;
+    } else if (c.type === 'C') {
+      for (let i = 0; i < 3; i++) { const a = i / 3, b = (i + 1) / 3;
+        d += 'C' + P(bz3(cx, c.x1, c.x2, c.x, a, a, b), bz3(cy, c.y1, c.y2, c.y, a, a, b)) + ' ' + P(bz3(cx, c.x1, c.x2, c.x, a, b, b), bz3(cy, c.y1, c.y2, c.y, a, b, b))
+          + ' ' + P(bz3(cx, c.x1, c.x2, c.x, b, b, b), bz3(cy, c.y1, c.y2, c.y, b, b, b)); }
+      cx = c.x; cy = c.y;
+    } else if (c.type === 'Z') { if (cx !== sx || cy !== sy) seg(cx, cy, sx, sy); d += 'Z'; cx = sx; cy = sy; }
+  }
+  return d;
+}
+function glyphMapper(fl, env, M, k, ox, oy) {
+  return (g) => (px, py) => {
+    const X = g.x + px * g.sx, Y = (py + M.asc) * g.sy + (fl.H - (M.asc - M.desc) * g.sy) / 2;
+    const p = coons(env, (X - fl.xmin) / (fl.xmax - fl.xmin || 1), Y / fl.H);
+    return [ox + p[0] * k, oy + p[1] * k];
+  };
+}
+
+/* ---------- modo Preenchimento: linhas inteiras, sem deformar ---------- */
+function psSpan(g, y0, y1) { // faixa horizontal livre em todas as linhas de pixels de y0 a y1
+  let L = -Infinity, R = Infinity;
+  for (let y = Math.max(0, Math.floor(y0)); y <= Math.min(g.H - 1, Math.ceil(y1)); y++) { if (g.runL[y] < 0) return null; L = Math.max(L, g.runL[y]); R = Math.min(R, g.runR[y]); }
+  return R - L > 2 ? { L, R } : null;
+}
+function psMeasure(font, text) { // tinta real da linha (com acentos), medida com a fonte da tela
+  const x = document.createElement('canvas').getContext('2d'); x.font = `200px "${font}", Impact, sans-serif`;
+  const m = x.measureText(text), asc = m.actualBoundingBoxAscent, desc = m.actualBoundingBoxDescent, iw = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
+  return { asc, desc, ih: asc + desc, iw, left: m.actualBoundingBoxLeft, adv: m.width, a: iw / Math.max(1, asc + desc) };
+}
+function psFillLayout(g, lines, font, gapPct) {
+  const ms = lines.map((l) => psMeasure(font, l.text)), sizes = lines.map((l) => (l.size || 100) / 100);
+  const gap = ((g.bot - g.top) * gapPct) / 100, margin = 1.03;
+  const fit = (y, a, cap) => {
+    let lo = 0, hi = cap, best = null;
+    for (let it = 0; it < 22; it++) { const m = (lo + hi) / 2, sp = psSpan(g, y, y + m); if (sp && a * m * margin <= sp.R - sp.L) { lo = m; best = sp; } else hi = m; }
+    return lo > 1 && best ? { h: lo, cx: (best.L + best.R) / 2 } : null;
+  };
+  const run = (cap, y0) => {
+    let y = y0; const out = [];
+    for (let i = 0; i < lines.length; i++) {
+      let f = null, yy = y;
+      while (yy < g.bot && !(f = fit(yy, ms[i].a, cap * sizes[i]))) yy += 2; // pula topo pontudo
+      if (!f) return null;
+      out.push({ li: i, y: yy, h: f.h, cx: f.cx, m: ms[i] }); y = yy + f.h + gap;
+    }
+    return { out, end: y - gap };
+  };
+  let lo = 2, hi = g.bot - g.top, best = null;
+  for (let it = 0; it < 24; it++) { const m = (lo + hi) / 2, r = run(m, g.top); if (r && r.end <= g.bot) { lo = m; best = r; } else hi = m; }
+  if (!best) return null;
+  const left = g.bot - best.end; // centraliza na vertical o que sobrar
+  if (left > 4) { const r2 = run(lo, g.top + left / 2); if (r2 && r2.end <= g.bot) best = r2; }
+  return best.out.map((o) => ({ ...o, fs: (o.h / o.m.ih) * 200 }));
+}
+// posição do texto do Fabric para que a tinta caia exatamente no retângulo calculado
+function fillTextPos(o) {
+  const k = o.fs / 200, asc = o.m.asc * k, iw = o.m.iw * k, start = o.cx - iw / 2 + o.m.left * k, base = o.y + asc;
+  return { start, base, top: base - o.fs * 1.13 * (1 - 0.222), boxH: o.fs * 1.13 };
+}
+
+/* ---------- propor quebras de linha (não muda as palavras, só onde quebrar) ---------- */
+function psProposeBreaks() {
+  const words = ps.cfg.text.split(/\s+/).filter(Boolean), g = ps.geom; if (!words.length || !g) return;
+  let best = null;
+  for (let n = 1; n <= Math.min(words.length, 7); n++) {
+    const total = g.bot - g.top, ws = [];
+    for (let k = 0; k < n; k++) { const y = Math.round(g.top + ((k + 0.5) * total) / n); ws.push(g.runL[y] >= 0 ? g.runR[y] - g.runL[y] : 1); }
+    const C = words.join(' ').length, sumW = ws.reduce((a, b) => a + b, 0), lines = [[]]; let acc = 0, k = 0, cum = (ws[0] / sumW) * C;
+    words.forEach((w, i) => {
+      const left = words.length - i, linesLeft = n - k - 1;
+      if (lines[k].length && (acc + w.length / 2 > cum || left <= linesLeft) && k < n - 1) { k++; lines.push([]); cum += (ws[k] / sumW) * C; }
+      lines[k].push(w); acc += w.length + 1;
+    });
+    if (lines.length !== n || lines.some((l) => !l.length)) continue;
+    // nota: deformação (quanto cada linha estica/espreme na sua faixa) + legibilidade (nenhuma linha minúscula)
+    const as = lines.map((l) => psMeasure(ps.cfg.font, l.join(' ')).a), bands = psBands(g, as, lines.map(() => 1), ps.cfg.gap);
+    let pen = 0; const hs = bands.map(([a, b]) => b - a);
+    bands.forEach(([y0, y1], i) => { let sw = 0, k = 0; for (let y = Math.round(y0); y <= Math.round(y1); y++) if (g.runL[y] >= 0) { sw += g.runR[y] - g.runL[y]; k++; } pen += Math.abs(Math.log((k ? sw / k : 1) / (y1 - y0) / Math.max(0.2, as[i]))); });
+    const legib = Math.min(...hs) / (total / 4); // linha mais baixa comparada a 1/4 da forma
+    const score = -pen / n - 0.04 * n - (legib < 0.55 ? (0.55 - legib) * 3 : 0);
+    if (!best || score > best.score) best = { score, text: lines.map((l) => l.join(' ')).join('\n') };
+  }
+  if (best) { ps.cfg.text = best.text; $('#psText').value = best.text; }
+}
+
+/* ---------- desenhar no estúdio ---------- */
+async function psBuild(k = 1, ox = 0, oy = 0) { // objetos Fabric da arte (estúdio: k=1; prancheta: escala em px)
+  const cfg = ps.cfg, g = ps.geom, objs = [], colors = cfg.colors.length ? cfg.colors : ['#141414'];
+  psSyncLines();
+  const lines = cfg.lines; if (!lines.length) return { objs, ok: true };
+  if (cfg.mode === 'lettering') {
+    const font = await psFontFile(cfg.font);
+    if (!font) return { objs, ok: false, why: 'font' };
+    const M = psMetrics(font, lines), flats = lines.map((l, li) => psFlat(font, li, l, M));
+    const bands = psBands(g, flats.map((f) => f.a), lines.map((l) => (l.size || 100) / 100), cfg.gap);
+    ps.cache = { M, flats, bands, envs: [] };
+    lines.forEach((line, li) => {
+      const env = line.env || psProposeEnv(g, bands[li][0], bands[li][1]); ps.cache.envs[li] = env; if (!env) return;
+      const mk = glyphMapper(flats[li], env, M, k, ox, oy);
+      for (const gl of flats[li].glyphs) {
+        const d = warpCmds(gl.cmds, mk(gl)); if (!/[LQC]/.test(d)) continue;
+        const p = new fabric.Path(d, { fill: colors[li % colors.length], objectCaching: false, strokeWidth: 0 });
+        p.psKind = 'letter'; p.psKey = { li, wi: gl.wi, ci: gl.ci }; p.name = 'Letra ' + gl.ch; p.baseX = p.left; p.baseY = p.top;
+        const ov = (line.letters || {})[gl.wi + ':' + gl.ci];
+        if (ov) p.set({ left: p.left + (ov.dx || 0) * k, top: p.top + (ov.dy || 0) * k, angle: ov.a || 0, scaleX: ov.k || 1, scaleY: ov.k || 1 });
+        objs.push(p);
+      }
+    });
+  } else {
+    await loadFont(cfg.font);
+    const lay = psFillLayout(g, lines, cfg.font, cfg.gap); ps.cache = { lay };
+    if (!lay) return { objs, ok: false, why: 'fit' };
+    for (const o of lay) {
+      const pos = fillTextPos(o), line = lines[o.li];
+      const t = new fabric.IText(line.text, { fontFamily: cfg.font, fontSize: o.fs * k, fill: colors[o.li % colors.length], originX: 'left', originY: 'top', left: ox + pos.start * k, top: oy + pos.top * k, lineHeight: 1, objectCaching: false });
+      const c = t.getCenterPoint(); t.set({ originX: 'center', originY: 'center', left: c.x, top: c.y });
+      t.psKind = 'letter'; t.psKey = { li: o.li, wi: null, ci: null }; t.name = 'Linha ' + (o.li + 1); t.baseX = t.left; t.baseY = t.top;
+      const ov = line.fill; if (ov) t.set({ left: t.left + (ov.dx || 0) * k, top: t.top + (ov.dy || 0) * k, angle: ov.a || 0, scaleX: ov.k || 1, scaleY: ov.k || 1 });
+      objs.push(t);
+    }
+  }
+  return { objs, ok: true };
+}
+async function psRender() {
+  const job = ++ps.job, c = ps.c;
+  const r = await psBuild(); if (job !== ps.job) return;
+  c.getObjects().filter((o) => ['letter', 'handle', 'outline'].includes(o.psKind)).forEach((o) => c.remove(o));
+  const editL = ps.em === 'letters';
+  r.objs.forEach((o) => { o.selectable = editL; o.evented = editL || ps.em === 'env'; o.hasControls = editL; c.add(o); });
+  const msg = !r.ok ? (r.why === 'font'
+    ? 'O lettering vetorial precisa do arquivo da fonte: com internet vem grátis do catálogo; sem internet, importe o OTF/TTF. O modo Preenchimento funciona mesmo assim.'
+    : 'A frase não coube com letras legíveis. Diminua o espaço entre linhas, quebre em mais linhas ou use o Lettering.') : '';
+  $('#psStatus').textContent = msg; $('#psStatus').hidden = !msg;
+  if (ps.em === 'env') psHandles();
+  psApplyLayers(); c.requestRenderAll(); psPanel();
+}
+function psApplyLayers() {
+  const c = ps.c, guide = c.getObjects().find((o) => o.psKind === 'guide'), ref = c.getObjects().find((o) => o.psKind === 'ref');
+  if (guide) { guide.visible = ps.cfg.showShape !== false; c.sendToBack(guide); }
+  if (ref) { ref.visible = !!(ps.cfg.ref && ps.cfg.ref.show !== false); ref.opacity = (ps.cfg.ref?.opacity ?? 50) / 100; c.sendToBack(ref); }
+  c.getObjects().filter((o) => o.psKind === 'letter').forEach((o) => (o.visible = !ps.abHide));
+}
+function psSetBackground() { // forma-guia (não exporta) e referência (camada bloqueada)
+  const c = ps.c; c.getObjects().filter((o) => o.psKind === 'guide' || o.psKind === 'ref').forEach((o) => c.remove(o));
+  return Promise.all([
+    new Promise((res) => fabric.Image.fromURL(ps.guideUrl, (im) => { im.set({ left: ps.geom.W / 2, top: ps.geom.H / 2, selectable: false, evented: false }); im.psKind = 'guide'; c.add(im); res(); })),
+    ps.cfg.ref && imgStore.get(ps.cfg.ref.key) ? new Promise((res) => fabric.Image.fromURL(imgStore.get(ps.cfg.ref.key), (im) => {
+      const R = ps.cfg.ref; if (R.scale == null) { R.scale = Math.min(ps.geom.W / im.width, ps.geom.H / im.height); R.left = ps.geom.W / 2; R.top = ps.geom.H / 2; R.angle = 0; }
+      im.set({ left: R.left, top: R.top, scaleX: R.scale, scaleY: R.scale, angle: R.angle || 0, selectable: ps.em === 'ref', evented: ps.em === 'ref' });
+      im.psKind = 'ref'; c.add(im); res();
+    })) : null,
+  ]).then(() => { psApplyLayers(); psFit(); });
+}
+function psFit() {
+  const c = ps.c, st = $('#psStage'), w = st.clientWidth, h = st.clientHeight; if (!w || !h || !ps.geom) return;
+  c.setDimensions({ width: w, height: h });
+  const z = Math.min((w - 40) / ps.geom.W, (h - 40) / ps.geom.H);
+  c.setViewportTransform([z, 0, 0, z, (w - ps.geom.W * z) / 2, (h - ps.geom.H * z) / 2]); c.requestRenderAll();
+}
+
+/* ---------- alças do envelope ---------- */
+function psEnvOf(li) { const l = ps.cfg.lines[li]; return l && (l.env || ps.cache.envs?.[li]); }
+function psHandles() {
+  const c = ps.c; c.getObjects().filter((o) => o.psKind === 'handle' || o.psKind === 'outline').forEach((o) => c.remove(o));
+  if (ps.cfg.mode !== 'lettering') return;
+  const li = ps.sel.li, env = psEnvOf(li); if (!env) return;
+  psOutline(env);
+  const z = c.getZoom(), add = (pt, arr, i) => {
+    const corner = arr !== 'l' && arr !== 'r' && (i === 0 || i === env.t.length - 1);
+    const h = new fabric.Circle({ left: pt[0], top: pt[1], radius: (corner ? 7 : 5.5) / z, fill: corner ? '#e7e1cf' : '#e8335a', stroke: '#0a0a0a', strokeWidth: 1.5 / z, hasControls: false, hasBorders: false, padding: 6 / z });
+    h.psKind = 'handle'; h.hArr = arr; h.hI = i; c.add(h);
+  };
+  env.t.forEach((p, i) => add(p, 't', i)); env.b.forEach((p, i) => add(p, 'b', i)); add(env.l, 'l', 0); add(env.r, 'r', 0);
+}
+function psOutline(env) {
+  const c = ps.c; c.getObjects().filter((o) => o.psKind === 'outline').forEach((o) => c.remove(o));
+  const pts = []; const S = 40;
+  for (let i = 0; i <= S; i++) pts.push(coons(env, i / S, 0)); for (let i = 0; i <= S; i++) pts.push(coons(env, 1, i / S));
+  for (let i = S; i >= 0; i--) pts.push(coons(env, i / S, 1)); for (let i = S; i >= 0; i--) pts.push(coons(env, 0, i / S));
+  const pl = new fabric.Polyline(pts.map(([x, y]) => ({ x, y })), { fill: 'rgba(232,51,90,.06)', stroke: '#e8335a', strokeWidth: 1.2 / c.getZoom(), strokeDashArray: [6 / c.getZoom(), 4 / c.getZoom()], selectable: false, evented: false, objectCaching: false });
+  pl.psKind = 'outline'; c.add(pl);
+}
+let psDragRaf = 0;
+function psOnHandleMove(h) {
+  const li = ps.sel.li, line = ps.cfg.lines[li]; if (!line) return;
+  if (!line.env) line.env = JSON.parse(JSON.stringify(psEnvOf(li)));
+  const p = [h.left, h.top];
+  if (h.hArr === 'l') line.env.l = p; else if (h.hArr === 'r') line.env.r = p; else line.env[h.hArr][h.hI] = p;
+  cancelAnimationFrame(psDragRaf);
+  psDragRaf = requestAnimationFrame(() => psRedrawLine(li));
+}
+function psRedrawLine(li) { // redesenha só as letras de uma linha (rápido, durante o arraste)
+  const c = ps.c, line = ps.cfg.lines[li], { M, flats } = ps.cache; if (!flats || !flats[li]) return;
+  c.getObjects().filter((o) => o.psKind === 'letter' && o.psKey.li === li).forEach((o) => c.remove(o));
+  const env = line.env, mk = glyphMapper(flats[li], env, M, 1, 0, 0), colors = ps.cfg.colors.length ? ps.cfg.colors : ['#141414'];
+  for (const gl of flats[li].glyphs) {
+    const d = warpCmds(gl.cmds, mk(gl)); if (!/[LQC]/.test(d)) continue;
+    const p = new fabric.Path(d, { fill: colors[li % colors.length], objectCaching: false, selectable: false, evented: true, strokeWidth: 0 });
+    p.psKind = 'letter'; p.psKey = { li, wi: gl.wi, ci: gl.ci }; p.baseX = p.left; p.baseY = p.top;
+    const ov = (line.letters || {})[gl.wi + ':' + gl.ci];
+    if (ov) p.set({ left: p.left + (ov.dx || 0), top: p.top + (ov.dy || 0), angle: ov.a || 0, scaleX: ov.k || 1, scaleY: ov.k || 1 });
+    c.add(p);
+  }
+  psOutline(env); c.getObjects().filter((o) => o.psKind === 'handle').forEach((o) => c.bringToFront(o)); c.requestRenderAll();
+}
+
+/* ---------- histórico do estúdio ---------- */
+function psPush() {
+  const s = JSON.stringify(ps.cfg); if (ps.hist[ps.hi] === s) return;
+  ps.hist = ps.hist.slice(0, ps.hi + 1); ps.hist.push(s); if (ps.hist.length > 80) ps.hist.shift(); ps.hi = ps.hist.length - 1; psUndoState();
+}
+const psPushSoon = debounce(psPush, 300);
+function psUndoState() { $('#psUndo').disabled = ps.hi <= 0; $('#psRedo').disabled = ps.hi >= ps.hist.length - 1; }
+async function psRestore(s) {
+  const prev = ps.cfg; ps.cfg = JSON.parse(s);
+  if (prev.shape !== ps.cfg.shape || prev.maskKey !== ps.cfg.maskKey) await psLoadShape();
+  $('#psText').value = ps.cfg.text; await psSetBackground(); await psRender(); psUndoState();
+}
+const psUndo = () => { if (ps.hi > 0) { ps.hi--; psRestore(ps.hist[ps.hi]); } };
+const psRedo = () => { if (ps.hi < ps.hist.length - 1) { ps.hi++; psRestore(ps.hist[ps.hi]); } };
+
+/* ---------- abrir / fechar ---------- */
+async function openPhraseStudio(cfg, target) {
+  endMode();
+  ps.cfg = cfg ? JSON.parse(JSON.stringify(cfg)) : PS_DEF(); ps.target = target || null; ps.hist = []; ps.hi = -1; ps.sel = { li: 0, wi: 0, ci: null }; ps.abHide = false;
+  $('#psModal').hidden = false;
+  if (!ps.c) {
+    ps.c = new fabric.Canvas('psC', { preserveObjectStacking: true, selection: false, stopContextMenu: true });
+    ps.c.on('object:moving', (e) => { if (e.target.psKind === 'handle') psOnHandleMove(e.target); });
+    ps.c.on('mouse:up', () => { if (ps.em === 'env') psPush(); });
+    ps.c.on('mouse:down', (e) => {
+      const o = e.target; if (!o || o.psKind !== 'letter') return;
+      ps.sel = { li: o.psKey.li, wi: o.psKey.wi ?? ps.sel.wi, ci: o.psKey.ci };
+      if (ps.em === 'env') psHandles(); psPanel();
+    });
+    ps.c.on('object:modified', (e) => psLetterModified(e.target));
+    new ResizeObserver(() => { psFit(); if (ps.em === 'env') psHandles(); }).observe($('#psStage'));
+  }
+  $('#psPlace').textContent = ps.target ? 'Atualizar na prancheta' : 'Colocar na prancheta';
+  fillPsFonts(); $('#psText').value = ps.cfg.text;
+  await loadFont(ps.cfg.font); await psLoadShape();
+  if (!ps.cfg.text.includes('\n')) psProposeBreaks();
+  psSetEm('view'); await psSetBackground(); await psRender(); psPush();
+}
+function psLetterModified(o) {
+  if (!o) return;
+  const list = o.type === 'activeSelection' ? o.getObjects() : [o];
+  for (const it of list) {
+    if (it.psKind === 'ref') { const R = ps.cfg.ref; Object.assign(R, { left: it.left, top: it.top, scale: it.scaleX, angle: it.angle }); continue; }
+    if (it.psKind !== 'letter') continue;
+    const q = fabric.util.qrDecompose(it.calcTransformMatrix()), line = ps.cfg.lines[it.psKey.li];
+    const ov = { dx: q.translateX - it.baseX, dy: q.translateY - it.baseY, a: q.angle, k: q.scaleX };
+    if (ps.cfg.mode === 'lettering') { line.letters = line.letters || {}; line.letters[it.psKey.wi + ':' + it.psKey.ci] = ov; } else line.fill = ov;
+  }
+  psPush(); psPanel();
+}
+function psSetEm(em) {
+  ps.em = em; document.querySelectorAll('#psEditMode [data-em]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.em === em)));
+  const c = ps.c; c.discardActiveObject(); c.selection = em === 'letters';
+  c.getObjects().forEach((o) => {
+    if (o.psKind === 'letter') { o.selectable = em === 'letters'; o.evented = em === 'letters' || em === 'env'; o.hasControls = em === 'letters'; }
+    if (o.psKind === 'ref') { o.selectable = o.evented = em === 'ref'; }
+  });
+  if (em === 'env') psHandles(); else c.getObjects().filter((o) => o.psKind === 'handle' || o.psKind === 'outline').forEach((o) => c.remove(o));
+  $('#psHint').textContent = {
+    view: 'Prévia. Use “Envelope” para curvar as linhas, “Letras” para mover e girar letras, “Referência” para alinhar a imagem de referência.',
+    env: ps.cfg.mode === 'lettering' ? 'Arraste as alças: claras = cantos (laterais), rosa = topo, base e meio das laterais. Clique numa letra para escolher a linha.' : 'O envelope é do modo Lettering. No Preenchimento as letras não deformam.',
+    letters: 'Clique e arraste uma letra (ou linha, no Preenchimento) para mover; use as alças para girar e escalar. Shift + clique seleciona várias.',
+    ref: 'Mova, gire e escale a imagem de referência para alinhar. Ela não vai para a exportação.',
+  }[em];
+  c.requestRenderAll();
+}
+
+/* ---------- painel ---------- */
+function fillPsFonts() { const s = $('#psFont'); s.innerHTML = $('#fontSel').innerHTML; s.value = ps.cfg.font; if (s.value !== ps.cfg.font) { const o = document.createElement('option'); o.textContent = o.value = ps.cfg.font; s.prepend(o); s.value = ps.cfg.font; } }
+function psPanel() {
+  const cfg = ps.cfg; if (!cfg) return;
+  document.querySelectorAll('#psShapes .ps-shape').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.shape === cfg.shape)));
+  document.querySelectorAll('#psMode [data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === cfg.mode)));
+  $('#psFontInfo').textContent = licenseText(fontMeta(cfg.font));
+  const lines = cfg.lines; ps.sel.li = clamp(ps.sel.li, 0, Math.max(0, lines.length - 1));
+  const box = $('#psLines'); box.innerHTML = '';
+  lines.forEach((l, i) => { const b = document.createElement('button'); b.className = 'chip'; b.textContent = `${i + 1}. ${l.text}`; b.setAttribute('aria-pressed', String(i === ps.sel.li)); b.onclick = () => { ps.sel = { li: i, wi: 0, ci: null }; if (ps.em === 'env') psHandles(); psPanel(); }; box.appendChild(b); });
+  const line = lines[ps.sel.li];
+  $('#psLineSize').value = line ? line.size || 100 : 100; $('#psLineSizeOut').textContent = (line ? line.size || 100 : 100) + '%';
+  $('#psGap').value = cfg.gap; $('#psGapOut').textContent = fmt(cfg.gap, 1) + '%';
+  const let_ = cfg.mode === 'lettering';
+  $('#psWordBox').hidden = !let_ || !line; $('#psEnvReset').hidden = !let_;
+  if (let_ && line) {
+    const words = line.text.split(' '); ps.sel.wi = clamp(ps.sel.wi, 0, words.length - 1);
+    const wb = $('#psWords'); wb.innerHTML = '';
+    words.forEach((w, i) => { const b = document.createElement('button'); b.className = 'chip'; b.textContent = w; b.setAttribute('aria-pressed', String(i === ps.sel.wi)); b.onclick = () => { ps.sel.wi = i; ps.sel.ci = null; psPanel(); }; wb.appendChild(b); });
+    const wc = wordCfg(line, ps.sel.wi);
+    for (const [id, key, mul] of [['psWs', 's', 100], ['psWw', 'w', 100], ['psWh', 'h', 100], ['psWtr', 'tr', 1], ['psWsp', 'sp', 100]]) {
+      $('#' + id).value = wc[key] * mul; $('#' + id + 'Out').textContent = key === 'tr' ? fmt(wc[key], 0) : Math.round(wc[key] * mul) + '%';
+    }
+  }
+  const hasL = ps.sel.ci != null && let_ && line, ov = hasL ? (line.letters || {})[ps.sel.wi + ':' + ps.sel.ci] : null;
+  $('#psLetterBox').hidden = !hasL;
+  if (hasL) {
+    const ch = [...line.text.split(' ')[ps.sel.wi]][ps.sel.ci] || '';
+    $('#psLetterName').textContent = `“${ch}” em ${line.text.split(' ')[ps.sel.wi]}`;
+    $('#psLa').value = Math.round(ov?.a || 0); $('#psLaOut').textContent = Math.round(ov?.a || 0) + '°';
+    $('#psLk').value = Math.round((ov?.k || 1) * 100); $('#psLkOut').textContent = Math.round((ov?.k || 1) * 100) + '%';
+  }
+  ['psC1', 'psC2', 'psC3'].forEach((id, i) => { $('#' + id).value = cfg.colors[i] || cfg.colors[0]; $('#' + id).disabled = i >= cfg.colors.length; });
+  $('#psOne').textContent = cfg.colors.length > 1 ? 'Uma cor' : 'Três cores';
+  $('#psShowShape').checked = cfg.showShape !== false;
+  $('#psRefBox').hidden = !cfg.ref;
+  if (cfg.ref) { $('#psRefOp').value = cfg.ref.opacity ?? 50; $('#psRefShow').checked = cfg.ref.show !== false; }
+  $('#psW').value = cfg.wCm;
+}
+function psBuildShapeGallery() {
+  const box = $('#psShapes'); if (box.childElementCount) return;
+  for (const k of [...PS_ORDER, 'custom']) {
+    const b = document.createElement('button'); b.className = 'ps-shape'; b.dataset.shape = k; b.title = k === 'custom' ? 'Silhueta importada' : SHAPES[k].label;
+    if (k !== 'custom') { const m = shapeMask(k, 60); m.style.width = '38px'; b.appendChild(m); } else b.innerHTML = '<svg class="i" viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5M5 21h14"/></svg>';
+    const s = document.createElement('span'); s.textContent = k === 'custom' ? 'Sua' : SHAPES[k].label; b.appendChild(s);
+    b.onclick = async () => {
+      if (k === 'custom' && !ps.cfg.maskKey) { $('#psSilFile').click(); return; }
+      ps.cfg.shape = k; ps.cfg.lines.forEach((l) => (l.env = null));
+      await psLoadShape(); await psSetBackground(); await psRender(); psPush();
+    };
+    box.appendChild(b);
+  }
+}
+async function psUseMask(canvas) {
+  const m = trimMask(canvas); if (!m) { toast('Essa imagem não tem partes opacas para virar forma'); return; }
+  ps.cfg.maskKey = putImg(m.toDataURL('image/png')); ps.cfg.shape = 'custom'; ps.cfg.lines.forEach((l) => (l.env = null));
+  await psLoadShape(); await psSetBackground(); await psRender(); psPush();
+}
+
+/* ---------- exportar ---------- */
+function psLetters() { return ps.c.getObjects().filter((o) => o.psKind === 'letter'); }
+function psBBox() {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const o of psLetters()) { const r = o.getBoundingRect(true, true); x0 = Math.min(x0, r.left); y0 = Math.min(y0, r.top); x1 = Math.max(x1, r.left + r.width); y1 = Math.max(y1, r.top + r.height); }
+  const m = (x1 - x0) * 0.02; return { x: x0 - m, y: y0 - m, w: x1 - x0 + 2 * m, h: y1 - y0 + 2 * m };
+}
+async function psSvg(mono) {
+  const bb = psBBox(), cmW = (ps.cfg.wCm * bb.w) / ps.geom.W, cmH = (cmW * bb.h) / bb.w, parts = [];
+  let warn = '';
+  if (ps.cfg.mode === 'lettering') {
+    for (const o of psLetters()) {
+      const d = o.path.map((c) => c[0] + c.slice(1).map((n) => Math.round(n * 100) / 100).join(' ')).join('');
+      const cx = o.baseX, cy = o.baseY;
+      const tr = `translate(${(o.left).toFixed(2)} ${(o.top).toFixed(2)}) rotate(${(o.angle || 0).toFixed(2)}) scale(${(o.scaleX || 1).toFixed(4)}) translate(${(-cx).toFixed(2)} ${(-cy).toFixed(2)})`;
+      // o.path está nas coordenadas originais (antes do deslocamento): pathOffset = centro da base
+      parts.push(`<path d="${d}" fill="${mono || o.fill}" transform="${tr}"/>`);
+    }
+  } else {
+    const font = await psFontFile(ps.cfg.font);
+    for (const o of psLetters()) {
+      const lay = ps.cache.lay.find((l) => l.li === o.psKey.li), pos = fillTextPos(lay);
+      const tr = `translate(${o.left.toFixed(2)} ${o.top.toFixed(2)}) rotate(${(o.angle || 0).toFixed(2)}) scale(${(o.scaleX || 1).toFixed(4)}) translate(${(-o.baseX).toFixed(2)} ${(-o.baseY).toFixed(2)})`;
+      if (font) parts.push(`<path d="${font.getPath(o.text, pos.start, pos.base, lay.fs).toPathData(2)}" fill="${mono || o.fill}" transform="${tr}"/>`);
+      else { parts.push(`<text x="${pos.start.toFixed(2)}" y="${pos.base.toFixed(2)}" font-family="${ps.cfg.font}" font-size="${lay.fs.toFixed(2)}" fill="${mono || o.fill}" transform="${tr}">${o.text.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</text>`); warn = 'sem o arquivo da fonte, o SVG usa texto (depende da fonte instalada)'; }
+    }
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${cmW.toFixed(2)}cm" height="${cmH.toFixed(2)}cm" viewBox="${bb.x.toFixed(2)} ${bb.y.toFixed(2)} ${bb.w.toFixed(2)} ${bb.h.toFixed(2)}">\n${parts.join('\n')}\n</svg>`;
+  return { svg, warn };
+}
+function psPng(mono) {
+  const bb = psBBox(), outW = Math.round(((ps.cfg.wCm * bb.w) / ps.geom.W) * pxPerCm()), s = outW / bb.w;
+  const c = ps.c, keep = c.getObjects().filter((o) => o.psKind !== 'letter' && o.visible); keep.forEach((o) => (o.visible = false));
+  const letters = psLetters(), fills = letters.map((o) => o.fill); if (mono) letters.forEach((o) => o.set('fill', mono));
+  const vpt = c.viewportTransform.slice(); c.setViewportTransform([1, 0, 0, 1, 0, 0]);
+  const el = c.toCanvasElement(s, { left: bb.x, top: bb.y, width: bb.w, height: bb.h });
+  c.setViewportTransform(vpt); keep.forEach((o) => (o.visible = true)); letters.forEach((o, i) => o.set('fill', fills[i])); psApplyLayers(); c.requestRenderAll();
+  return el.toDataURL('image/png');
+}
+
+/* ---------- colocar na prancheta ---------- */
+async function psPlace() {
+  const g = ps.geom, k = (ps.cfg.wCm * pxPerCm()) / g.W, c0 = centerOfBoard();
+  const r = await psBuild(k, c0.left - (g.W / 2) * k, c0.top - (g.H / 2) * k);
+  if (!r.ok || !r.objs.length) { toast('Nada para colocar: ajuste a frase ou o modo'); return; }
+  r.objs.forEach((o) => { o.uid = nextUid(); delete o.psKind; o.selectable = true; o.evented = true; o.hasControls = true; });
+  const grp = new fabric.Group(r.objs, { objectCaching: false });
+  grp.uid = nextUid(); grp.name = 'Frase na forma'; grp.shapeCfg = JSON.parse(JSON.stringify(ps.cfg));
+  // cópia do texto editável (oculta), antes de virar curvas
+  const copy = new fabric.IText(ps.cfg.lines.map((l) => l.text).join('\n'), { ...c0, fontFamily: ps.cfg.font, fontSize: 2 * pxPerCm(), fill: ps.cfg.colors[0] || '#141414', textAlign: 'center', lineHeight: 1, visible: false });
+  copy.uid = nextUid(); copy.name = 'Texto editável (cópia)'; grp.fromText = copy.uid;
+  if (ps.target && fc.getObjects().includes(ps.target)) {
+    const old = ps.target, idx = fc.getObjects().indexOf(old), oldCopy = userObjs().find((x) => x.uid === old.fromText);
+    grp.set({ left: old.left, top: old.top, angle: old.angle, scaleX: old.scaleX, scaleY: old.scaleY });
+    fc.discardActiveObject(); fc.remove(old); if (oldCopy) fc.remove(oldCopy);
+    fc.insertAt(copy, Math.max(1, idx), false); fc.insertAt(grp, Math.max(1, idx) + 1, false);
+  } else { fc.add(copy); fc.add(grp); }
+  keepBoardBottom(); setTool('select'); fc.setActiveObject(grp); fc.requestRenderAll(); snapshot(); refreshSel();
+  $('#psModal').hidden = true;
+  toast(ps.cfg.mode === 'lettering' ? 'Lettering na prancheta (vetor). “Editar frase na forma” reabre o estúdio; desagrupe para mexer em cada letra.' : 'Frase na prancheta. Desagrupe para editar cada linha como texto.', 5200);
+}
+
+/* ---------- ligações da interface ---------- */
+(function psWire() {
+  psBuildShapeGallery();
+  $('#warpTool').onclick = () => openPhraseStudio();
+  $('#psCancel').onclick = () => ($('#psModal').hidden = true);
+  $('#psPlace').onclick = psPlace;
+  $('#psUndo').onclick = psUndo; $('#psRedo').onclick = psRedo;
+  document.querySelectorAll('#psEditMode [data-em]').forEach((b) => (b.onclick = () => psSetEm(b.dataset.em)));
+  document.querySelectorAll('#psMode [data-mode]').forEach((b) => (b.onclick = async () => { ps.cfg.mode = b.dataset.mode; ps.sel.ci = null; await psRender(); psSetEm(ps.em); psPush(); }));
+  $('#psText').oninput = debounce(async (e) => { ps.cfg.text = e.target.value; await psRender(); psPush(); }, 350);
+  $('#psBreaks').onclick = async () => { psProposeBreaks(); await psRender(); psPush(); };
+  $('#psFont').onchange = async (e) => { ps.cfg.font = e.target.value; await loadFont(ps.cfg.font); await psRender(); psPush(); };
+  $('#psFontSearch').onclick = () => openFontSearch();
+  $('#psFontUpload').onclick = () => $('#fileFont').click();
+  const lineSet = (fn) => { const l = ps.cfg.lines[ps.sel.li]; if (!l) return; fn(l); psRender(); psPushSoon(); };
+  $('#psLineSize').oninput = (e) => lineSet((l) => { l.size = +e.target.value; l.env = null; });
+  $('#psGap').oninput = (e) => { ps.cfg.gap = +e.target.value; ps.cfg.lines.forEach((l) => (l.env = null)); psRender(); psPushSoon(); };
+  $('#psEnvReset').onclick = () => lineSet((l) => (l.env = null));
+  $('#psEnvResetAll').onclick = () => { ps.cfg.lines.forEach((l) => { l.env = null; l.letters = {}; l.fill = null; }); psRender(); psPush(); };
+  for (const [id, key, div] of [['psWs', 's', 100], ['psWw', 'w', 100], ['psWh', 'h', 100], ['psWtr', 'tr', 1], ['psWsp', 'sp', 100]]) {
+    $('#' + id).oninput = (e) => lineSet((l) => { l.words = l.words || {}; l.words[ps.sel.wi] = { ...wordCfg(l, ps.sel.wi), [key]: +e.target.value / div }; l.letters = {}; });
+  }
+  $('#psWordReset').onclick = () => lineSet((l) => { if (l.words) delete l.words[ps.sel.wi]; });
+  const letterSet = (fn) => lineSet((l) => { l.letters = l.letters || {}; const key = ps.sel.wi + ':' + ps.sel.ci; l.letters[key] = fn({ dx: 0, dy: 0, a: 0, k: 1, ...(l.letters[key] || {}) }); });
+  $('#psLa').oninput = (e) => letterSet((o) => ({ ...o, a: +e.target.value }));
+  $('#psLk').oninput = (e) => letterSet((o) => ({ ...o, k: +e.target.value / 100 }));
+  $('#psLetterReset').onclick = () => lineSet((l) => { if (l.letters) delete l.letters[ps.sel.wi + ':' + ps.sel.ci]; });
+  ['psC1', 'psC2', 'psC3'].forEach((id, i) => ($('#' + id).oninput = (e) => { if (i < ps.cfg.colors.length) ps.cfg.colors[i] = e.target.value; psRender(); psPushSoon(); }));
+  $('#psOne').onclick = () => { ps.cfg.colors = ps.cfg.colors.length > 1 ? [ps.cfg.colors[0]] : [ps.cfg.colors[0], '#f27a94', '#f6a8ba']; psRender(); psPush(); };
+  $('#psShowShape').onchange = (e) => { ps.cfg.showShape = e.target.checked; psApplyLayers(); ps.c.requestRenderAll(); };
+  $('#psW').onchange = (e) => { ps.cfg.wCm = clamp(+e.target.value || 24, 3, 60); psPush(); };
+  // silhueta própria: SVG ou PNG transparente
+  $('#psSilBtn').onclick = () => $('#psSilFile').click();
+  $('#psSilFile').onchange = (e) => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    if (/svg/i.test(f.type) || /\.svg$/i.test(f.name)) {
+      f.text().then((txt) => fabric.loadSVGFromString(txt, (objs, opts) => {
+        if (!objs.length) { toast('Não consegui ler esse SVG'); return; }
+        const gr = fabric.util.groupSVGElements(objs, opts), sc = new fabric.StaticCanvas(null, { width: 1200, height: 1200, enableRetinaScaling: false });
+        const s = Math.min(1100 / gr.width, 1100 / gr.height); gr.set({ left: 600, top: 600, originX: 'center', originY: 'center', scaleX: s, scaleY: s }); sc.add(gr); sc.renderAll();
+        const cv = document.createElement('canvas'); cv.width = 1200; cv.height = 1200; cv.getContext('2d').drawImage(sc.getElement(), 0, 0); sc.dispose(); psUseMask(cv);
+      }));
+    } else { const rd = new FileReader(); rd.onload = async () => { const el = await loadImgEl(rd.result), cv = document.createElement('canvas'); cv.width = el.naturalWidth; cv.height = el.naturalHeight; cv.getContext('2d').drawImage(el, 0, 0); psUseMask(cv); }; rd.readAsDataURL(f); }
+  };
+  // referência: camada bloqueada, com transparência e A/B
+  $('#psRefBtn').onclick = () => $('#psRefFile').click();
+  $('#psRefFile').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; const rd = new FileReader(); rd.onload = async () => { ps.cfg.ref = { key: putImg(rd.result), opacity: 50, show: true }; await psSetBackground(); psPanel(); psPush(); }; rd.readAsDataURL(f); };
+  $('#psRefOp').oninput = (e) => { ps.cfg.ref.opacity = +e.target.value; psApplyLayers(); ps.c.requestRenderAll(); psPushSoon(); };
+  $('#psRefShow').onchange = (e) => { ps.cfg.ref.show = e.target.checked; psApplyLayers(); ps.c.requestRenderAll(); };
+  $('#psAB').onclick = () => { ps.abHide = !ps.abHide; $('#psAB').setAttribute('aria-pressed', String(ps.abHide)); psApplyLayers(); ps.c.requestRenderAll(); };
+  $('#psRefDel').onclick = async () => { ps.cfg.ref = null; await psSetBackground(); psPanel(); psPush(); };
+  // exportar
+  $('#psSvg').onclick = async () => { const { svg, warn } = await psSvg(); download(URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' })), 'frase-na-forma.svg'); if (warn) toast(warn, 4200); };
+  $('#psPng').onclick = () => download(psPng(), 'frase-na-forma.png');
+  $('#psPngB').onclick = () => download(psPng('#000000'), 'frase-na-forma-preta.png');
+  $('#psPngW').onclick = () => download(psPng('#ffffff'), 'frase-na-forma-branca.png');
+})();
+
+$('#psEditBtn').onclick = () => { const o = act(); if (o && o.shapeCfg) openPhraseStudio(o.shapeCfg, o); };
+
 /* ---------- teclado ---------- */
 window.addEventListener('keydown', (e) => {
+  if (!$('#psModal').hidden) {
+    const tp = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '');
+    if ((e.ctrlKey || e.metaKey) && !tp && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? psRedo() : psUndo(); }
+    if ((e.ctrlKey || e.metaKey) && !tp && e.key.toLowerCase() === 'y') { e.preventDefault(); psRedo(); }
+    if (e.key === 'Escape' && $('#fontSearchModal').hidden) $('#psModal').hidden = true;
+    return;
+  }
   const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '') || act()?.isEditing;
   const mod = e.ctrlKey || e.metaKey;
   if (e.code === 'Space' && !typing) { spaceDown = true; fc.defaultCursor = 'grab'; e.preventDefault(); return; }

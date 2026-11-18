@@ -54,7 +54,13 @@ Botão **Editor de artes** no topo do Ateliê, ou abra `editor.html` direto (doi
 - **Textos (estilo Canva)**: título, subtítulo e corpo; **combinações de fontes** prontas; **efeitos** sombra, elevado, eco, contorno, vazado, neon e fundo; curvatura; separar letras; inclinar.
 - **Fontes**: lista curada com licença, **busca no catálogo gratuito** (nome, categoria, itálico/negrito, prévia do seu texto, licença) e importação de OTF/TTF. A busca no catálogo **não** identifica fontes em imagens; para isso há o “Comparar” com o recorte da arte (escolha visual, aproximada).
 - **Converter em curvas (vetor)**: cada letra vira um contorno (OpenType.js), no mesmo lugar, inclusive em texto curvo. O texto original fica guardado, oculto, e o botão **Voltar ao texto editável** o traz de volta. Desagrupe para mover, girar, inclinar e pintar cada letra.
-- **Texto na forma**: a frase enche um cérebro, coração, círculo, escudo ou a silhueta de um desenho seu. No modo **Preencher** (padrão) cada letra estica até o contorno, como em lettering; no modo **Letras proporcionais** a letra mantém o desenho, diminui onde a forma estreita e a próxima vai para o lado. Tamanho de cada linha, cores alternadas e reedição a qualquer momento.
+- **Frase na forma** (botão *Na forma*): estúdio próprio para encaixar uma frase numa forma: cérebro, coração, círculo, estrela, onda, escudo ou a sua silhueta (SVG ou PNG transparente, ou a imagem selecionada).
+  - Cada linha da caixa de texto é uma linha da arte; **Propor quebras** sugere onde quebrar (nunca muda, repete ou tira palavras).
+  - **Preenchimento**: linhas de texto normais, sem deformar, cada uma no maior tamanho que cabe inteira (acentos incluídos).
+  - **Lettering com deformação**: as letras viram vetores (OpenType.js) e cada linha é curvada por um **envelope** que você ajusta com alças (cantos, topo, base, laterais). Ajustes por **palavra** (tamanho, largura, altura, espaço entre letras e depois da palavra) e por **letra** (mover, girar, escalar). Nada é cortado por máscara: as letras ficam inteiras, com acentos e furos internos.
+  - **Referência**: sua imagem fica por trás, bloqueada, com transparência e **Comparar A/B**.
+  - **Desfazer/refazer**, exportar **SVG vetorial** e **PNG transparente** (colorido, preto, branco) e **Colocar na prancheta** como grupo vetorial, com uma cópia do texto editável guardada. *Editar frase na forma* reabre o estúdio com tudo como estava (vai junto no projeto salvo).
+  - O encaixe automático é uma proposta: em formas complexas, refine linhas, envelope e letras.
 - **Camadas**: ocultar, bloquear, ordem, agrupar, alinhar, desfazer/refazer.
 - **Exportar**: PNG transparente no tamanho de impressão, SVG (avisa quando tem pixels ou depende de fontes) e **versões de 1 cor** (preta para camiseta clara, branca para camiseta escura). **Salvar projeto** (.json) mantém tudo editável, com imagens e fontes importadas.
 
