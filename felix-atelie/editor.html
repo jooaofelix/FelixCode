@@ -143,6 +143,16 @@ input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid v
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { height: 28px; padding: 0 10px; border: 1px solid var(--line); background: transparent; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
 .chip[aria-pressed="true"] { background: var(--chalk); color: var(--chalk-fg); border-color: transparent; }
+.tx-quick { display: grid; gap: 6px; }
+.tx-quick button { text-align: left; padding: 10px 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); }
+.tx-quick button:hover, .tx-combo:hover { border-color: var(--fg); }
+.tx-combos { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.tx-combo { aspect-ratio: 4 / 3; border: 1px solid var(--line); background: #efe9da; padding: 8px; display: grid; place-items: center; overflow: hidden; }
+.tx-combo canvas { max-width: 100%; max-height: 100%; }
+.fx-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.fx { display: grid; justify-items: center; gap: 4px; padding: 6px 2px; border: 1px solid var(--line); background: var(--panel-2); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.fx b { font: 400 22px/1 var(--font-display); color: var(--fg); }
+.fx[aria-pressed="true"] { border-color: var(--chalk); color: var(--fg); }
 .warp-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 14px; align-items: start; }
 .warp-prev { width: 100%; aspect-ratio: 1 / 1; background: conic-gradient(#d4d4d4 25%, #f4f4f4 0 50%, #d4d4d4 0 75%, #f4f4f4 0) 0 0 / 16px 16px; display: grid; place-items: center; position: relative; }
 .warp-prev canvas { max-width: 100%; max-height: 100%; }
@@ -193,7 +203,7 @@ input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid v
       <button class="tool" data-tool="hand" title="Mover a mesa (H ou segure Espaço)"><svg class="i" viewBox="0 0 24 24"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11.5v-7a1.5 1.5 0 0 1 3 0v7"/><path d="M14 11.5V6.5a1.5 1.5 0 0 1 3 0v8"/><path d="M17 10a1.5 1.5 0 0 1 3 0v4a7 7 0 0 1-7 7h-1a7 7 0 0 1-5.6-2.8L3.6 14a1.5 1.5 0 0 1 2.3-1.9L8 14"/></svg>Mão</button>
       <hr>
       <button class="tool" id="addImage" title="Importar imagem PNG, JPG ou SVG (I)"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>Imagem</button>
-      <button class="tool" id="addText" title="Texto (T)"><svg class="i" viewBox="0 0 24 24"><path d="M5 6V4h14v2"/><path d="M12 4v16"/><path d="M9 20h6"/></svg>Texto</button>
+      <button class="tool" id="addText" title="Textos: caixa de texto, combinações de fontes e efeitos (T)"><svg class="i" viewBox="0 0 24 24"><path d="M5 6V4h14v2"/><path d="M12 4v16"/><path d="M9 20h6"/></svg>Textos</button>
       <button class="tool" id="addRect" title="Retângulo (R)"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12"/></svg>Forma</button>
       <button class="tool" id="addCircle" title="Círculo (O)"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>Círculo</button>
       <hr>
@@ -236,6 +246,10 @@ input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid v
           <label class="field" for="sizeH">Altura (cm)<input type="number" id="sizeH" step="0.1" min="0.1"></label>
         </div>
         <label class="field" for="rot"><span class="field-line">Rotação <output id="rotOut">0°</output></span><input type="range" id="rot" min="-180" max="180" step="1"></label>
+        <div class="grid2">
+          <label class="field" for="skX"><span class="field-line">Inclinar ↔ <output id="skXOut">0°</output></span><input type="range" id="skX" min="-60" max="60" step="1"></label>
+          <label class="field" for="skY"><span class="field-line">Inclinar ↕ <output id="skYOut">0°</output></span><input type="range" id="skY" min="-60" max="60" step="1"></label>
+        </div>
         <label class="field" for="opac"><span class="field-line">Opacidade <output id="opacOut">100%</output></span><input type="range" id="opac" min="0" max="100" step="1"></label>
 
         <!-- texto -->
@@ -244,7 +258,7 @@ input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid v
           <div class="field">Fonte
             <div class="row"><select id="fontSel" style="flex:1"></select><button class="btn small" id="compareBtn" title="Ver o texto em várias fontes lado a lado">Comparar</button></div>
             <p class="note" id="fontInfo"></p>
-            <button class="btn small" id="uploadFontBtn">Importar fonte (OTF/TTF)</button>
+            <div class="row"><button class="btn small" id="fontSearchBtn" title="Procurar no catálogo gratuito por nome, categoria e estilo">Buscar no catálogo</button><button class="btn small" id="uploadFontBtn">Importar OTF/TTF</button></div>
           </div>
           <div class="grid2">
             <label class="field" for="fontSize">Tamanho (pt)<input type="number" id="fontSize" min="2" step="1"></label>
@@ -256,7 +270,16 @@ input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid v
           <label class="field" for="charSp"><span class="field-line">Espaço entre letras <output id="charSpOut">0</output></span><input type="range" id="charSp" min="-200" max="1200" step="10"></label>
           <label class="field" for="lineH"><span class="field-line">Altura da linha <output id="lineHOut">1,0</output></span><input type="range" id="lineH" min="0.6" max="2.4" step="0.05"></label>
           <label class="field" for="curve"><span class="field-line">Curvatura <output id="curveOut">0</output></span><input type="range" id="curve" min="-100" max="100" step="1"></label>
+          <div class="field">Efeitos
+            <div class="fx-grid" id="fxGrid"></div>
+            <div class="row" id="fxColorRow"><span class="note">Cor do efeito</span><input type="color" id="fxColor" aria-label="Cor do efeito"><input type="range" id="fxAmt" min="0" max="100" aria-label="Intensidade do efeito" style="flex:1"></div>
+          </div>
+          <button class="btn small" id="curvesBtn" title="Transforma cada letra em contorno vetorial (OpenType.js). O texto original fica guardado, oculto.">Converter em curvas (vetor)</button>
           <button class="btn small" id="splitBtn" title="Transforma cada letra num objeto para ajustar posição, tamanho e rotação individualmente">Separar em letras (ajuste fino)</button>
+        </div>
+        <div id="curvesCtl" class="field" hidden>
+          <p class="note">Letras em vetor. Desagrupe para mover, girar, inclinar ou pintar cada letra. O texto original está guardado (oculto).</p>
+          <button class="btn small" id="backTextBtn">Voltar ao texto editável</button>
         </div>
         <!-- cor: texto e forma -->
         <div id="colorCtl" class="grid2" hidden>
@@ -271,6 +294,7 @@ input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid v
             <button class="btn small" data-mode="crop">Recortar</button>
             <button class="btn small" data-mode="bg">Remover fundo</button>
             <button class="btn small" data-mode="erase">Apagar área</button>
+            <button class="btn small" data-mode="brush" title="Pincel para apagar sobras do fundo ou restaurar partes apagadas por engano">Corrigir recorte</button>
           </div>
           <button class="btn small" id="warpEdit" hidden>Editar texto na forma</button>
           <button class="btn small" id="warpFromImg" title="Usa a silhueta desta imagem (sem fundo) como forma para a frase">Preencher esta silhueta com texto</button>
@@ -299,11 +323,11 @@ input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid v
       <section class="panel honest">
         <h2>O que funciona aqui</h2>
         <ul>
-          <li><b>No seu navegador, sem custo:</b> importar, recortar, remover fundo liso, apagar área e reconstruir fundo simples, textos e fontes, curvar, separar letras, camadas, salvar, exportar PNG/SVG.</li>
-          <li><b>Precisa de IA ou serviço externo (não incluído):</b> identificar a fonte automaticamente, ler o texto da imagem (OCR), reconstruir fundos com textura, vetorizar ilustrações, remover fundos complexos.</li>
-          <li><b>PNG/JPG são achatados:</b> não têm texto editável. Para trocar o texto, apague a área e escreva por cima.</li>
-          <li><b>Texto na forma:</b> a frase é desenhada em pixels na resolução de impressão (continua editável pelo painel, mas não é vetor).</li>
-          <li><b>Próximas etapas:</b> lettering vetorial, texto na forma em SVG e textos em contornos no SVG.</li>
+          <li><b>Tudo grátis, no seu navegador:</b> importar, recortar, remover fundo liso e corrigir com pincel, apagar área, textos, buscar fontes, curvar, separar letras, converter em curvas (vetor), texto na forma, camadas, salvar, exportar PNG/SVG e versões de 1 cor. Sem conta, sem créditos.</li>
+          <li><b>Precisa de internet:</b> catálogo de fontes e fontes do Google (gratuitos, sem chave). Sem internet funcionam as fontes que você importar (OTF/TTF) e as bibliotecas da pasta <code>vendor/</code>.</li>
+          <li><b>Não existe aqui (exigiria IA ou serviço externo):</b> identificar a fonte de uma imagem, ler o texto da imagem (OCR), reconstruir fundos com textura, vetorizar ilustrações, remover fundos complexos. Alternativas manuais: “Comparar” fontes com o recorte, “Apagar área” e o pincel de recorte.</li>
+          <li><b>PNG/JPG são achatados:</b> não têm texto editável. Para trocar o texto, apague a área e escreva por cima. A reconstrução do fundo é boa em cor lisa ou degradê, não em textura.</li>
+          <li><b>Texto na forma:</b> sai em pixels na resolução de impressão (reeditável pelo painel), não em vetor.</li>
         </ul>
       </section>
     </aside>
@@ -335,9 +359,37 @@ input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid v
     <div class="row">
       <button class="btn primary" id="expPng">Baixar PNG transparente</button>
       <button class="btn" id="expSvg">Baixar SVG</button>
+      <button class="btn" id="expBlack" title="Toda a arte em preto, com transparência: para camiseta clara">1 cor preta</button>
+      <button class="btn" id="expWhite" title="Toda a arte em branco, com transparência: para camiseta escura">1 cor branca</button>
       <button class="btn" id="expClose">Fechar</button>
     </div>
     <p class="note">Se o download não começar (alguns visualizadores bloqueiam), clique com o botão direito na prévia e salve.</p>
+  </div>
+</div>
+<div class="modal" id="fontSearchModal" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="fsTitle" style="width:min(980px,100%)">
+    <h3 id="fsTitle">Buscar fontes</h3>
+    <p class="note"><b>Busca no catálogo</b> por nome, categoria e estilo, com prévia do seu texto. Isto <b>não</b> identifica a fonte de uma imagem: para isso use “Comparar” com o recorte da arte (escolha visual, aproximada).</p>
+    <div class="grid2"><label class="field" for="fsQuery">Nome<input type="text" id="fsQuery" placeholder="ex.: bebas, gothic, script"></label><label class="field" for="fsPreview">Texto da prévia<input type="text" id="fsPreview"></label></div>
+    <div class="row"><div class="chips" id="fsCats"></div><button class="chip" id="fsItalic" aria-pressed="false">Tem itálico</button><button class="chip" id="fsBold" aria-pressed="false">Tem negrito</button><span class="note" id="fsCount"></span></div>
+    <p class="note" id="fsStatus"></p>
+    <div class="fontgrid" id="fsGrid"></div>
+    <div class="row"><button class="btn" id="fsMore">Mostrar mais</button><button class="btn" id="fsClose">Fechar</button></div>
+  </div>
+</div>
+<div class="modal" id="textModal" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="txTitle" style="width:min(900px,100%)">
+    <h3 id="txTitle">Textos</h3>
+    <div class="tx-quick">
+      <button id="txAdd"><span style="font:400 15px var(--font-body)">Adicionar uma caixa de texto</span></button>
+      <button data-quick="title"><span style="font:400 34px/1 Anton, Impact, sans-serif;text-transform:uppercase">Adicionar um título</span></button>
+      <button data-quick="sub"><span style="font:600 20px/1.1 var(--font-body)">Adicionar um subtítulo</span></button>
+      <button data-quick="body"><span style="font:400 14px var(--font-body)">Adicionar um corpo de texto</span></button>
+    </div>
+    <h2 class="note" style="margin:6px 0 0;text-transform:uppercase;letter-spacing:.2em;font-size:10px">Combinações de fontes</h2>
+    <p class="note">Clique para pôr na prancheta. Cada texto continua editável: troque a frase, a fonte, as cores e os efeitos.</p>
+    <div class="tx-combos" id="txCombos"></div>
+    <div class="row"><button class="btn" id="txClose">Fechar</button></div>
   </div>
 </div>
 <div class="modal" id="warpModal" hidden>
@@ -354,7 +406,7 @@ input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid v
           <label class="field" for="warpLayout">Altura das faixas<select id="warpLayout"><option value="auto">Automática (letras proporcionais)</option><option value="equal">Iguais</option></select></label>
         </div>
         <div class="field" id="warpSizesBox">Tamanho de cada linha<div id="warpSizes" class="field" style="gap:4px"></div></div>
-        <label class="field" for="warpMode">Como as letras deformam<select id="warpMode"><option value="env">Envelope (laterais, topo e base)</option><option value="rows">Só as laterais</option><option value="cols">Só o topo e a base</option></select></label>
+        <label class="field" for="warpMode">Como as letras deformam<select id="warpMode"><option value="letters">Letra por letra (diminui e vai para o lado)</option><option value="env">Envelope (estica a palavra inteira)</option><option value="rows">Só as laterais</option><option value="cols">Só o topo e a base</option></select></label>
         <div class="field">Cores (alternam por linha)<div class="colors3"><input type="color" id="warpC1" aria-label="Cor 1"><input type="color" id="warpC2" aria-label="Cor 2"><input type="color" id="warpC3" aria-label="Cor 3"><button class="btn small" id="warpOne" title="Usar só a primeira cor">Uma cor</button></div></div>
         <label class="field" for="warpGap"><span class="field-line">Espaço entre linhas <output id="warpGapOut">2%</output></span><input type="range" id="warpGap" min="0" max="8" step="0.5"></label>
         <label class="field" for="warpW"><span class="field-line">Largura na prancheta</span><span class="row"><input type="number" id="warpW" min="3" max="60" step="0.5" style="flex:1"><span class="unit">cm</span></span></label>
@@ -365,7 +417,12 @@ input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid v
 </div>
 <div class="toast" id="toast" hidden></div>
 
+<!-- Bibliotecas gratuitas e open source (licença MIT): Fabric.js 5.3.0 e OpenType.js 1.3.4.
+     Primeiro tenta a CDN gratuita; sem internet, usa a cópia local da pasta vendor/ (avisos de licença em vendor/). -->
 <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
+<script>window.fabric || document.write('<script src="vendor/fabric.min.js"><\/script>')</script>
+<script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.4/dist/opentype.min.js"></script>
+<script>window.opentype || document.write('<script src="vendor/opentype.min.js"><\/script>')</script>
 <script>
 'use strict';
 /* =========================================================================
@@ -412,16 +469,19 @@ const FONT_LIST = [
 ].map(([name, cat, lic, axis]) => ({ name, cat, lic, axis, origin: 'Google Fonts' }));
 const userFonts = []; // { name, data (dataURL), file }
 const loadedFonts = new Set(['Anton', 'Geist']);
-function fontMeta(name) { return FONT_LIST.find((f) => f.name === name) || userFonts.find((f) => f.name === name) || null; }
+function fontMeta(name) {
+  const p = typeof pickedFonts !== 'undefined' && pickedFonts.find((f) => f.name === name);
+  return FONT_LIST.find((f) => f.name === name) || userFonts.find((f) => f.name === name) || (p ? { ...p, picked: true } : null);
+}
 function licenseText(f) {
   if (!f) return 'Fonte do sistema — confira a licença antes de usar comercialmente.';
   if (f.file) return `Arquivo enviado por você (${f.file}) — confira a licença com quem distribuiu a fonte.`;
+  if (f.picked) return `${licLabel(f.lic)} · catálogo gratuito (Fontsource / Google Fonts).`;
   return `${f.lic === 'Apache' ? 'Apache 2.0' : 'SIL Open Font License 1.1'} · ${f.origin} · permite uso comercial em estampas.`;
 }
 function loadFont(name) {
   if (loadedFonts.has(name) || userFonts.some((f) => f.name === name)) return document.fonts.load(`40px "${name}"`).catch(() => {});
-  const f = fontMeta(name);
-  if (!f) return Promise.resolve();
+  const f = fontMeta(name) || {}; // qualquer família do Google Fonts carrega pelo nome
   const link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name).replace(/%20/g, '+')}${f.axis ? ':' + f.axis : ''}&display=swap`;
@@ -437,7 +497,7 @@ Object.assign(fabric.Object.prototype, {
   originX: 'center', originY: 'center', objectCaching: false, transparentCorners: false, cornerStyle: 'circle', cornerSize: 11,
   cornerColor: '#e7e1cf', cornerStrokeColor: '#0a0a0a', borderColor: '#e7e1cf', borderScaleFactor: 1.5, padding: 4,
 });
-const PROPS = ['name', 'uid', 'locked', 'curve', 'srcKey', 'warp', 'selectable', 'evented', 'lockMovementX', 'lockMovementY', 'lockScalingX', 'lockScalingY', 'lockRotation', 'hasControls'];
+const PROPS = ['name', 'uid', 'locked', 'curve', 'srcKey', 'origKey', 'fromText', 'warp', 'effect', 'fxColor', 'fxAmt', 'baseFill', 'selectable', 'evented', 'lockMovementX', 'lockMovementY', 'lockScalingX', 'lockScalingY', 'lockRotation', 'hasControls'];
 const fc = new fabric.Canvas('c', { preserveObjectStacking: true, selection: true, stopContextMenu: true, fireRightClick: false, enableRetinaScaling: true });
 const wrap = $('#wrap');
 let uidSeq = 1;
@@ -491,15 +551,18 @@ function setTool(t) {
 }
 document.querySelectorAll('[data-tool]').forEach((b) => (b.onclick = () => { endMode(); setTool(b.dataset.tool); }));
 fc.on('mouse:down', (opt) => {
+  if (mode === 'brush') { modeData.down = true; modeData.last = null; brushDab(fc.getPointer(opt.e)); return; }
   if (mode === 'erase') return eraseDown(opt);
   if (tool === 'hand' || spaceDown) { const e = opt.e; panning = { x: e.clientX, y: e.clientY }; fc.selection = false; }
 });
 fc.on('mouse:move', (opt) => {
+  if (mode === 'brush') return brushMove(opt);
   if (mode === 'erase') return eraseMove(opt);
   if (!panning) return;
   const e = opt.e; fc.relativePan(new fabric.Point(e.clientX - panning.x, e.clientY - panning.y)); panning = { x: e.clientX, y: e.clientY };
 });
 fc.on('mouse:up', (opt) => {
+  if (mode === 'brush') { modeData.down = false; modeData.last = null; return; }
   if (mode === 'erase') return eraseUp(opt);
   if (panning) { panning = null; fc.selection = tool === 'select'; }
 });
@@ -555,10 +618,10 @@ $('#redo').onclick = () => { if (hi < hist.length - 1) { hi++; restoreState(hist
 function projectData() {
   const objects = serializeObjects();
   const keys = new Set();
-  const walk = (j) => { if (j.srcKey) keys.add(j.srcKey); if (j.warp && j.warp.maskKey) keys.add(j.warp.maskKey); (j.objects || []).forEach(walk); };
+  const walk = (j) => { if (j.srcKey) keys.add(j.srcKey); if (j.origKey) keys.add(j.origKey); if (j.warp && j.warp.maskKey) keys.add(j.warp.maskKey); (j.objects || []).forEach(walk); };
   objects.forEach(walk);
   const images = {}; keys.forEach((k) => (images[k] = imgStore.get(k)));
-  return { app: '148-editor', v: 1, doc: DOC, fonts: userFonts.map(({ name, data, file }) => ({ name, data, file })), images, objects };
+  return { app: '148-editor', v: 1, doc: DOC, catalogFonts: pickedFonts, fonts: userFonts.map(({ name, data, file }) => ({ name, data, file })), images, objects };
 }
 const autosave = debounce(() => {
   if (!store.set('editor148:projeto', JSON.stringify(projectData()))) toast('Projeto grande demais para guardar no navegador — use “Salvar projeto”.', 4000);
@@ -575,6 +638,8 @@ async function openProject(text, announce) {
   if (!p || !Array.isArray(p.objects)) { toast('Esse arquivo não é um projeto do editor'); return; }
   for (const [k, v] of Object.entries(p.images || {})) imgStore.set(k, v);
   for (const f of p.fonts || []) await registerUserFont(f.name, f.data, f.file, false);
+  for (const f of p.catalogFonts || []) if (!pickedFonts.some((x) => x.name === f.name)) pickedFonts.push(f);
+  fillFontSelect();
   const fams = new Set(); const walk = (j) => { if (j.fontFamily) fams.add(j.fontFamily); (j.objects || []).forEach(walk); }; p.objects.forEach(walk);
   await Promise.all([...fams].map(loadFont));
   restoreState(JSON.stringify({ doc: p.doc, objects: p.objects }), () => { fit(); snapshot(); if (announce) toast('Projeto aberto'); });
@@ -586,11 +651,12 @@ function addObject(o, name) {
   o.uid = nextUid(); o.name = name;
   fc.add(o); keepBoardBottom(); fc.setActiveObject(o); fc.requestRenderAll(); setTool('select');
 }
-$('#addText').onclick = async () => {
-  await loadFont('Anton');
-  const t = new fabric.IText('SEU TEXTO', { ...centerOfBoard(), fontFamily: 'Anton', fontSize: 3.2 * pxPerCm() * 1.4, fill: '#141414', textAlign: 'center', lineHeight: 1, charSpacing: 0 });
-  addObject(t, 'Texto');
-};
+async function addPlainText(text = 'SEU TEXTO', font = 'Anton', cm = 3.2) {
+  await loadFont(font);
+  const t = new fabric.IText(text, { ...centerOfBoard(), fontFamily: font, fontSize: cm * pxPerCm() * 1.4, fill: '#141414', textAlign: 'center', lineHeight: 1, charSpacing: 0 });
+  addObject(t, 'Texto'); return t;
+}
+$('#addText').onclick = () => openTextPanel();
 $('#addRect').onclick = () => addObject(new fabric.Rect({ ...centerOfBoard(), width: 12 * pxPerCm(), height: 6 * pxPerCm(), fill: '#6b1d2a', strokeWidth: 0 }), 'Forma');
 $('#addCircle').onclick = () => addObject(new fabric.Circle({ ...centerOfBoard(), radius: 5 * pxPerCm(), fill: '#16213f', strokeWidth: 0 }), 'Círculo');
 $('#addImage').onclick = () => $('#fileImg').click();
@@ -666,6 +732,7 @@ function fillFontSelect() {
   const sel = $('#fontSel'); const cur = sel.value; sel.innerHTML = '';
   const groups = {};
   for (const f of userFonts) (groups['Suas fontes'] = groups['Suas fontes'] || []).push(f.name);
+  for (const f of (typeof pickedFonts !== 'undefined' ? pickedFonts : [])) (groups['Do catálogo'] = groups['Do catálogo'] || []).push(f.name);
   for (const f of FONT_LIST) (groups[f.cat] = groups[f.cat] || []).push(f.name);
   for (const [g, names] of Object.entries(groups)) {
     const og = document.createElement('optgroup'); og.label = g;
@@ -691,9 +758,12 @@ function refreshSel() {
   if (document.activeElement !== $('#sizeH')) $('#sizeH').value = (cm(o.getScaledHeight())).toFixed(1);
   const ang = Math.round(((o.angle + 540) % 360) - 180); $('#rot').value = ang; $('#rotOut').textContent = ang + '°';
   $('#opac').value = Math.round((o.opacity ?? 1) * 100); $('#opacOut').textContent = Math.round((o.opacity ?? 1) * 100) + '%';
-  const txt = !multi && isText(o), img = !multi && o.type === 'image', shape = !multi && /rect|circle|path|polygon|ellipse/.test(o.type);
-  $('#textCtl').hidden = !txt; $('#imageCtl').hidden = !img; $('#colorCtl').hidden = !(txt || shape);
+  const txt = !multi && isText(o), img = !multi && o.type === 'image', curves = !multi && o.type === 'group' && !!o.fromText;
+  const shape = !multi && (/rect|circle|path|polygon|ellipse/.test(o.type) || curves);
+  $('#textCtl').hidden = !txt; $('#imageCtl').hidden = !img; $('#colorCtl').hidden = !(txt || shape); $('#curvesCtl').hidden = !curves;
+  $('#skX').value = Math.round(o.skewX || 0); $('#skXOut').textContent = Math.round(o.skewX || 0) + '°'; $('#skY').value = Math.round(o.skewY || 0); $('#skYOut').textContent = Math.round(o.skewY || 0) + '°';
   if (txt) {
+    syncFx(o);
     if (document.activeElement !== $('#textVal')) $('#textVal').value = o.text;
     $('#fontSel').value = o.fontFamily; $('#fontInfo').textContent = licenseText(fontMeta(o.fontFamily));
     if (document.activeElement !== $('#fontSize')) $('#fontSize').value = Math.round((o.fontSize * (o.scaleY || 1)) * 72 / DOC.dpi);
@@ -705,10 +775,11 @@ function refreshSel() {
     $('#curve').value = o.curve || 0; $('#curveOut').textContent = o.curve || 0;
   }
   if (txt || shape) {
-    const f = typeof o.fill === 'string' ? toHex(o.fill) : '#000000';
+    const po = curves ? o.getObjects().find((c) => c.type === 'path') || o : o;
+    const f = typeof po.fill === 'string' ? toHex(po.fill) : '#000000';
     $('#fillColor').value = f; if (document.activeElement !== $('#fillHex')) $('#fillHex').value = f.toUpperCase();
-    $('#strokeColor').value = typeof o.stroke === 'string' ? toHex(o.stroke) : '#000000';
-    $('#strokeW').value = o.stroke && o.strokeWidth ? +(o.strokeWidth * 72 / DOC.dpi).toFixed(1) : 0;
+    $('#strokeColor').value = typeof po.stroke === 'string' ? toHex(po.stroke) : '#000000';
+    $('#strokeW').value = po.stroke && po.strokeWidth ? +(po.strokeWidth * 72 / DOC.dpi).toFixed(1) : 0;
   }
   if (img) { showDpi(o); $('#warpEdit').hidden = !o.warp; $('#warpFromImg').hidden = !!o.warp; }
 }
@@ -746,10 +817,13 @@ document.querySelectorAll('[data-align]').forEach((b) => (b.onclick = () => setP
 $('#charSp').oninput = (e) => setProp((o) => o.set('charSpacing', +e.target.value));
 $('#lineH').oninput = (e) => setProp((o) => o.set('lineHeight', +e.target.value));
 $('#curve').oninput = (e) => setProp((o) => { o.curve = +e.target.value; });
-$('#fillColor').oninput = (e) => setProp((o) => o.set('fill', e.target.value));
-$('#fillHex').onchange = (e) => { const h = e.target.value.trim(); if (/^#?[0-9a-f]{6}$/i.test(h)) setProp((o) => o.set('fill', h.startsWith('#') ? h : '#' + h)); };
-$('#strokeColor').oninput = (e) => setProp((o) => o.set({ stroke: e.target.value, strokeWidth: o.strokeWidth || 0.5 * DOC.dpi / 72, paintFirst: 'stroke' }));
-$('#strokeW').onchange = (e) => setProp((o) => { const w = +e.target.value * DOC.dpi / 72; o.set({ strokeWidth: w, stroke: w ? (o.stroke || $('#strokeColor').value) : null, paintFirst: 'stroke', strokeLineJoin: 'round' }); });
+const paintDeep = (o, props) => (o.type === 'group' && o.fromText ? o.getObjects().filter((c) => c.type === 'path').forEach((c) => c.set(props)) : o.set(props));
+$('#skX').oninput = (e) => setProp((o) => o.set('skewX', +e.target.value));
+$('#skY').oninput = (e) => setProp((o) => o.set('skewY', +e.target.value));
+$('#fillColor').oninput = (e) => setProp((o) => paintDeep(o, { fill: e.target.value }));
+$('#fillHex').onchange = (e) => { const h = e.target.value.trim(); if (/^#?[0-9a-f]{6}$/i.test(h)) setProp((o) => paintDeep(o, { fill: h.startsWith('#') ? h : '#' + h })); };
+$('#strokeColor').oninput = (e) => setProp((o) => paintDeep(o, { stroke: e.target.value, strokeWidth: (o.type === 'group' ? 0 : o.strokeWidth) || 0.5 * DOC.dpi / 72, paintFirst: 'stroke' }));
+$('#strokeW').onchange = (e) => setProp((o) => { const w = +e.target.value * DOC.dpi / 72; paintDeep(o, { strokeWidth: w, stroke: w ? $('#strokeColor').value : null, paintFirst: 'stroke', strokeLineJoin: 'round' }); });
 $('#dupBtn').onclick = duplicate;
 $('#delBtn').onclick = removeActive;
 $('#groupBtn').onclick = () => { const o = act(); if (o && o.type === 'activeSelection') { const g = o.toGroup(); g.uid = nextUid(); g.name = 'Grupo'; fc.requestRenderAll(); snapshot(); refreshSel(); } };
@@ -883,6 +957,7 @@ function setModebar(html) { const mb = $('#modebar'); mb.innerHTML = html; mb.hi
 function endMode() {
   if (mode === 'crop' && modeData?.rect) fc.remove(modeData.rect);
   if (mode === 'erase' && modeData?.rect) fc.remove(modeData.rect);
+  if (mode === 'brush' && modeData) { fc.remove(modeData.cursor); const im = modeData.img; im.setSrc(imgStore.get(im.srcKey), () => fc.requestRenderAll()); }
   mode = null; modeData = null; setModebar(''); setTool(tool);
   document.querySelectorAll('.tool[data-mode]').forEach((b) => b.classList.remove('active'));
   fc.requestRenderAll();
@@ -892,7 +967,7 @@ function startMode(m) {
   const img = needImage(); if (!img) return;
   endMode(); mode = m; setTool('select');
   document.querySelectorAll('.tool[data-mode]').forEach((b) => b.classList.toggle('active', b.dataset.mode === m));
-  if (m === 'crop') startCrop(img); else if (m === 'bg') startBg(img); else startErase(img);
+  if (m === 'crop') startCrop(img); else if (m === 'bg') startBg(img); else if (m === 'brush') startBrush(img); else startErase(img);
 }
 // pixels de trabalho da imagem
 function imageCanvas(img) {
@@ -991,7 +1066,7 @@ function startBg(img) {
   $('#bgOk').onclick = async () => {
     const r = removeBackground(original, +$('#bgTol').value, $('#bgSoft').checked, $('#bgAll').checked);
     mode = null; setModebar(''); document.querySelectorAll('.tool[data-mode]').forEach((b) => b.classList.remove('active'));
-    await replaceImage(img, r.canvas); snapshot(); refreshSel();
+    if (!img.origKey) img.origKey = originalKey; await replaceImage(img, r.canvas); snapshot(); refreshSel();
     toast('Fundo removido. Fundos com textura ou foto precisam de IA (não incluído).', 4200);
   };
   $('#bgCancel').onclick = () => { img.setSrc(originalUrl, () => { img.srcKey = originalKey; fc.requestRenderAll(); }); endMode(); };
@@ -1087,21 +1162,132 @@ async function applyErase(how) {
 }
 
 /* =========================================================================
+   Textos estilo Canva: atalhos, combinações de fontes e efeitos
+   ========================================================================= */
+// s = altura da fonte em cm; dy = deslocamento vertical em cm a partir do centro
+const COMBOS = [
+  { name: 'Ainda construindo', items: [{ t: 'AINDA', f: 'Anton', s: 7, dy: -2.6, cs: 60 }, { t: 'construindo', f: 'Pacifico', s: 4.4, dy: 2.4, c: '#e8335a', angle: -6, fx: 'contorno', fxc: '#e7e1cf', fxa: 30 }] },
+  { name: 'Toda a criação louva', items: [{ t: 'TODA A CRIAÇÃO', f: 'Bebas Neue', s: 2.6, dy: -3, cs: 380 }, { t: 'louva', f: 'Playfair Display', s: 7.5, dy: 1.6, italic: true }] },
+  { name: 'Selo arqueado', items: [{ t: 'TODA A CRIAÇÃO LOUVA', f: 'Archivo Black', s: 1.4, dy: -4.6, cs: 120, curve: 62 }, { t: '148', f: 'Anton', s: 6.5, dy: 0.6 }, { t: 'EST. 2024 · SÃO PAULO', f: 'Space Grotesk', s: 0.9, dy: 4.6, cs: 380 }] },
+  { name: 'Gótico', items: [{ t: 'Still Building', f: 'UnifrakturMaguntia', s: 5.4, dy: -1.2 }, { t: '— AINDA EM OBRA —', f: 'Cinzel', s: 1.3, dy: 3.4, cs: 420 }] },
+  { name: 'Retrô', items: [{ t: 'good', f: 'Yellowtail', s: 3.4, dy: -4, c: '#e8335a' }, { t: 'VIBES', f: 'Shrikhand', s: 6, dy: 1, c: '#f6a8ba', fx: 'eco', fxc: '#141414', fxa: 55 }] },
+  { name: 'Varsity', items: [{ t: '148', f: 'Alfa Slab One', s: 9, dy: -1.4, c: '#e7e1cf', fx: 'contorno', fxc: '#16213f', fxa: 60 }, { t: 'ATHLETIC DEPT.', f: 'Oswald', s: 1.9, dy: 4.8, cs: 520, c: '#16213f' }] },
+  { name: 'Rua', items: [{ t: 'NO PAIN', f: 'Permanent Marker', s: 4.8, dy: -2.4, angle: -4 }, { t: 'NO GAIN', f: 'Rubik Mono One', s: 3.2, dy: 2.6, c: '#e8335a' }] },
+  { name: 'Neon', items: [{ t: 'Night Club', f: 'Monoton', s: 4, dy: 0, c: '#ff8fc1', fx: 'neon', fxc: '#ff2f86', fxa: 60 }] },
+  { name: 'Vazado', items: [{ t: 'ALWAYS', f: 'Archivo Black', s: 4.2, dy: -4, fx: 'vazado', fxc: '#141414', fxa: 40 }, { t: 'ALWAYS', f: 'Archivo Black', s: 4.2, dy: 0 }, { t: 'ALWAYS', f: 'Archivo Black', s: 4.2, dy: 4, fx: 'vazado', fxc: '#141414', fxa: 40 }] },
+  { name: 'Minimal', items: [{ t: 'less is more', f: 'Fraunces', s: 3.4, dy: -0.8, italic: true }, { t: 'COLEÇÃO 01', f: 'Space Grotesk', s: 1, dy: 2.6, cs: 600 }] },
+];
+function buildCombo(combo, P, cx, cy) {
+  return combo.items.map((i) => {
+    const t = new fabric.IText(i.t, { left: cx, top: cy + i.dy * P, fontFamily: i.f, fontSize: i.s * P * 1.4, fill: i.c || '#141414', textAlign: 'center',
+      lineHeight: 1, charSpacing: i.cs || 0, angle: i.angle || 0, fontStyle: i.italic ? 'italic' : 'normal', objectCaching: false });
+    if (i.curve) { t.curve = i.curve; applyCurve(t); }
+    if (i.fx) applyFx(t, i.fx, i.fxc, i.fxa);
+    return t;
+  });
+}
+// miniatura feita com o mesmo motor da prancheta (o que você vê é o que entra)
+async function comboThumb(combo, cv) {
+  await Promise.all(combo.items.map((i) => loadFont(i.f)));
+  combo.items.forEach((i) => fabric.util.clearFabricFontCache(i.f));
+  const W = 340, H = 255, sc = new fabric.StaticCanvas(null, { width: W, height: H, enableRetinaScaling: false });
+  const objs = buildCombo(combo, H / 15, W / 2, H / 2); objs.forEach((o) => sc.add(o));
+  const r = fabric.util.makeBoundingBoxFromPoints(objs.flatMap((o) => { o.setCoords(); return Object.values(o.aCoords); }));
+  const k = Math.min(1, (W - 20) / r.width, (H - 20) / r.height);
+  sc.setViewportTransform([k, 0, 0, k, W / 2 - (r.left + r.width / 2) * k, H / 2 - (r.top + r.height / 2) * k]); sc.renderAll();
+  cv.width = W; cv.height = H; cv.getContext('2d').drawImage(sc.getElement(), 0, 0); sc.dispose();
+}
+let combosBuilt = false;
+function openTextPanel() {
+  endMode(); $('#textModal').hidden = false;
+  if (combosBuilt) return; combosBuilt = true;
+  const box = $('#txCombos');
+  for (const c of COMBOS) {
+    const b = document.createElement('button'); b.className = 'tx-combo'; b.title = c.name; b.setAttribute('aria-label', 'Combinação: ' + c.name);
+    const cv = document.createElement('canvas'); b.appendChild(cv); box.appendChild(b);
+    comboThumb(c, cv); setTimeout(() => comboThumb(c, cv), 1500); // redesenha quando as fontes chegarem
+    b.onclick = () => addCombo(c);
+  }
+}
+$('#txClose').onclick = () => ($('#textModal').hidden = true);
+$('#txAdd').onclick = () => { $('#textModal').hidden = true; addPlainText('Seu texto aqui', 'Inter', 1.6); };
+document.querySelectorAll('[data-quick]').forEach((b) => (b.onclick = async () => {
+  $('#textModal').hidden = true;
+  const q = b.dataset.quick;
+  if (q === 'title') addPlainText('ADICIONE UM TÍTULO', 'Anton', 3.2);
+  else if (q === 'sub') { const t = await addPlainText('Adicione um subtítulo', 'Montserrat', 1.8); t.set('fontWeight', 'bold'); fc.requestRenderAll(); snapshot(); }
+  else addPlainText('Adicione um pouco de texto', 'Inter', 1);
+}));
+async function addCombo(combo) {
+  $('#textModal').hidden = true;
+  await Promise.all(combo.items.map((i) => loadFont(i.f)));
+  const c = centerOfBoard(), objs = buildCombo(combo, pxPerCm(), c.left, c.top);
+  objs.forEach((t) => { t.uid = nextUid(); t.name = 'Texto'; t.objectCaching = false; fc.add(t); });
+  keepBoardBottom(); setTool('select');
+  fc.setActiveObject(objs.length > 1 ? new fabric.ActiveSelection(objs, { canvas: fc }) : objs[0]);
+  fc.requestRenderAll(); snapshot(); refreshSel();
+  toast(`“${combo.name}” na prancheta. Clique duas vezes num texto para trocar a frase.`, 3800);
+}
+// efeitos: guardam nome, cor e intensidade no objeto e são refeitos a partir deles
+const FX = [['nenhum', 'Nenhum'], ['sombra', 'Sombra'], ['elevado', 'Elevado'], ['eco', 'Eco'], ['contorno', 'Contorno'], ['vazado', 'Vazado'], ['neon', 'Neon'], ['fundo', 'Fundo']];
+const FX_DEF = { sombra: ['#000000', 50], elevado: ['#000000', 50], eco: ['#e8335a', 50], contorno: ['#141414', 45], vazado: ['#141414', 40], neon: ['#ff2f86', 55], fundo: ['#e8335a', 40] };
+function applyFx(o, name, color, amt) {
+  if (o.effect === 'vazado' && o.baseFill) o.set('fill', o.baseFill); // desfaz o vazado anterior
+  const fs = o.fontSize, a = (amt ?? 50) / 100;
+  const hexA = (hex, al) => { const h = toHex(hex); return `rgba(${parseInt(h.slice(1, 3), 16)},${parseInt(h.slice(3, 5), 16)},${parseInt(h.slice(5, 7), 16)},${al})`; };
+  o.set({ shadow: null, stroke: null, strokeWidth: 0, backgroundColor: '', padding: 4 });
+  o.effect = name === 'nenhum' ? null : name; o.fxColor = color; o.fxAmt = amt;
+  if (name === 'sombra') o.set('shadow', new fabric.Shadow({ color: hexA(color, 0.55), blur: fs * 0.04, offsetX: fs * 0.06 * a, offsetY: fs * 0.06 * a }));
+  else if (name === 'elevado') o.set('shadow', new fabric.Shadow({ color: hexA(color, 0.18 + 0.3 * a), blur: fs * (0.08 + 0.25 * a), offsetX: 0, offsetY: fs * 0.05 }));
+  else if (name === 'eco') o.set('shadow', new fabric.Shadow({ color: hexA(color, 0.9), blur: 0, offsetX: fs * 0.1 * a, offsetY: fs * 0.1 * a }));
+  else if (name === 'contorno') o.set({ stroke: color, strokeWidth: fs * (0.02 + 0.14 * a), paintFirst: 'stroke', strokeLineJoin: 'round' });
+  else if (name === 'vazado') { o.baseFill = o.fill; o.set({ fill: 'rgba(0,0,0,0)', stroke: color, strokeWidth: fs * (0.01 + 0.05 * a), paintFirst: 'fill', strokeLineJoin: 'round' }); }
+  else if (name === 'neon') o.set('shadow', new fabric.Shadow({ color: hexA(color, 0.95), blur: fs * (0.1 + 0.4 * a), offsetX: 0, offsetY: 0 }));
+  else if (name === 'fundo') o.set({ backgroundColor: color, padding: fs * (0.05 + 0.3 * a) });
+  o.dirty = true;
+}
+for (const [id, label] of FX) {
+  const b = document.createElement('button'); b.className = 'fx'; b.dataset.fx = id; b.title = label; b.setAttribute('aria-pressed', 'false');
+  b.innerHTML = '<b>Ag</b>' + label; const g = b.querySelector('b');
+  if (id === 'sombra') g.style.textShadow = '2px 2px 1px rgba(0,0,0,.6)';
+  if (id === 'elevado') g.style.textShadow = '0 3px 8px rgba(0,0,0,.6)';
+  if (id === 'eco') g.style.textShadow = '3px 3px 0 #e8335a';
+  if (id === 'contorno') g.style.webkitTextStroke = '2px #e8335a';
+  if (id === 'vazado') { g.style.color = 'transparent'; g.style.webkitTextStroke = '1px var(--fg)'; }
+  if (id === 'neon') { g.style.color = '#ffd1e6'; g.style.textShadow = '0 0 6px #ff2f86, 0 0 12px #ff2f86'; }
+  if (id === 'fundo') { g.style.background = '#e8335a'; g.style.padding = '0 4px'; }
+  b.onclick = () => setProp((o) => { const d = FX_DEF[id] || ['#000000', 50]; applyFx(o, id, o.effect === id ? o.fxColor : d[0], o.effect === id ? o.fxAmt : d[1]); });
+  $('#fxGrid').appendChild(b);
+}
+$('#fxColor').oninput = (e) => setProp((o) => o.effect && applyFx(o, o.effect, e.target.value, o.fxAmt));
+$('#fxAmt').oninput = (e) => setProp((o) => o.effect && applyFx(o, o.effect, o.fxColor, +e.target.value));
+function syncFx(o) {
+  document.querySelectorAll('#fxGrid .fx').forEach((b) => b.setAttribute('aria-pressed', String((o.effect || 'nenhum') === b.dataset.fx)));
+  $('#fxColorRow').hidden = !o.effect;
+  if (o.effect) { $('#fxColor').value = toHex(o.fxColor || '#000000'); $('#fxAmt').value = o.fxAmt ?? 50; }
+}
+
+/* =========================================================================
    Texto na forma (envelope): cada linha ocupa uma faixa horizontal da forma;
    a linha é esticada na largura da faixa e, coluna por coluna, até o topo e a
    base do contorno dentro da faixa. Resultado: as letras "enchem" a silhueta.
    ========================================================================= */
 const SHAPES = {
-  cerebro: { label: 'Cérebro', w: 124, h: 100, draw(x) {
-    x.beginPath(); x.moveTo(8, 52);
-    x.bezierCurveTo(0, 26, 22, 3, 56, 2); x.bezierCurveTo(92, 1, 123, 18, 122, 46); // lobo frontal → topo → nuca
-    x.bezierCurveTo(121, 62, 112, 70, 102, 72); x.bezierCurveTo(108, 82, 98, 91, 86, 87); // cerebelo
-    x.lineTo(82, 99); x.lineTo(69, 99); x.lineTo(71, 76); // tronco
-    x.bezierCurveTo(55, 75, 36, 77, 22, 73); x.bezierCurveTo(12, 70, 7, 62, 8, 52); x.fill(); // base do lobo temporal
+  // cérebro de perfil (frente à esquerda): lobo frontal, topo, nuca, lobo temporal, cerebelo e tronco
+  // tamanhos padrão por linha: topo menor, base maior (a última linha desce pelo tronco, como no lettering de referência)
+  cerebro: { label: 'Cérebro', w: 200, h: 160, sizes: (n) => Array.from({ length: n }, (_, i) => (n < 3 ? 100 : i === 0 ? 70 : i === n - 1 ? 200 : 100 + Math.round((20 * i) / (n - 2)))), draw(x) {
+    x.beginPath(); x.moveTo(24, 110);
+    x.bezierCurveTo(4, 94, 0, 58, 20, 36); x.bezierCurveTo(40, 12, 80, 2, 118, 6);       // lobo frontal → topo
+    x.bezierCurveTo(160, 10, 194, 34, 197, 70); x.bezierCurveTo(199, 96, 188, 114, 172, 122); // nuca
+    x.bezierCurveTo(180, 136, 170, 152, 150, 150); x.bezierCurveTo(140, 149, 134, 146, 130, 142); // cerebelo
+    x.lineTo(134, 158); x.lineTo(116, 158); x.lineTo(114, 140);                          // tronco
+    x.bezierCurveTo(96, 140, 66, 142, 46, 134); x.bezierCurveTo(34, 129, 28, 120, 24, 110); // lobo temporal
+    x.fill();
   } },
-  coracao: { label: 'Coração', w: 100, h: 92, draw(x) {
-    x.beginPath(); x.moveTo(50, 92); x.bezierCurveTo(20, 70, 0, 52, 0, 28); x.bezierCurveTo(0, 11, 13, 0, 27, 0); x.bezierCurveTo(38, 0, 46, 7, 50, 17);
-    x.bezierCurveTo(54, 7, 62, 0, 73, 0); x.bezierCurveTo(87, 0, 100, 11, 100, 28); x.bezierCurveTo(100, 52, 80, 70, 50, 92); x.fill();
+  coracao: { label: 'Coração', w: 100, h: 90, sizes: (n) => Array.from({ length: n }, (_, i) => (i === n - 1 && n > 2 ? 85 : 100)), draw(x) {
+    x.beginPath(); x.moveTo(50, 89);
+    x.bezierCurveTo(30, 74, 2, 56, 2, 30); x.bezierCurveTo(2, 13, 14, 2, 28, 2); x.bezierCurveTo(39, 2, 46, 8, 50, 17);
+    x.bezierCurveTo(54, 8, 61, 2, 72, 2); x.bezierCurveTo(86, 2, 98, 13, 98, 30); x.bezierCurveTo(98, 56, 70, 74, 50, 89); x.fill();
   } },
   circulo: { label: 'Círculo', w: 100, h: 100, draw(x) { x.beginPath(); x.arc(50, 50, 50, 0, Math.PI * 2); x.fill(); } },
   escudo: { label: 'Escudo', w: 90, h: 100, draw(x) { x.beginPath(); x.moveTo(0, 6); x.lineTo(45, 0); x.lineTo(90, 6); x.lineTo(90, 52); x.quadraticCurveTo(88, 84, 45, 100); x.quadraticCurveTo(2, 84, 0, 52); x.closePath(); x.fill(); } },
@@ -1113,6 +1299,74 @@ function shapeMask(name, W) {
 }
 function scaledCopy(src, W) { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(W)); c.height = Math.max(1, Math.round(src.height * W / src.width)); c.getContext('2d').drawImage(src, 0, 0, c.width, c.height); return c; }
 function loadImgEl(url) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; }); }
+/* Letra por letra: cada letra mantém a proporção; a altura é a altura livre da forma
+   naquele ponto. Onde a forma baixa, a letra diminui e a seguinte anda para o lado.
+   Dentro da letra, o topo e a base acompanham o contorno (inclina como no lettering). */
+function fitLetters(o, text, y0, y1, md, W, color, FS, cfg) {
+  const font = `${FS}px "${cfg.font}", Impact, sans-serif`, mx = document.createElement('canvas').getContext('2d'); mx.font = font;
+  const chars = [...text]; let asc = 0, desc = 0;
+  for (const ch of chars) if (ch.trim()) { const m = mx.measureText(ch); asc = Math.max(asc, m.actualBoundingBoxAscent); desc = Math.max(desc, m.actualBoundingBoxDescent); }
+  const gh = Math.ceil(asc + desc) + 2;
+  const glyphs = chars.map((ch) => {
+    if (!ch.trim()) return { space: true, a: 0.22 };
+    const m = mx.measureText(ch), w = Math.max(2, Math.ceil(m.actualBoundingBoxLeft + m.actualBoundingBoxRight) + 2);
+    const c = document.createElement('canvas'); c.width = w; c.height = gh; const g = c.getContext('2d');
+    g.font = font; g.fillStyle = color; g.fillText(ch, m.actualBoundingBoxLeft + 1, asc + 1);
+    return { c, a: w / gh };
+  });
+  // topo/base livres de cada coluna dentro da faixa (suavizados)
+  const T = new Float32Array(W).fill(-1), B = new Float32Array(W);
+  for (let x = 0; x < W; x++) for (let y = y0; y < y1; y++) if (md[(y * W + x) * 4 + 3] > 128) { if (T[x] < 0) T[x] = y; B[x] = y; }
+  const K = Math.max(1, Math.round(W * 0.025)), sT = new Float32Array(W), sH = new Float32Array(W); let maxH = 0;
+  for (let x = 0; x < W; x++) {
+    if (T[x] < 0) continue; let a = 0, b = 0, n = 0;
+    for (let j = Math.max(0, x - K); j <= Math.min(W - 1, x + K); j++) if (T[j] >= 0) { a += T[j]; b += B[j]; n++; }
+    sT[x] = a / n; sH[x] = b / n - a / n + 1; maxH = Math.max(maxH, sH[x]);
+  }
+  const thr = maxH * 0.5; let xa = 0; while (xa < W && sH[xa] < thr) xa++; let xb = W - 1; while (xb > xa && sH[xb] < thr) xb--;
+  if (xb - xa < 4) return;
+  const rawH = (x) => { const i = clamp(Math.round(x), 0, W - 1); return T[i] < 0 ? 0 : Math.min(sH[i], B[i] - T[i] + 1); };
+  const track = (cfg.tracking ?? 4) / 100, hAt = rawH;
+  // altura que cabe inteira sob a letra (quase o mínimo das colunas que ela ocupa)
+  const fitH = (x0, w) => { const v = []; for (let x = Math.floor(x0); x <= Math.ceil(x0 + w); x++) v.push(hAt(x)); v.sort((p, q) => p - q); return Math.max(thr * 0.5, v[Math.floor(v.length * 0.06)] || 0); };
+  // k = quanto a letra alarga (0,85–1,2: mantém o desenho); s = fração da altura livre que a letra usa
+  const run = (k, s, start) => {
+    const pos = []; let x = start, prev = 0;
+    for (const g of glyphs) {
+      while (x < xb && hAt(x) < thr) x++; // forma interrompida: pula para o próximo trecho
+      let h = s * hAt(x), w = k * g.a * h;
+      for (let it = 0; it < 3; it++) { h = s * fitH(x, w); w = k * g.a * h; }
+      if (!g.space) { if (prev && h < prev * 0.75) { h = prev * 0.75; w = k * g.a * h; } prev = h; } // diminui aos poucos, sem saltos
+      pos.push({ x, w, h, g }); x += w + (g.space ? 0 : k * track * h);
+    }
+    const last = pos[pos.length - 1];
+    return { pos, end: last ? last.x + last.w : x };
+  };
+  const KMIN = 0.8, KMAX = 1.55; // letras podem alargar até 55% (lettering costuma usar letras largas)
+  let r;
+  if (run(KMIN, 1, xa).end > xb) { // não cabe: todas as letras diminuem por igual
+    let lo = 0.05, hi = 1; for (let it = 0; it < 30; it++) { const m = (lo + hi) / 2; if (run(KMIN, m, xa).end <= xb) lo = m; else hi = m; }
+    r = run(KMIN, lo, xa); r = run(KMIN, lo, xa + (xb - r.end) / 2);
+  } else if (run(KMAX, 1, xa).end < xb) { // sobra espaço: alarga até 20% e centraliza
+    r = run(KMAX, 1, xa); r = run(KMAX, 1, xa + (xb - r.end) / 2);
+  } else {
+    let lo = KMIN, hi = KMAX; for (let it = 0; it < 30; it++) { const m = (lo + hi) / 2; if (run(m, 1, xa).end <= xb) lo = m; else hi = m; }
+    r = run(lo, 1, xa);
+  }
+  const HUG = clamp((cfg.hug ?? 35) / 100, 0, 1); // quanto a letra inclina para acompanhar o contorno
+  for (const p of r.pos) {
+    if (p.g.space || p.w < 1) continue;
+    const gw = p.g.c.width; let cy = 0, n = 0;
+    for (let x = Math.floor(p.x); x < p.x + p.w; x++) { const xi = clamp(x, 0, W - 1); if (sH[xi] > 0) { cy += sT[xi] + sH[xi] / 2; n++; } }
+    if (!n) continue; cy /= n;
+    for (let x = Math.floor(p.x); x < p.x + p.w; x++) {
+      if (x < 0 || x >= W || sH[x] < 1) continue;
+      const top = (cy - p.h / 2) * (1 - HUG) + sT[x] * HUG, hh = p.h * (1 - HUG) + sH[x] * HUG;
+      const sx = clamp(((x - p.x) / p.w) * gw, 0, gw - 0.5);
+      o.drawImage(p.g.c, sx, 0, Math.max(0.5, Math.min(gw - sx, gw / p.w)), gh, x, top, 1, hh);
+    }
+  }
+}
 async function renderWarp(cfg, mask) {
   const W = mask.width, H = mask.height, md = mask.getContext('2d').getImageData(0, 0, W, H).data;
   const rowL = new Int32Array(H).fill(-1), rowR = new Int32Array(H).fill(-1);
@@ -1138,7 +1392,8 @@ async function renderWarp(cfg, mask) {
     return { c, a: w / h };
   });
   const total = bot - top + 1, gap = Math.round(total * (cfg.gap || 0) / 100), avail = Math.max(lines.length * 2, total - gap * (lines.length - 1));
-  const size = (i) => clamp(((cfg.sizes || [])[i] || 100) / 100, 0.2, 4);
+  const defSizes = SHAPES[cfg.shape] && SHAPES[cfg.shape].sizes ? SHAPES[cfg.shape].sizes(lines.length) : [];
+  const size = (i) => clamp(((cfg.sizes && cfg.sizes.length ? cfg.sizes : defSizes)[i] || 100) / 100, 0.2, 4);
   let h = texts.map((t, i) => size(i));
   { const s0 = h.reduce((a, b) => a + b, 0); h = h.map((v) => (v * avail) / s0); }
   const widthIn = (y0, y1) => { let s = 0, n = 0; for (let y = Math.max(top, Math.round(y0)); y <= Math.min(bot, Math.round(y1)); y++) if (rowL[y] >= 0) { s += rowR[y] - rowL[y] + 1; n++; } return n ? s / n : 1; };
@@ -1152,7 +1407,7 @@ async function renderWarp(cfg, mask) {
     }
   }
   const out = document.createElement('canvas'); out.width = W; out.height = H; const o = out.getContext('2d');
-  const env = cfg.warp !== 'rows' && cfg.warp !== 'cols', od = env ? o.createImageData(W, H) : null, odd = od && od.data;
+  const mode = ['env', 'rows', 'cols'].includes(cfg.warp) ? cfg.warp : 'letters', env = mode === 'env', od = env ? o.createImageData(W, H) : null, odd = od && od.data;
   const colors = (cfg.colors && cfg.colors.length ? cfg.colors : ['#141414']);
   let y = top;
   texts.forEach((t, i) => {
@@ -1160,6 +1415,7 @@ async function renderWarp(cfg, mask) {
     const bh = y1 - y0; if (bh < 2) return;
     let L = W, R = -1; for (let yy = y0; yy < y1; yy++) if (rowL[yy] >= 0) { L = Math.min(L, rowL[yy]); R = Math.max(R, rowR[yy]); }
     if (R <= L) return;
+    if (mode === 'letters') { fitLetters(o, lines[i], y0, y1, md, W, colors[i % colors.length], FS, cfg); return; }
     const bw = R - L + 1, band = document.createElement('canvas'); band.width = bw; band.height = bh;
     const b = band.getContext('2d'); b.imageSmoothingQuality = 'high'; b.drawImage(t.c, 0, 0, bw, bh);
     b.globalCompositeOperation = 'source-in'; b.fillStyle = colors[i % colors.length]; b.fillRect(0, 0, bw, bh);
@@ -1194,7 +1450,7 @@ async function renderWarp(cfg, mask) {
 }
 // estado da janela
 let warpCfg = null, warpTarget = null, warpSrcImg = null, warpMaskFull = null;
-const WARP_DEFAULT = { text: 'VAMOS\nFALAR SOBRE\nSAÚDE\nMENTAL', font: 'Anton', colors: ['#e8335a', '#f27a94', '#f6a8ba'], gap: 2, layout: 'auto', warp: 'env', shape: 'cerebro', wCm: 22 };
+const WARP_DEFAULT = { text: 'VAMOS\nFALAR SOBRE\nSAÚDE\nMENTAL', font: 'Anton', colors: ['#e8335a', '#f27a94', '#f6a8ba'], gap: 2, layout: 'auto', warp: 'letters', tracking: 4, shape: 'cerebro', wCm: 22 };
 function fillWarpFonts() {
   const sel = $('#warpFont'); sel.innerHTML = $('#fontSel').innerHTML; sel.value = warpCfg.font;
 }
@@ -1204,7 +1460,7 @@ function renderWarpShapes() {
   if (warpSrcImg || warpCfg.shape === 'imagem') opts.push(['imagem', 'Silhueta da imagem']);
   for (const [k, label] of opts) {
     const b = document.createElement('button'); b.className = 'chip'; b.textContent = label; b.setAttribute('aria-pressed', String(warpCfg.shape === k));
-    b.onclick = () => { warpCfg.shape = k; renderWarpShapes(); warpPreview(); }; box.appendChild(b);
+    b.onclick = () => { warpCfg.shape = k; warpCfg.sizesTouched = false; renderWarpShapes(); renderWarpSizes(); warpPreview(); }; box.appendChild(b);
   }
   $('#warpShapeNote').textContent = warpCfg.shape === 'imagem' ? 'Usa a silhueta (parte não transparente) da imagem. Remova o fundo antes com a ferramenta Fundo.'
     : 'Para usar o contorno de um desenho seu, selecione a imagem (sem fundo) e clique em “Preencher esta silhueta com texto”.';
@@ -1225,7 +1481,7 @@ const warpPreview = debounce(async () => {
   $('#warpBusy').hidden = true;
 }, 150);
 function syncWarpUI() {
-  $('#warpText').value = warpCfg.text; fillWarpFonts(); $('#warpLayout').value = warpCfg.layout; $('#warpMode').value = warpCfg.warp || 'env';
+  $('#warpText').value = warpCfg.text; fillWarpFonts(); $('#warpLayout').value = warpCfg.layout; $('#warpMode').value = ['env', 'rows', 'cols'].includes(warpCfg.warp) ? warpCfg.warp : 'letters';
   ['warpC1', 'warpC2', 'warpC3'].forEach((id, i) => { const el = $('#' + id); el.value = warpCfg.colors[i] || warpCfg.colors[0]; el.disabled = i >= warpCfg.colors.length; });
   $('#warpOne').textContent = warpCfg.colors.length > 1 ? 'Uma cor' : 'Três cores';
   $('#warpGap').value = warpCfg.gap; $('#warpGapOut').textContent = fmt(warpCfg.gap, 1) + '%';
@@ -1234,14 +1490,15 @@ function syncWarpUI() {
 }
 function renderWarpSizes() {
   const lines = warpCfg.text.split('\n').map((t) => t.trim()).filter(Boolean), box = $('#warpSizes');
-  warpCfg.sizes = lines.map((_, i) => (warpCfg.sizes || [])[i] || 100);
+  const sh = SHAPES[warpCfg.shape], def = sh && sh.sizes ? sh.sizes(lines.length) : lines.map(() => 100);
+  warpCfg.sizes = warpCfg.sizesTouched ? lines.map((_, i) => (warpCfg.sizes || [])[i] || def[i]) : def;
   box.innerHTML = '';
   lines.forEach((t, i) => {
     const row = document.createElement('label'); row.className = 'field-line'; row.style.gap = '8px';
     row.innerHTML = '<span style="width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span><input type="range" min="40" max="250" step="5" style="flex:1"><output style="width:44px;text-align:right"></output>';
     row.querySelector('span').textContent = t; const r = row.querySelector('input'), out = row.querySelector('output');
     r.value = warpCfg.sizes[i]; out.textContent = warpCfg.sizes[i] + '%'; r.setAttribute('aria-label', 'Tamanho da linha ' + t);
-    r.oninput = () => { warpCfg.sizes[i] = +r.value; out.textContent = r.value + '%'; warpPreview(); };
+    r.oninput = () => { warpCfg.sizesTouched = true; warpCfg.sizes[i] = +r.value; out.textContent = r.value + '%'; warpPreview(); };
     box.appendChild(row);
   });
   $('#warpSizesBox').hidden = !lines.length;
@@ -1350,7 +1607,7 @@ $('#exportBtn').onclick = () => {
   $('#expWarn').textContent = [
     low.length ? `Atenção: ${low.length} imagem(ns) abaixo de 150 dpi — vão sair borradas na impressão.` : '',
     imgs.length ? 'O SVG vai conter imagens (pixels) embutidas: não fica 100% vetorial.' : '',
-    texts.length ? 'No SVG, os textos dependem das fontes: quem abrir precisa tê-las (converter textos em contornos é a próxima etapa). O PNG já sai com tudo desenhado.' : '',
+    texts.length ? 'No SVG, textos ainda editáveis dependem das fontes: quem abrir precisa tê-las. Para não depender, selecione o texto e use “Converter em curvas”. O PNG já sai com tudo desenhado.' : '',
   ].filter(Boolean).join(' ');
   $('#exportModal').hidden = false;
 };
@@ -1364,6 +1621,242 @@ $('#expSvg').onclick = () => {
 };
 $('#expClose').onclick = () => ($('#exportModal').hidden = true);
 document.querySelectorAll('.modal').forEach((m) => m.addEventListener('click', (e) => { if (e.target === m) m.hidden = true; }));
+
+/* =========================================================================
+   Catálogo de fontes (busca por nome, categoria e estilo)
+   Fonte dos dados: API pública e gratuita do Fontsource (projeto open source que
+   empacota as fontes do Google Fonts e outras fontes livres). Sem chave, sem custo.
+   Isto é BUSCA NO CATÁLOGO — não é identificar uma fonte a partir de uma imagem.
+   ========================================================================= */
+const FONTSOURCE_API = 'https://api.fontsource.org/v1/fonts';
+const FONTSOURCE_CDN = 'https://cdn.jsdelivr.net/fontsource/fonts';
+const CAT_PT = { 'sans-serif': 'Sem serifa', serif: 'Serifa', display: 'Display', handwriting: 'Manuscrita', monospace: 'Mono' };
+const OUR_CAT = { 'Impacto': 'display', 'Serifa': 'serif', 'Sem serifa': 'sans-serif', 'Manuscrita': 'handwriting', 'Gótica': 'display', 'Retrô': 'display', 'Urbana': 'display' };
+let catalog = null, catalogOnline = false;
+const pickedFonts = []; // fontes do catálogo usadas (aparecem no seletor e vão no projeto)
+try { JSON.parse(store.get('editor148:catalogo-usadas') || '[]').forEach((f) => pickedFonts.push(f)); } catch {}
+async function loadCatalog() {
+  if (catalog) return catalog;
+  try {
+    const r = await fetch(FONTSOURCE_API); if (!r.ok) throw 0;
+    const list = await r.json();
+    catalog = list.filter((f) => f && f.family && (f.subsets || []).includes('latin')).map((f) => ({
+      id: f.id, name: f.family, cat: f.category, weights: f.weights || [400], styles: f.styles || ['normal'], lic: f.license || '', type: f.type || '' }));
+    catalogOnline = true;
+  } catch { // sem internet: só a lista curada (que já fica no arquivo)
+    catalog = FONT_LIST.map((f) => ({ id: fsId(f.name), name: f.name, cat: OUR_CAT[f.cat] || 'display', weights: [400], styles: ['normal'], lic: f.lic === 'Apache' ? 'Apache-2.0' : 'OFL-1.1', type: 'google' }));
+    catalogOnline = false;
+  }
+  return catalog;
+}
+const fsId = (name) => name.toLowerCase().trim().replace(/\s+/g, '-');
+function licLabel(l) {
+  const s = String(l || '').toLowerCase();
+  if (s.includes('ofl') || s.includes('open font')) return 'SIL Open Font License · uso comercial permitido';
+  if (s.includes('apache')) return 'Apache 2.0 · uso comercial permitido';
+  if (s.includes('ufl') || s.includes('ubuntu')) return 'Ubuntu Font Licence · uso comercial permitido';
+  if (s) return l + ' · confira os termos';
+  return 'Licença: confira na página da fonte';
+}
+let fsCat = 'all', fsItalic = false, fsBold = false, fsShown = 0, fsList = [];
+async function openFontSearch() {
+  const o = act(); $('#fsPreview').value = isText(o) ? o.text.split('\n')[0].slice(0, 40) : 'Toda a criação louva';
+  $('#fontSearchModal').hidden = false; $('#fsQuery').focus();
+  $('#fsStatus').textContent = 'Carregando catálogo…';
+  await loadCatalog();
+  $('#fsStatus').textContent = catalogOnline ? `${catalog.length} fontes gratuitas no catálogo (Google Fonts e outras fontes livres, via Fontsource).`
+    : 'Sem internet: mostrando só as fontes da lista do editor. As fontes que você importar (OTF/TTF) funcionam sem internet.';
+  renderFontSearch();
+}
+function renderFontSearch() {
+  const q = $('#fsQuery').value.trim().toLowerCase();
+  fsList = catalog.filter((f) => (fsCat === 'all' || f.cat === fsCat) && (!q || f.name.toLowerCase().includes(q))
+    && (!fsItalic || f.styles.includes('italic')) && (!fsBold || f.weights.some((w) => w >= 700)));
+  fsList.sort((a, b) => (q ? (a.name.toLowerCase().startsWith(q) ? 0 : 1) - (b.name.toLowerCase().startsWith(q) ? 0 : 1) : 0) || a.name.localeCompare(b.name));
+  $('#fsCount').textContent = `${fsList.length} ${fsList.length === 1 ? 'fonte' : 'fontes'}`;
+  const grid = $('#fsGrid'); grid.innerHTML = ''; fsShown = 0; moreFonts();
+}
+const fsObserver = 'IntersectionObserver' in window ? new IntersectionObserver((ents) => ents.forEach((e) => {
+  if (!e.isIntersecting) return; fsObserver.unobserve(e.target);
+  const name = e.target.dataset.font; loadFont(name).then(() => { e.target.style.fontFamily = `"${name}", sans-serif`; });
+}), { rootMargin: '200px' }) : null;
+function moreFonts() {
+  const grid = $('#fsGrid'), txt = $('#fsPreview').value || 'Toda a criação louva';
+  for (const f of fsList.slice(fsShown, fsShown + 48)) {
+    const b = document.createElement('button'); b.className = 'fontcard';
+    b.innerHTML = '<span class="sample"></span><strong></strong><small></small>';
+    const sm = b.querySelector('.sample'); sm.textContent = txt; sm.dataset.font = f.name;
+    if (fsObserver) fsObserver.observe(sm); else loadFont(f.name).then(() => (sm.style.fontFamily = `"${f.name}", sans-serif`));
+    b.querySelector('strong').textContent = f.name;
+    b.querySelector('small').textContent = `${CAT_PT[f.cat] || f.cat} · pesos ${f.weights.join(', ')}${f.styles.includes('italic') ? ' · tem itálico' : ''} · ${licLabel(f.lic)}`;
+    b.onclick = () => pickCatalogFont(f);
+    grid.appendChild(b);
+  }
+  fsShown += 48;
+  $('#fsMore').hidden = fsShown >= fsList.length;
+}
+async function pickCatalogFont(f) {
+  if (!FONT_LIST.some((x) => x.name === f.name) && !pickedFonts.some((x) => x.name === f.name)) {
+    pickedFonts.push({ name: f.name, id: f.id, cat: f.cat, lic: f.lic, weights: f.weights, styles: f.styles });
+    store.set('editor148:catalogo-usadas', JSON.stringify(pickedFonts.slice(-60)));
+    fillFontSelect();
+  }
+  await loadFont(f.name);
+  $('#fontSearchModal').hidden = true;
+  if (isText(act())) setProp((o) => o.set('fontFamily', f.name)); else toast(`“${f.name}” adicionada ao seletor de fontes`);
+}
+$('#fontSearchBtn').onclick = openFontSearch;
+$('#fsQuery').oninput = debounce(renderFontSearch, 150);
+$('#fsPreview').oninput = () => document.querySelectorAll('#fsGrid .sample').forEach((s) => (s.textContent = $('#fsPreview').value || 'Toda a criação louva'));
+$('#fsMore').onclick = moreFonts;
+$('#fsClose').onclick = () => ($('#fontSearchModal').hidden = true);
+(function buildFsChips() {
+  const box = $('#fsCats');
+  for (const [k, label] of [['all', 'Todas'], ...Object.entries(CAT_PT)]) {
+    const b = document.createElement('button'); b.className = 'chip'; b.textContent = label; b.dataset.cat = k; b.setAttribute('aria-pressed', String(k === fsCat));
+    b.onclick = () => { fsCat = k; box.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.cat === k))); renderFontSearch(); };
+    box.appendChild(b);
+  }
+  const it = $('#fsItalic'), bd = $('#fsBold');
+  it.onclick = () => { fsItalic = !fsItalic; it.setAttribute('aria-pressed', String(fsItalic)); renderFontSearch(); };
+  bd.onclick = () => { fsBold = !fsBold; bd.setAttribute('aria-pressed', String(fsBold)); renderFontSearch(); };
+})();
+
+/* =========================================================================
+   Texto → curvas (vetor) com OpenType.js
+   Lê o arquivo da fonte (o que você importou, ou o TTF/WOFF gratuito do Fontsource),
+   desenha cada letra como contorno vetorial no mesmo lugar em que o Fabric a desenha
+   e guarda o texto original oculto, para voltar a editar.
+   ========================================================================= */
+const fontFileCache = new Map();
+const weightNum = (w) => (w === 'bold' ? 700 : w === 'normal' || !w ? 400 : +w || 400);
+async function fontBinary(family, weight, italic) {
+  const u = userFonts.find((f) => f.name === family);
+  if (u) return (await fetch(u.data)).arrayBuffer();
+  const key = `${family}|${weight}|${italic}`;
+  if (fontFileCache.has(key)) return fontFileCache.get(key).slice(0);
+  const meta = (catalog || []).find((f) => f.name === family) || pickedFonts.find((f) => f.name === family);
+  const id = meta?.id || fsId(family);
+  const ws = meta?.weights?.length ? [...meta.weights].sort((a, b) => Math.abs(a - weight) - Math.abs(b - weight)) : [weight, 400, 700];
+  const st = italic ? ['italic', 'normal'] : ['normal'];
+  for (const ext of ['ttf', 'woff']) for (const s of st) for (const w of ws.slice(0, 3)) {
+    try { const r = await fetch(`${FONTSOURCE_CDN}/${id}@latest/latin-${w}-${s}.${ext}`); if (r.ok) { const b = await r.arrayBuffer(); fontFileCache.set(key, b); return b.slice(0); } } catch {}
+  }
+  throw new Error('sem arquivo');
+}
+function transformCmds(path, fn) {
+  for (const c of path.commands) {
+    if ('x' in c) [c.x, c.y] = fn(c.x, c.y);
+    if ('x1' in c) [c.x1, c.y1] = fn(c.x1, c.y1);
+    if ('x2' in c) [c.x2, c.y2] = fn(c.x2, c.y2);
+  }
+  return path;
+}
+async function textToCurves(o) {
+  if (!window.opentype) { toast('O OpenType.js não carregou (sem internet e sem a pasta vendor).'); return; }
+  let font;
+  try { font = opentype.parse(await fontBinary(o.fontFamily, weightNum(o.fontWeight), o.fontStyle === 'italic')); }
+  catch { toast('Não consegui o arquivo desta fonte para vetorizar. Com internet ele vem do catálogo gratuito; sem internet, importe o OTF/TTF.', 5200); return; }
+  o.initDimensions();
+  const fs = o.fontSize, parts = [], top0 = o._getTopOffset(), left0 = o._getLeftOffset();
+  let lineTop = 0;
+  o._textLines.forEach((chars, li) => {
+    const hl = o.getHeightOfLine(li), base = top0 + lineTop + (hl / o.lineHeight) * (1 - o._fontSizeFraction);
+    const lx = left0 + o._getLineLeftOffset(li);
+    chars.forEach((ch, ci) => {
+      if (!ch.trim()) return;
+      const b = o.__charBounds[li][ci], g = font.charToGlyph(ch);
+      let p;
+      if (o.path) { // texto curvo: mesma posição e giro de cada letra que o Fabric usa
+        // o Fabric centraliza a letra na curva (textBaseline "middle" = meio do quadrado da fonte)
+        const asc = font.ascender, des = font.descender, mid = (fs * (asc + des)) / (2 * (asc - des));
+        p = g.getPath(-b.width / 2, mid, fs);
+        const ca = Math.cos(b.angle), sa = Math.sin(b.angle);
+        transformCmds(p, (x, y) => [b.renderLeft + x * ca - y * sa, b.renderTop + x * sa + y * ca]);
+      } else p = g.getPath(lx + b.left + (b.kernedWidth - b.width), base, fs);
+      const d = p.toPathData(2); if (d) parts.push({ ch, d });
+    });
+    lineTop += hl;
+  });
+  if (!parts.length) { toast('Nada para converter'); return; }
+  const paint = { fill: o.effect === 'vazado' ? 'rgba(0,0,0,0)' : o.fill, stroke: o.stroke, strokeWidth: o.strokeWidth, paintFirst: o.paintFirst, strokeLineJoin: 'round', shadow: o.shadow ? new fabric.Shadow(o.shadow) : null };
+  const objs = parts.map(({ ch, d }) => { const pth = new fabric.Path(d, { ...paint, objectCaching: false }); pth.name = 'Letra ' + ch; pth.uid = nextUid(); return pth; });
+  if (o.backgroundColor) { const pad = o.padding || 0; objs.unshift(new fabric.Rect({ left: 0, top: 0, width: o.width + pad * 2, height: o.height + pad * 2, fill: o.backgroundColor, strokeWidth: 0 })); }
+  const g = new fabric.Group(objs, { objectCaching: false });
+  const center = fabric.util.transformPoint(new fabric.Point(g.left, g.top), o.calcTransformMatrix());
+  g.set({ left: center.x, top: center.y, angle: o.angle, scaleX: o.scaleX, scaleY: o.scaleY, skewX: o.skewX, skewY: o.skewY, flipX: o.flipX, flipY: o.flipY, opacity: o.opacity });
+  g.uid = nextUid(); g.name = 'Curvas: ' + (o.text || '').replace(/\s+/g, ' ').slice(0, 20); g.fromText = o.uid;
+  // cópia editável: o texto original fica oculto logo abaixo
+  o.visible = false; o.name = 'Texto editável (cópia)';
+  const idx = fc.getObjects().indexOf(o);
+  fc.discardActiveObject(); fc.insertAt(g, idx + 1, false); keepBoardBottom();
+  fc.setActiveObject(g); fc.requestRenderAll(); snapshot(); refreshSel();
+  toast('Texto convertido em vetores. Desagrupe para mexer em cada letra. O texto original ficou oculto nas camadas (“Voltar ao texto”).', 5600);
+}
+function backToText(g) {
+  const src = userObjs().find((x) => x.uid === g.fromText);
+  if (!src) { toast('O texto original não está mais no projeto'); return; }
+  src.visible = true; src.name = 'Texto';
+  fc.discardActiveObject(); fc.remove(g); fc.setActiveObject(src); fc.requestRenderAll(); snapshot(); refreshSel();
+}
+$('#curvesBtn').onclick = () => { const o = act(); if (isText(o)) textToCurves(o); };
+$('#backTextBtn').onclick = () => { const o = act(); if (o && o.fromText) backToText(o); };
+
+/* =========================================================================
+   Pincel de recorte (manual): apagar ou restaurar partes da imagem
+   ========================================================================= */
+async function startBrush(img) {
+  const work = imageCanvas(img);
+  let orig;
+  const origUrl = imgStore.get(img.origKey || img.srcKey);
+  if (origUrl) { const el = await loadImgEl(origUrl); orig = document.createElement('canvas'); orig.width = work.width; orig.height = work.height; orig.getContext('2d').drawImage(el, 0, 0, work.width, work.height); }
+  else { orig = document.createElement('canvas'); orig.width = work.width; orig.height = work.height; orig.getContext('2d').drawImage(work, 0, 0); }
+  const cursor = new fabric.Circle({ radius: 10, fill: 'rgba(231,225,207,.12)', stroke: '#e0806f', strokeWidth: 1.5, strokeUniform: true, selectable: false, evented: false, visible: false });
+  cursor.kind = 'helper'; fc.add(cursor);
+  modeData = { img, work, orig, cursor, how: 'erase', size: 40, last: null, down: false };
+  img.setElement(work); fc.discardActiveObject();
+  userObjs().forEach((o) => (o.evented = false)); fc.selection = false; fc.defaultCursor = 'none';
+  setModebar(`<b>Pincel de recorte</b><div class="toggle"><button id="brErase" aria-pressed="true">Apagar</button><button id="brRestore" aria-pressed="false">Restaurar</button></div>
+    <label class="note" for="brSize">Tamanho</label><input type="range" id="brSize" min="4" max="200" value="40">
+    <button class="btn small primary" id="brOk">Concluir</button><button class="btn small" id="brCancel">Cancelar</button>`);
+  const setHow = (h) => { modeData.how = h; $('#brErase').setAttribute('aria-pressed', String(h === 'erase')); $('#brRestore').setAttribute('aria-pressed', String(h === 'restore')); };
+  $('#brErase').onclick = () => setHow('erase'); $('#brRestore').onclick = () => setHow('restore');
+  $('#brSize').oninput = (e) => (modeData.size = +e.target.value);
+  $('#brOk').onclick = async () => {
+    const { img, work, cursor } = modeData; fc.remove(cursor); mode = null; modeData = null; setModebar(''); setTool(tool);
+    document.querySelectorAll('.tool[data-mode]').forEach((b) => b.classList.remove('active'));
+    if (!img.origKey) img.origKey = img.srcKey;
+    await replaceImage(img, work); fc.setActiveObject(img); snapshot(); refreshSel(); toast('Recorte corrigido');
+  };
+  $('#brCancel').onclick = () => { const { img, cursor } = modeData; fc.remove(cursor); const url = imgStore.get(img.srcKey); modeData = null; img.setSrc(url, () => fc.requestRenderAll()); mode = null; setModebar(''); setTool(tool); };
+}
+function brushDab(p) {
+  const { img, work, orig, how, size } = modeData, x = work.getContext('2d');
+  const q = worldToImage(img, p), r = size / (fc.getZoom() * Math.max(img.scaleX, img.scaleY)) / 2;
+  const a = modeData.last || q, dist = Math.hypot(q.x - a.x, q.y - a.y), steps = Math.max(1, Math.ceil(dist / (r * 0.35)));
+  for (let s = 1; s <= steps; s++) {
+    const cx = a.x + ((q.x - a.x) * s) / steps, cy = a.y + ((q.y - a.y) * s) / steps;
+    x.save(); x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2);
+    if (how === 'erase') { x.globalCompositeOperation = 'destination-out'; x.fill(); }
+    else { x.clip(); x.clearRect(cx - r, cy - r, r * 2, r * 2); x.drawImage(orig, 0, 0); }
+    x.restore();
+  }
+  modeData.last = q; img.dirty = true; fc.requestRenderAll();
+}
+function brushMove(opt) {
+  const p = fc.getPointer(opt.e), c = modeData.cursor, r = modeData.size / fc.getZoom() / 2;
+  c.set({ left: p.x, top: p.y, radius: r, visible: true }); c.setCoords();
+  if (modeData.down) brushDab(p); else fc.requestRenderAll();
+}
+
+/* ---------- versões de 1 cor para camiseta clara/escura ---------- */
+function monoVersion(color) {
+  const art = renderArt(), c = document.createElement('canvas'); c.width = art.width; c.height = art.height;
+  const x = c.getContext('2d'); x.drawImage(art, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = color; x.fillRect(0, 0, c.width, c.height);
+  return c.toDataURL('image/png');
+}
+$('#expBlack').onclick = () => download(monoVersion('#000000'), 'estampa-148-preta.png');
+$('#expWhite').onclick = () => download(monoVersion('#ffffff'), 'estampa-148-branca.png');
 
 /* ---------- teclado ---------- */
 window.addEventListener('keydown', (e) => {
@@ -1384,7 +1877,7 @@ window.addEventListener('keydown', (e) => {
   }
   if (mod) return;
   const k = e.key.toLowerCase();
-  if (k === 'v') setTool('select'); else if (k === 'h') setTool('hand'); else if (k === 't') $('#addText').click();
+  if (k === 'v') setTool('select'); else if (k === 'h') setTool('hand'); else if (k === 't') addPlainText();
   else if (k === 'i') $('#addImage').click(); else if (k === 'r') $('#addRect').click(); else if (k === 'o') $('#addCircle').click();
 });
 window.addEventListener('keyup', (e) => { if (e.code === 'Space') { spaceDown = false; fc.defaultCursor = tool === 'hand' ? 'grab' : 'default'; } });

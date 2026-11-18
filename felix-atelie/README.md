@@ -46,18 +46,19 @@ O modelo oversized fica embutido no próprio `index.html` (moldes + malha 3D oti
 
 ## Editor de artes (`editor.html`)
 
-Botão **Editor de artes** no topo do Ateliê. Serve para adaptar uma referência e preparar a estampa antes de levar para a camiseta.
+Botão **Editor de artes** no topo do Ateliê, ou abra `editor.html` direto (dois cliques no arquivo; funciona sem servidor). Tudo é gratuito e roda no navegador. As dependências e licenças estão em [`LICENCAS.md`](LICENCAS.md).
 
-- **Prancheta em tamanho real**: largura × altura em cm e resolução (150/200/300 dpi). Veja a arte sobre o xadrez (transparente) ou sobre a cor da camiseta (só prévia).
-- **Importar** PNG, JPG ou SVG (SVG entra como vetor editável). Cada imagem mostra a qualidade de impressão (dpi) no tamanho atual e até quantos cm ela fica nítida.
-- **Recortar**, **Remover fundo liso** (não apaga as partes claras dentro do desenho) e **Apagar área** (para tirar um texto da arte e reconstruir o fundo).
-- **Textos**: fonte (lista com licença de cada uma, ou importe OTF/TTF), tamanho em pt, espaçamento, altura da linha, contorno, **curvatura** e **separar em letras** para ajustar cada letra.
-- **Comparar fontes**: a frase em várias fontes lado a lado, com o recorte do texto original como referência. A escolha é visual e aproximada.
-- **Texto na forma**: a frase preenche um cérebro, coração, círculo, escudo ou a silhueta de um desenho seu, linha por linha, com as letras esticando até o contorno. Cores alternadas, tamanho de cada linha e reedição a qualquer momento.
-- **Camadas**: ocultar, bloquear, subir/descer, agrupar, alinhar; desfazer/refazer.
-- **Versão para camiseta escura/clara**: troca preto ↔ off-white em textos e formas.
-- **Exportar** PNG transparente no tamanho de impressão e SVG (avisa quando o SVG tem pixels ou depende de fontes). **Salvar projeto** (.json) mantém tudo editável; também salva sozinho no navegador.
-- O painel **O que funciona aqui** diz o que é local e o que precisaria de IA ou serviço externo (OCR, identificar fonte, fundos com textura, vetorizar).
+- **Prancheta em tamanho real**: cm e dpi (150/200/300). Prévia sobre o xadrez (transparente) ou sobre a cor da camiseta.
+- **Importar** PNG, JPG ou SVG (SVG entra como vetor). Cada imagem mostra a qualidade de impressão (dpi).
+- **Recortar**, **remover fundo liso** (não apaga as partes claras dentro do desenho), **corrigir recorte com pincel** (apagar/restaurar) e **apagar área** (tirar um texto da arte e reconstruir o fundo).
+- **Textos (estilo Canva)**: título, subtítulo e corpo; **combinações de fontes** prontas; **efeitos** sombra, elevado, eco, contorno, vazado, neon e fundo; curvatura; separar letras; inclinar.
+- **Fontes**: lista curada com licença, **busca no catálogo gratuito** (nome, categoria, itálico/negrito, prévia do seu texto, licença) e importação de OTF/TTF. A busca no catálogo **não** identifica fontes em imagens; para isso há o “Comparar” com o recorte da arte (escolha visual, aproximada).
+- **Converter em curvas (vetor)**: cada letra vira um contorno (OpenType.js), no mesmo lugar, inclusive em texto curvo. O texto original fica guardado, oculto, e o botão **Voltar ao texto editável** o traz de volta. Desagrupe para mover, girar, inclinar e pintar cada letra.
+- **Texto na forma**: a frase enche um cérebro, coração, círculo, escudo ou a silhueta de um desenho seu, letra por letra: onde a forma estreita, a letra diminui e a próxima vai para o lado. Tamanho de cada linha, cores alternadas e reedição a qualquer momento.
+- **Camadas**: ocultar, bloquear, ordem, agrupar, alinhar, desfazer/refazer.
+- **Exportar**: PNG transparente no tamanho de impressão, SVG (avisa quando tem pixels ou depende de fontes) e **versões de 1 cor** (preta para camiseta clara, branca para camiseta escura). **Salvar projeto** (.json) mantém tudo editável, com imagens e fontes importadas.
+
+**Sem internet** funcionam o editor, as bibliotecas (pasta `vendor/`) e as fontes que você importar. O catálogo e as fontes do Google precisam de internet (são gratuitos e não pedem chave).
 
 ## Atalhos
 
