@@ -406,7 +406,7 @@ input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid v
           <label class="field" for="warpLayout">Altura das faixas<select id="warpLayout"><option value="auto">Automática (letras proporcionais)</option><option value="equal">Iguais</option></select></label>
         </div>
         <div class="field" id="warpSizesBox">Tamanho de cada linha<div id="warpSizes" class="field" style="gap:4px"></div></div>
-        <label class="field" for="warpMode">Como as letras deformam<select id="warpMode"><option value="letters">Letra por letra (diminui e vai para o lado)</option><option value="env">Envelope (estica a palavra inteira)</option><option value="rows">Só as laterais</option><option value="cols">Só o topo e a base</option></select></label>
+        <label class="field" for="warpMode">Como as letras deformam<select id="warpMode"><option value="fill">Preencher a forma (lettering)</option><option value="letters">Letras proporcionais (diminuem e vão para o lado)</option><option value="env">Envelope (estica a palavra inteira)</option><option value="rows">Só as laterais</option><option value="cols">Só o topo e a base</option></select></label>
         <div class="field">Cores (alternam por linha)<div class="colors3"><input type="color" id="warpC1" aria-label="Cor 1"><input type="color" id="warpC2" aria-label="Cor 2"><input type="color" id="warpC3" aria-label="Cor 3"><button class="btn small" id="warpOne" title="Usar só a primeira cor">Uma cor</button></div></div>
         <label class="field" for="warpGap"><span class="field-line">Espaço entre linhas <output id="warpGapOut">2%</output></span><input type="range" id="warpGap" min="0" max="8" step="0.5"></label>
         <label class="field" for="warpW"><span class="field-line">Largura na prancheta</span><span class="row"><input type="number" id="warpW" min="3" max="60" step="0.5" style="flex:1"><span class="unit">cm</span></span></label>
@@ -1275,7 +1275,7 @@ function syncFx(o) {
 const SHAPES = {
   // cérebro de perfil (frente à esquerda): lobo frontal, topo, nuca, lobo temporal, cerebelo e tronco
   // tamanhos padrão por linha: topo menor, base maior (a última linha desce pelo tronco, como no lettering de referência)
-  cerebro: { label: 'Cérebro', w: 200, h: 160, sizes: (n) => Array.from({ length: n }, (_, i) => (n < 3 ? 100 : i === 0 ? 70 : i === n - 1 ? 200 : 100 + Math.round((20 * i) / (n - 2)))), draw(x) {
+  cerebro: { label: 'Cérebro', w: 200, h: 160, sizes: (n) => Array.from({ length: n }, (_, i) => (n < 3 ? 100 : i === 0 ? 85 : i === n - 1 ? 160 : 100 + Math.round((15 * i) / (n - 2)))), draw(x) {
     x.beginPath(); x.moveTo(24, 110);
     x.bezierCurveTo(4, 94, 0, 58, 20, 36); x.bezierCurveTo(40, 12, 80, 2, 118, 6);       // lobo frontal → topo
     x.bezierCurveTo(160, 10, 194, 34, 197, 70); x.bezierCurveTo(199, 96, 188, 114, 172, 122); // nuca
@@ -1284,7 +1284,7 @@ const SHAPES = {
     x.bezierCurveTo(96, 140, 66, 142, 46, 134); x.bezierCurveTo(34, 129, 28, 120, 24, 110); // lobo temporal
     x.fill();
   } },
-  coracao: { label: 'Coração', w: 100, h: 90, sizes: (n) => Array.from({ length: n }, (_, i) => (i === n - 1 && n > 2 ? 85 : 100)), draw(x) {
+  coracao: { label: 'Coração', w: 100, h: 90, sizes: (n) => Array.from({ length: n }, (_, i) => (i === n - 1 && n > 2 ? 150 : i === 0 ? 110 : 100)), draw(x) {
     x.beginPath(); x.moveTo(50, 89);
     x.bezierCurveTo(30, 74, 2, 56, 2, 30); x.bezierCurveTo(2, 13, 14, 2, 28, 2); x.bezierCurveTo(39, 2, 46, 8, 50, 17);
     x.bezierCurveTo(54, 8, 61, 2, 72, 2); x.bezierCurveTo(86, 2, 98, 13, 98, 30); x.bezierCurveTo(98, 56, 70, 74, 50, 89); x.fill();
@@ -1323,6 +1323,8 @@ function fitLetters(o, text, y0, y1, md, W, color, FS, cfg) {
     for (let j = Math.max(0, x - K); j <= Math.min(W - 1, x + K); j++) if (T[j] >= 0) { a += T[j]; b += B[j]; n++; }
     sT[x] = a / n; sH[x] = b / n - a / n + 1; maxH = Math.max(maxH, sH[x]);
   }
+  // altura de referência da faixa = típica (percentil 70), para um pedaço alto e fino (ex.: tronco do cérebro) não dominar
+  { const hs = []; for (let x = 0; x < W; x++) if (sH[x] > 0) hs.push(sH[x]); hs.sort((p, q) => p - q); if (hs.length) maxH = hs[Math.floor(hs.length * 0.7)]; }
   const thr = maxH * 0.5; let xa = 0; while (xa < W && sH[xa] < thr) xa++; let xb = W - 1; while (xb > xa && sH[xb] < thr) xb--;
   if (xb - xa < 4) return;
   const rawH = (x) => { const i = clamp(Math.round(x), 0, W - 1); return T[i] < 0 ? 0 : Math.min(sH[i], B[i] - T[i] + 1); };
@@ -1342,6 +1344,45 @@ function fitLetters(o, text, y0, y1, md, W, color, FS, cfg) {
     const last = pos[pos.length - 1];
     return { pos, end: last ? last.x + last.w : x };
   };
+  if (cfg.warp !== 'letters') {
+    // PREENCHER (padrão): a linha ocupa a faixa inteira e cada letra estica até o topo e a base
+    // da forma naquele ponto (como no lettering). As pontas finas demais (< metade da altura) ficam
+    // de fora para não virar fiapo; se a frase não couber nem condensada, cai no modo proporcional.
+    const fthr = maxH * (cfg.edge ?? 0.66); // a linha começa/termina onde a forma ainda tem 2/3 da altura
+    let fa = xa; while (fa < xb && sH[fa] < fthr) fa++; let fb = xb; while (fb > fa && sH[fb] < fthr) fb--;
+    if (fb - fa > (xb - xa) * 0.4) { xa = fa; xb = fb; }
+    const meanH = (x0, w) => { let sm = 0, n = 0; for (let x = Math.floor(x0); x <= Math.ceil(x0 + w); x++) { sm += hAt(x); n++; } return Math.max(thr * 0.5, sm / n); };
+    const runF = (k, start) => {
+      const pos = []; let x = start;
+      for (const g of glyphs) {
+        while (x < xb && hAt(x) < thr) x++;
+        let h = hAt(x), w = k * g.a * h;
+        for (let it = 0; it < 3; it++) { h = meanH(x, w); w = k * g.a * h; }
+        pos.push({ x, w, h, g }); x += w + (g.space ? 0 : k * track * h * 0.6);
+      }
+      const last = pos[pos.length - 1];
+      return { pos, end: last ? last.x + last.w : x };
+    };
+    const FMIN = 0.45, FMAX = 2.2;
+    if (runF(FMIN, xa).end <= xb) {
+      let k = FMAX;
+      if (runF(FMAX, xa).end > xb) { let lo = FMIN, hi = FMAX; for (let it = 0; it < 30; it++) { const m = (lo + hi) / 2; if (runF(m, xa).end <= xb) lo = m; else hi = m; } k = lo; }
+      let r = runF(k, xa); if (k === FMAX) r = runF(k, xa + (xb - r.end) / 2);
+      for (const p of r.pos) {
+        if (p.g.space || p.w < 1) continue;
+        const gw = p.g.c.width;
+        for (let x = Math.floor(p.x); x < p.x + p.w; x++) {
+          if (x < 0 || x >= W || sH[x] < 1) continue;
+          // topo/base suavizados, mas nunca fora do contorno real (senão a letra sai cortada)
+          const top = T[x] >= 0 ? Math.max(sT[x], T[x]) : sT[x], bot = T[x] >= 0 ? Math.min(sT[x] + sH[x], B[x] + 1) : sT[x] + sH[x];
+          if (bot - top < 1) continue;
+          const sx = clamp(((x - p.x) / p.w) * gw, 0, gw - 0.5);
+          o.drawImage(p.g.c, sx, 0, Math.max(0.5, Math.min(gw - sx, gw / p.w)), gh, x, top, 1, bot - top);
+        }
+      }
+      return;
+    }
+  }
   const KMIN = 0.8, KMAX = 1.55; // letras podem alargar até 55% (lettering costuma usar letras largas)
   let r;
   if (run(KMIN, 1, xa).end > xb) { // não cabe: todas as letras diminuem por igual
@@ -1450,7 +1491,7 @@ async function renderWarp(cfg, mask) {
 }
 // estado da janela
 let warpCfg = null, warpTarget = null, warpSrcImg = null, warpMaskFull = null;
-const WARP_DEFAULT = { text: 'VAMOS\nFALAR SOBRE\nSAÚDE\nMENTAL', font: 'Anton', colors: ['#e8335a', '#f27a94', '#f6a8ba'], gap: 2, layout: 'auto', warp: 'letters', tracking: 4, shape: 'cerebro', wCm: 22 };
+const WARP_DEFAULT = { text: 'VAMOS\nFALAR SOBRE\nSAÚDE\nMENTAL', font: 'Anton', colors: ['#e8335a', '#f27a94', '#f6a8ba'], gap: 2, layout: 'auto', warp: 'fill', tracking: 4, shape: 'cerebro', wCm: 22 };
 function fillWarpFonts() {
   const sel = $('#warpFont'); sel.innerHTML = $('#fontSel').innerHTML; sel.value = warpCfg.font;
 }
@@ -1481,7 +1522,7 @@ const warpPreview = debounce(async () => {
   $('#warpBusy').hidden = true;
 }, 150);
 function syncWarpUI() {
-  $('#warpText').value = warpCfg.text; fillWarpFonts(); $('#warpLayout').value = warpCfg.layout; $('#warpMode').value = ['env', 'rows', 'cols'].includes(warpCfg.warp) ? warpCfg.warp : 'letters';
+  $('#warpText').value = warpCfg.text; fillWarpFonts(); $('#warpLayout').value = warpCfg.layout; $('#warpMode').value = ['env', 'rows', 'cols', 'letters'].includes(warpCfg.warp) ? warpCfg.warp : 'fill';
   ['warpC1', 'warpC2', 'warpC3'].forEach((id, i) => { const el = $('#' + id); el.value = warpCfg.colors[i] || warpCfg.colors[0]; el.disabled = i >= warpCfg.colors.length; });
   $('#warpOne').textContent = warpCfg.colors.length > 1 ? 'Uma cor' : 'Três cores';
   $('#warpGap').value = warpCfg.gap; $('#warpGapOut').textContent = fmt(warpCfg.gap, 1) + '%';
