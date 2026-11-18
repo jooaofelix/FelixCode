@@ -1,0 +1,1395 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>148 Editor de Artes</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: mesa de arte da 148 — ferramentas à esquerda, prancheta no centro (tamanho real de impressão),
+   propriedades, camadas e documento à direita. Tinta e papel, cantos retos, rótulos espaçados. */
+:root {
+  --bg: #0a0a0a; --panel: #121212; --panel-2: #1a1a1a; --line: rgba(231,225,207,.14);
+  --fg: #e7e1cf; --muted: rgba(231,225,207,.55); --chalk: #e7e1cf; --chalk-fg: #0a0a0a;
+  --danger: #e0806f; --ok: #7fb685; --warn: #e3b55b; --table: #0f0f0f; --grid: rgba(231,225,207,.045);
+  --shadow: 0 14px 34px rgba(0,0,0,.55);
+  --font-display: "Anton", Impact, "Arial Narrow", sans-serif;
+  --font-body: "Geist", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #e7e1cf; --panel: #eee9da; --panel-2: #dfd8c3; --line: rgba(10,10,10,.16); --fg: #0a0a0a; --muted: rgba(10,10,10,.56);
+    --chalk: #0a0a0a; --chalk-fg: #e7e1cf; --danger: #9e3328; --ok: #2f6b3a; --warn: #8a5a00; --table: #dbd4bf; --grid: rgba(10,10,10,.06);
+    --shadow: 0 14px 34px rgba(40,30,10,.18); color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #e7e1cf; --panel: #eee9da; --panel-2: #dfd8c3; --line: rgba(10,10,10,.16); --fg: #0a0a0a; --muted: rgba(10,10,10,.56);
+  --chalk: #0a0a0a; --chalk-fg: #e7e1cf; --danger: #9e3328; --ok: #2f6b3a; --warn: #8a5a00; --table: #dbd4bf; --grid: rgba(10,10,10,.06);
+  --shadow: 0 14px 34px rgba(40,30,10,.18); color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(--font-body); -webkit-font-smoothing: antialiased; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--chalk); outline-offset: 2px; }
+.app { height: 100%; display: grid; grid-template-rows: auto 1fr; gap: 10px; padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* topo */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand svg { width: 26px; height: 26px; fill: var(--fg); flex: none; }
+.brand h1 { margin: 0; display: flex; align-items: baseline; gap: 10px; font: 400 30px/1 var(--font-display); text-transform: uppercase; letter-spacing: .02em; }
+.brand h1 span { font: 500 10px/1 var(--font-body); letter-spacing: .3em; color: var(--muted); }
+.brand p { margin: 5px 0 0; color: var(--muted); font: 500 10px/1.3 var(--font-body); text-transform: uppercase; letter-spacing: .25em; }
+.actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 14px; border: 1px solid var(--line);
+  background: transparent; font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .18em; white-space: nowrap; text-decoration: none; color: inherit; }
+.btn:hover { border-color: var(--fg); }
+.btn.primary { background: var(--chalk); color: var(--chalk-fg); border-color: transparent; }
+.btn.primary:hover { background: transparent; color: var(--fg); border-color: var(--fg); }
+.btn.small { height: 32px; padding: 0 10px; font-size: 10px; letter-spacing: .14em; }
+.btn.danger { color: var(--danger); }
+.btn:disabled, .icon-btn:disabled { opacity: .35; cursor: default; }
+.icon-btn { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--line); background: transparent; padding: 0; }
+.icon-btn:hover:not(:disabled) { border-color: var(--fg); }
+.icon-btn[aria-pressed="true"] { background: var(--chalk); color: var(--chalk-fg); }
+svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* área de trabalho */
+.work { min-height: 0; display: grid; grid-template-columns: 64px minmax(0, 1fr) 330px; gap: 10px; }
+.tools { display: flex; flex-direction: column; gap: 4px; padding: 6px; background: var(--panel); border: 1px solid var(--line); overflow: auto; }
+.tool { display: grid; justify-items: center; gap: 3px; padding: 9px 2px 7px; border: 1px solid transparent; background: transparent; color: var(--muted);
+  font-size: 9px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
+.tool svg.i { width: 20px; height: 20px; }
+.tool:hover { color: var(--fg); background: var(--panel-2); }
+.tool.active { color: var(--chalk-fg); background: var(--chalk); }
+.tools hr { width: 70%; border: 0; border-top: 1px solid var(--line); margin: 4px auto; }
+.stage { position: relative; min-height: 0; border: 1px solid var(--line); overflow: hidden; background-color: var(--table);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 24px 24px; }
+#wrap { position: absolute; inset: 0; }
+.zoom { position: absolute; right: 10px; bottom: 10px; display: flex; gap: 4px; align-items: center; }
+.zoom .icon-btn, .zoom .btn { background: var(--panel); }
+.zoom output { min-width: 52px; text-align: center; font: 11px var(--font-mono); background: var(--panel); border: 1px solid var(--line); padding: 7px 6px; }
+.hint { position: absolute; left: 10px; bottom: 10px; margin: 0; padding: 6px 10px; background: var(--panel); border: 1px solid var(--line);
+  color: var(--muted); font: 11px/1.3 var(--font-mono); max-width: calc(100% - 230px); }
+.modebar { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  padding: 8px 10px; background: var(--panel); border: 1px solid var(--chalk); box-shadow: var(--shadow); max-width: calc(100% - 20px); font-size: 12px; }
+.modebar b { font-weight: 600; text-transform: uppercase; letter-spacing: .14em; font-size: 10px; }
+.modebar input[type="range"] { width: 120px; }
+
+/* painel direito */
+.side { min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 2px; }
+.panel { background: var(--panel); border: 1px solid var(--line); padding: 12px 14px 14px; display: grid; gap: 10px; }
+.panel h2 { margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font: 500 10px/1.2 var(--font-body); letter-spacing: .25em; text-transform: uppercase; color: var(--muted); }
+.panel h2 .sub { text-transform: none; letter-spacing: 0; color: var(--fg); font-size: 12px; font-weight: 600; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel.sel { border-color: var(--chalk); }
+.row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.row .btn { flex: 1 1 auto; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.field { display: grid; gap: 5px; font-size: 12px; color: var(--muted); min-width: 0; }
+.field-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.field output, .unit { font: 12px var(--font-mono); color: var(--fg); font-variant-numeric: tabular-nums; }
+input[type="number"], input[type="text"], select, textarea { width: 100%; min-width: 0; border: 1px solid var(--line); background: var(--panel-2); padding: 7px 9px; }
+input[type="number"] { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+textarea { resize: vertical; min-height: 60px; }
+input[type="range"] { width: 100%; accent-color: var(--chalk); }
+input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1px solid var(--line); background: none; cursor: pointer; flex: none; }
+.note { margin: 0; color: var(--muted); font-size: 12px; }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; font: 500 10px var(--font-mono); letter-spacing: .06em; border: 1px solid currentColor; }
+.badge.ok { color: var(--ok); } .badge.warn { color: var(--warn); } .badge.bad { color: var(--danger); }
+.swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+.sw { width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(127,127,127,.45); padding: 0; box-shadow: inset 0 0 0 2px var(--panel); }
+.sw[aria-pressed="true"] { outline: 2px solid var(--chalk); outline-offset: 2px; }
+.sw.checker { background: conic-gradient(#bbb 25%, #fff 0 50%, #bbb 0 75%, #fff 0) 0 0 / 10px 10px; }
+.toggle { display: inline-flex; border: 1px solid var(--line); }
+.toggle button { height: 30px; min-width: 34px; padding: 0 8px; border: 0; background: transparent; font-size: 12px; }
+.toggle button[aria-pressed="true"] { background: var(--chalk); color: var(--chalk-fg); }
+.layers { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.layers li { display: flex; align-items: center; gap: 3px; }
+.layer { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; text-align: left; height: 32px; padding: 0 8px; border: 1px solid var(--line); background: var(--panel-2); font-size: 12px; }
+.layer span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.layer.on { border-color: var(--chalk); }
+.layer svg.i { width: 14px; height: 14px; color: var(--muted); }
+.layers .icon-btn { width: 30px; height: 32px; }
+.layers .icon-btn svg.i { width: 14px; height: 14px; }
+.layers .icon-btn.off { opacity: .4; }
+.empty { margin: 0; padding: 12px; border: 1px dashed var(--line); color: var(--muted); font-size: 12px; text-align: center; }
+.honest ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
+.honest b { color: var(--fg); font-weight: 600; }
+
+/* janelas */
+.modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(0,0,0,.6); padding: 16px; }
+.card { width: min(760px, 100%); max-height: 100%; overflow: auto; background: var(--panel); border: 1px solid var(--line); padding: 18px; display: grid; gap: 12px; box-shadow: var(--shadow); }
+.card h3 { margin: 0; font: 400 26px/1 var(--font-display); text-transform: uppercase; letter-spacing: .02em; }
+.card img.preview { width: 100%; max-height: 50vh; object-fit: contain; background: conic-gradient(#999 25%, #ccc 0 50%, #999 0 75%, #ccc 0) 0 0 / 16px 16px; }
+.fontgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.fontcard { display: grid; gap: 6px; padding: 10px; border: 1px solid var(--line); background: var(--panel-2); text-align: left; }
+.fontcard:hover { border-color: var(--fg); }
+.fontcard .sample { font-size: 24px; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg); }
+.fontcard small { color: var(--muted); font: 10.5px var(--font-mono); }
+.refbox { display: flex; gap: 10px; align-items: center; padding: 8px; border: 1px dashed var(--line); }
+.refbox img { max-height: 70px; max-width: 60%; background: #fff; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { height: 28px; padding: 0 10px; border: 1px solid var(--line); background: transparent; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+.chip[aria-pressed="true"] { background: var(--chalk); color: var(--chalk-fg); border-color: transparent; }
+.warp-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.warp-prev { width: 100%; aspect-ratio: 1 / 1; background: conic-gradient(#d4d4d4 25%, #f4f4f4 0 50%, #d4d4d4 0 75%, #f4f4f4 0) 0 0 / 16px 16px; display: grid; place-items: center; position: relative; }
+.warp-prev canvas { max-width: 100%; max-height: 100%; }
+.warp-prev .busy { position: absolute; inset: auto 8px 8px auto; font: 11px var(--font-mono); color: #0a0a0a; background: rgba(255,255,255,.8); padding: 3px 6px; }
+.colors3 { display: flex; gap: 6px; align-items: center; }
+@media (max-width: 700px) { .warp-grid { grid-template-columns: 1fr; } }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60; padding: 11px 18px;
+  background: var(--fg); color: var(--bg); font-weight: 500; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; box-shadow: var(--shadow); max-width: calc(100% - 32px); }
+
+@media (max-width: 960px) {
+  html, body { height: auto; }
+  .app { height: auto; }
+  .work { grid-template-columns: minmax(0, 1fr); }
+  .tools { flex-direction: row; overflow-x: auto; order: 1; }
+  .tool { min-width: 58px; }
+  .tools hr { display: none; }
+  .stage { order: 0; height: 62vh; min-height: 360px; }
+  .side { order: 2; overflow: visible; }
+  .hint { display: none; }
+  .brand p { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="-2.2 0 28.4 28.4" aria-hidden="true"><path d="M12 0c.7 4.6 2.1 7.9 4.2 10 2.1 2.1 5.4 3.5 10 4.2-4.6.7-7.9 2.1-10 4.2-2.1 2.1-3.5 5.4-4.2 10-.7-4.6-2.1-7.9-4.2-10-2.1-2.1-5.4-3.5-10-4.2 4.6-.7 7.9-2.1 10-4.2 2.1-2.1 3.5-5.4 4.2-10Z"/></svg>
+      <div>
+        <h1>148 <span>Editor de artes</span></h1>
+        <p>Adaptar referências · trocar textos · preparar estampas</p>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="icon-btn" id="undo" title="Desfazer (Ctrl+Z)" aria-label="Desfazer"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+      <button class="icon-btn" id="redo" title="Refazer (Ctrl+Shift+Z)" aria-label="Refazer"><svg class="i" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
+      <button class="btn" id="openProj">Abrir</button>
+      <button class="btn" id="saveProj">Salvar projeto</button>
+      <button class="btn primary" id="exportBtn">Exportar</button>
+      <a class="btn" href="index.html">Ateliê 3D →</a>
+    </div>
+  </header>
+
+  <div class="work">
+    <nav class="tools" aria-label="Ferramentas">
+      <button class="tool active" data-tool="select" title="Selecionar e mover (V)"><svg class="i" viewBox="0 0 24 24"><path d="m5 3 14 7-6 2-2 6z"/></svg>Mover</button>
+      <button class="tool" data-tool="hand" title="Mover a mesa (H ou segure Espaço)"><svg class="i" viewBox="0 0 24 24"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11.5v-7a1.5 1.5 0 0 1 3 0v7"/><path d="M14 11.5V6.5a1.5 1.5 0 0 1 3 0v8"/><path d="M17 10a1.5 1.5 0 0 1 3 0v4a7 7 0 0 1-7 7h-1a7 7 0 0 1-5.6-2.8L3.6 14a1.5 1.5 0 0 1 2.3-1.9L8 14"/></svg>Mão</button>
+      <hr>
+      <button class="tool" id="addImage" title="Importar imagem PNG, JPG ou SVG (I)"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>Imagem</button>
+      <button class="tool" id="addText" title="Texto (T)"><svg class="i" viewBox="0 0 24 24"><path d="M5 6V4h14v2"/><path d="M12 4v16"/><path d="M9 20h6"/></svg>Texto</button>
+      <button class="tool" id="addRect" title="Retângulo (R)"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12"/></svg>Forma</button>
+      <button class="tool" id="addCircle" title="Círculo (O)"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>Círculo</button>
+      <hr>
+      <button class="tool" data-mode="crop" title="Recortar a imagem selecionada"><svg class="i" viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>Recortar</button>
+      <button class="tool" data-mode="bg" title="Remover fundo liso da imagem selecionada"><svg class="i" viewBox="0 0 24 24"><path d="M4 20 20 4"/><rect x="3" y="3" width="18" height="18" stroke-dasharray="2 3"/></svg>Fundo</button>
+      <button class="tool" data-mode="erase" title="Apagar o texto original de uma área da imagem e reconstruir o fundo"><svg class="i" viewBox="0 0 24 24"><path d="m7 21-4-4 11-11 7 7-7 7z"/><path d="M7 21h13"/><path d="m10 10 4 4"/></svg>Apagar</button>
+      <hr>
+      <button class="tool" id="warpTool" title="Frase que preenche uma forma (cérebro, coração, círculo ou a silhueta de uma imagem)"><svg class="i" viewBox="0 0 24 24"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z"/><path d="M8 10h8M7.5 13h9M9.5 16h5"/></svg>Na forma</button>
+    </nav>
+
+    <main class="stage" id="stage" aria-label="Prancheta">
+      <div id="wrap"><canvas id="c"></canvas></div>
+      <div class="modebar" id="modebar" hidden></div>
+      <p class="hint" id="hint">Arraste para selecionar · Ctrl/⌘ + roda para zoom · roda para rolar · Espaço + arrastar para mover a mesa</p>
+      <div class="zoom">
+        <button class="icon-btn" id="zoomOut" aria-label="Diminuir zoom"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+        <output id="zoomVal">100%</output>
+        <button class="icon-btn" id="zoomIn" aria-label="Aumentar zoom"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg></button>
+        <button class="btn small" id="zoomFit">Ajustar</button>
+      </div>
+    </main>
+
+    <aside class="side" aria-label="Propriedades">
+      <!-- seleção -->
+      <section class="panel sel" id="selPanel" hidden>
+        <h2>Selecionado <span class="sub" id="selName"></span></h2>
+        <div class="row">
+          <button class="btn small" id="dupBtn" title="Ctrl+D">Duplicar</button>
+          <button class="btn small" id="groupBtn">Agrupar</button>
+          <button class="btn small" id="ungroupBtn">Desagrupar</button>
+          <button class="btn small danger" id="delBtn" title="Delete">Excluir</button>
+        </div>
+        <div class="field">Alinhar <span class="note" id="alignTo">na prancheta</span>
+          <div class="row" id="alignRow"></div>
+        </div>
+        <div class="grid2">
+          <label class="field" for="posX">X (cm)<input type="number" id="posX" step="0.1"></label>
+          <label class="field" for="posY">Y (cm)<input type="number" id="posY" step="0.1"></label>
+          <label class="field" for="sizeW">Largura (cm)<input type="number" id="sizeW" step="0.1" min="0.1"></label>
+          <label class="field" for="sizeH">Altura (cm)<input type="number" id="sizeH" step="0.1" min="0.1"></label>
+        </div>
+        <label class="field" for="rot"><span class="field-line">Rotação <output id="rotOut">0°</output></span><input type="range" id="rot" min="-180" max="180" step="1"></label>
+        <label class="field" for="opac"><span class="field-line">Opacidade <output id="opacOut">100%</output></span><input type="range" id="opac" min="0" max="100" step="1"></label>
+
+        <!-- texto -->
+        <div id="textCtl" class="field" hidden>
+          <label class="field" for="textVal">Texto<textarea id="textVal" rows="3" spellcheck="true"></textarea></label>
+          <div class="field">Fonte
+            <div class="row"><select id="fontSel" style="flex:1"></select><button class="btn small" id="compareBtn" title="Ver o texto em várias fontes lado a lado">Comparar</button></div>
+            <p class="note" id="fontInfo"></p>
+            <button class="btn small" id="uploadFontBtn">Importar fonte (OTF/TTF)</button>
+          </div>
+          <div class="grid2">
+            <label class="field" for="fontSize">Tamanho (pt)<input type="number" id="fontSize" min="2" step="1"></label>
+            <div class="field">Estilo
+              <div class="toggle"><button id="boldBtn" aria-pressed="false" title="Negrito"><b>N</b></button><button id="italicBtn" aria-pressed="false" title="Itálico"><i>I</i></button>
+                <button data-align="left" title="Alinhar à esquerda">⟸</button><button data-align="center" title="Centralizar">≡</button><button data-align="right" title="Alinhar à direita">⟹</button></div>
+            </div>
+          </div>
+          <label class="field" for="charSp"><span class="field-line">Espaço entre letras <output id="charSpOut">0</output></span><input type="range" id="charSp" min="-200" max="1200" step="10"></label>
+          <label class="field" for="lineH"><span class="field-line">Altura da linha <output id="lineHOut">1,0</output></span><input type="range" id="lineH" min="0.6" max="2.4" step="0.05"></label>
+          <label class="field" for="curve"><span class="field-line">Curvatura <output id="curveOut">0</output></span><input type="range" id="curve" min="-100" max="100" step="1"></label>
+          <button class="btn small" id="splitBtn" title="Transforma cada letra num objeto para ajustar posição, tamanho e rotação individualmente">Separar em letras (ajuste fino)</button>
+        </div>
+        <!-- cor: texto e forma -->
+        <div id="colorCtl" class="grid2" hidden>
+          <div class="field">Preenchimento<div class="row"><input type="color" id="fillColor" aria-label="Cor de preenchimento"><input type="text" id="fillHex" maxlength="7" aria-label="Código da cor"></div></div>
+          <div class="field">Contorno<div class="row"><input type="color" id="strokeColor" aria-label="Cor do contorno"><input type="number" id="strokeW" min="0" max="50" step="0.5" aria-label="Espessura do contorno (pt)" title="Espessura em pt"></div></div>
+        </div>
+        <!-- imagem -->
+        <div id="imageCtl" class="field" hidden>
+          <div class="field-line"><span>Qualidade para impressão</span><span id="dpiBadge" class="badge"></span></div>
+          <p class="note" id="dpiNote"></p>
+          <div class="row">
+            <button class="btn small" data-mode="crop">Recortar</button>
+            <button class="btn small" data-mode="bg">Remover fundo</button>
+            <button class="btn small" data-mode="erase">Apagar área</button>
+          </div>
+          <button class="btn small" id="warpEdit" hidden>Editar texto na forma</button>
+          <button class="btn small" id="warpFromImg" title="Usa a silhueta desta imagem (sem fundo) como forma para a frase">Preencher esta silhueta com texto</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Camadas <span class="sub" id="layerCount"></span></h2>
+        <ol class="layers" id="layers"></ol>
+      </section>
+
+      <section class="panel">
+        <h2>Prancheta de impressão</h2>
+        <div class="grid3">
+          <label class="field" for="docW">Largura (cm)<input type="number" id="docW" min="2" max="120" step="0.5"></label>
+          <label class="field" for="docH">Altura (cm)<input type="number" id="docH" min="2" max="120" step="0.5"></label>
+          <label class="field" for="docDpi">Resolução<select id="docDpi"><option value="150">150 dpi</option><option value="200">200 dpi</option><option value="300">300 dpi</option></select></label>
+        </div>
+        <p class="note" id="docInfo"></p>
+        <div class="field">Ver sobre o tecido (só prévia; a exportação sai transparente)
+          <div class="swatches" id="teeSwatches"></div>
+        </div>
+        <button class="btn small" id="darkVersion" title="Troca preto por off-white (e vice-versa) em textos e formas">Versão para camiseta escura/clara</button>
+      </section>
+
+      <section class="panel honest">
+        <h2>O que funciona aqui</h2>
+        <ul>
+          <li><b>No seu navegador, sem custo:</b> importar, recortar, remover fundo liso, apagar área e reconstruir fundo simples, textos e fontes, curvar, separar letras, camadas, salvar, exportar PNG/SVG.</li>
+          <li><b>Precisa de IA ou serviço externo (não incluído):</b> identificar a fonte automaticamente, ler o texto da imagem (OCR), reconstruir fundos com textura, vetorizar ilustrações, remover fundos complexos.</li>
+          <li><b>PNG/JPG são achatados:</b> não têm texto editável. Para trocar o texto, apague a área e escreva por cima.</li>
+          <li><b>Texto na forma:</b> a frase é desenhada em pixels na resolução de impressão (continua editável pelo painel, mas não é vetor).</li>
+          <li><b>Próximas etapas:</b> lettering vetorial, texto na forma em SVG e textos em contornos no SVG.</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<input type="file" id="fileImg" accept="image/png,image/jpeg,image/svg+xml,.svg" hidden>
+<input type="file" id="fileFont" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf" hidden>
+<input type="file" id="fileProj" accept=".json,application/json" hidden>
+
+<div class="modal" id="compareModal" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="cmpTitle">
+    <h3 id="cmpTitle">Comparar fontes</h3>
+    <p class="note">Escolha visualmente a fonte mais parecida com a referência. A identificação é <b>aproximada</b>: nada aqui reconhece a fonte automaticamente. Para uma sugestão automática, envie o recorte a um identificador online (ex.: <a href="https://www.myfonts.com/pages/whatthefont" target="_blank" rel="noopener">WhatTheFont</a> ou <a href="https://www.fontsquirrel.com/matcherator" target="_blank" rel="noopener">Font Squirrel Matcherator</a>) — serviço externo.</p>
+    <div class="refbox" id="refBox" hidden><img id="refImg" alt="Recorte da referência"><span class="note">Recorte da área apagada (referência)</span></div>
+    <label class="field" for="cmpText">Texto de teste<input type="text" id="cmpText"></label>
+    <div class="chips" id="cmpCats"></div>
+    <div class="fontgrid" id="cmpGrid"></div>
+    <div class="row"><button class="btn" id="cmpClose">Fechar</button></div>
+  </div>
+</div>
+
+<div class="modal" id="exportModal" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="expTitle">
+    <h3 id="expTitle">Exportar estampa</h3>
+    <p class="note" id="expInfo"></p>
+    <img class="preview" id="expPreview" alt="Prévia da exportação">
+    <p class="note" id="expWarn"></p>
+    <div class="row">
+      <button class="btn primary" id="expPng">Baixar PNG transparente</button>
+      <button class="btn" id="expSvg">Baixar SVG</button>
+      <button class="btn" id="expClose">Fechar</button>
+    </div>
+    <p class="note">Se o download não começar (alguns visualizadores bloqueiam), clique com o botão direito na prévia e salve.</p>
+  </div>
+</div>
+<div class="modal" id="warpModal" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="warpTitle" style="width:min(980px,100%)">
+    <h3 id="warpTitle">Texto na forma</h3>
+    <p class="note">Cada linha vira uma faixa da forma e as letras esticam até o contorno, como nos lettering de cérebro e coração. Tudo é feito aqui no navegador.</p>
+    <div class="warp-grid">
+      <div class="warp-prev"><canvas id="warpPrev"></canvas><span class="busy" id="warpBusy" hidden>desenhando…</span></div>
+      <div class="field" style="gap:10px">
+        <label class="field" for="warpText">Frase (uma linha por faixa)<textarea id="warpText" rows="5"></textarea></label>
+        <div class="field">Forma<div class="chips" id="warpShapes"></div><p class="note" id="warpShapeNote"></p></div>
+        <div class="grid2">
+          <label class="field" for="warpFont">Fonte<select id="warpFont"></select></label>
+          <label class="field" for="warpLayout">Altura das faixas<select id="warpLayout"><option value="auto">Automática (letras proporcionais)</option><option value="equal">Iguais</option></select></label>
+        </div>
+        <div class="field" id="warpSizesBox">Tamanho de cada linha<div id="warpSizes" class="field" style="gap:4px"></div></div>
+        <label class="field" for="warpMode">Como as letras deformam<select id="warpMode"><option value="env">Envelope (laterais, topo e base)</option><option value="rows">Só as laterais</option><option value="cols">Só o topo e a base</option></select></label>
+        <div class="field">Cores (alternam por linha)<div class="colors3"><input type="color" id="warpC1" aria-label="Cor 1"><input type="color" id="warpC2" aria-label="Cor 2"><input type="color" id="warpC3" aria-label="Cor 3"><button class="btn small" id="warpOne" title="Usar só a primeira cor">Uma cor</button></div></div>
+        <label class="field" for="warpGap"><span class="field-line">Espaço entre linhas <output id="warpGapOut">2%</output></span><input type="range" id="warpGap" min="0" max="8" step="0.5"></label>
+        <label class="field" for="warpW"><span class="field-line">Largura na prancheta</span><span class="row"><input type="number" id="warpW" min="3" max="60" step="0.5" style="flex:1"><span class="unit">cm</span></span></label>
+        <div class="row"><button class="btn primary" id="warpOk">Colocar na prancheta</button><button class="btn" id="warpCancel">Cancelar</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
+<script>
+'use strict';
+/* =========================================================================
+   148 Editor de Artes — etapa 1 (base) + começo da etapa 2
+   Mundo do Fabric em pixels de impressão: 1 unidade = 1 px no dpi do documento.
+   ========================================================================= */
+const $ = (s) => document.querySelector(s);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); return true; } catch { return false; } } };
+function toast(msg, ms = 2600) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), ms); }
+function download(url, name) { try { const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); } catch {} }
+const fmt = (v, d = 1) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
+
+/* ---------- documento ---------- */
+const DOC = { wCm: 30, hCm: 40, dpi: 300, tee: 'checker' };
+const pxPerCm = () => DOC.dpi / 2.54;
+const docW = () => Math.round(DOC.wCm * pxPerCm());
+const docH = () => Math.round(DOC.hCm * pxPerCm());
+const TEES = [['checker', 'Transparente (xadrez)'], ['#ffffff', 'Branca'], ['#e7e1cf', 'Off-white'], ['#a3a3a0', 'Cinza'], ['#16213f', 'Navy'], ['#6f4e30', 'Marrom'], ['#141414', 'Preta']];
+
+/* ---------- fontes ---------- */
+// Todas do Google Fonts. OFL = SIL Open Font License 1.1; Apache = Apache 2.0. Ambas permitem uso comercial em estampas.
+const FONT_LIST = [
+  ['Anton', 'Impacto', 'OFL'], ['Bebas Neue', 'Impacto', 'OFL'], ['Oswald', 'Impacto', 'OFL'], ['Archivo Black', 'Impacto', 'OFL'], ['Alfa Slab One', 'Impacto', 'OFL'],
+  ['Bungee', 'Impacto', 'OFL'], ['Black Ops One', 'Impacto', 'OFL'], ['Russo One', 'Impacto', 'OFL'], ['Staatliches', 'Impacto', 'OFL'], ['Teko', 'Impacto', 'OFL'], ['Bangers', 'Impacto', 'OFL'],
+  ['Playfair Display', 'Serifa', 'OFL'], ['DM Serif Display', 'Serifa', 'OFL'], ['Cinzel', 'Serifa', 'OFL'], ['Fraunces', 'Serifa', 'OFL'], ['IM Fell English SC', 'Serifa', 'OFL'], ['Libre Baskerville', 'Serifa', 'OFL'], ['Abril Fatface', 'Serifa', 'OFL'],
+  ['Inter', 'Sem serifa', 'OFL'], ['Montserrat', 'Sem serifa', 'OFL'], ['Poppins', 'Sem serifa', 'OFL'], ['Space Grotesk', 'Sem serifa', 'OFL'], ['Archivo', 'Sem serifa', 'OFL'], ['Rubik', 'Sem serifa', 'OFL'], ['Work Sans', 'Sem serifa', 'OFL'],
+  ['Pacifico', 'Manuscrita', 'OFL'], ['Lobster', 'Manuscrita', 'OFL'], ['Caveat', 'Manuscrita', 'OFL'], ['Dancing Script', 'Manuscrita', 'OFL'], ['Great Vibes', 'Manuscrita', 'OFL'], ['Satisfy', 'Manuscrita', 'Apache'],
+  ['Kaushan Script', 'Manuscrita', 'OFL'], ['Permanent Marker', 'Manuscrita', 'Apache'], ['Yellowtail', 'Manuscrita', 'Apache'], ['Shadows Into Light', 'Manuscrita', 'OFL'],
+  ['UnifrakturMaguntia', 'Gótica', 'OFL'], ['UnifrakturCook', 'Gótica', 'OFL', 'wght@700'], ['Pirata One', 'Gótica', 'OFL'], ['Grenze Gotisch', 'Gótica', 'OFL'], ['Metal Mania', 'Gótica', 'OFL'], ['New Rocker', 'Gótica', 'OFL'],
+  ['Rye', 'Retrô', 'OFL'], ['Monoton', 'Retrô', 'OFL'], ['Righteous', 'Retrô', 'OFL'], ['Shrikhand', 'Retrô', 'OFL'], ['Ultra', 'Retrô', 'Apache'], ['Sancreek', 'Retrô', 'OFL'],
+  ['Sedgwick Ave Display', 'Urbana', 'OFL'], ['Rubik Mono One', 'Urbana', 'OFL'], ['Saira Stencil One', 'Urbana', 'OFL'], ['Creepster', 'Urbana', 'OFL'], ['Nosifer', 'Urbana', 'OFL'], ['Rock Salt', 'Urbana', 'Apache'],
+].map(([name, cat, lic, axis]) => ({ name, cat, lic, axis, origin: 'Google Fonts' }));
+const userFonts = []; // { name, data (dataURL), file }
+const loadedFonts = new Set(['Anton', 'Geist']);
+function fontMeta(name) { return FONT_LIST.find((f) => f.name === name) || userFonts.find((f) => f.name === name) || null; }
+function licenseText(f) {
+  if (!f) return 'Fonte do sistema — confira a licença antes de usar comercialmente.';
+  if (f.file) return `Arquivo enviado por você (${f.file}) — confira a licença com quem distribuiu a fonte.`;
+  return `${f.lic === 'Apache' ? 'Apache 2.0' : 'SIL Open Font License 1.1'} · ${f.origin} · permite uso comercial em estampas.`;
+}
+function loadFont(name) {
+  if (loadedFonts.has(name) || userFonts.some((f) => f.name === name)) return document.fonts.load(`40px "${name}"`).catch(() => {});
+  const f = fontMeta(name);
+  if (!f) return Promise.resolve();
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name).replace(/%20/g, '+')}${f.axis ? ':' + f.axis : ''}&display=swap`;
+  document.head.appendChild(link);
+  loadedFonts.add(name);
+  return new Promise((res) => { link.onload = res; link.onerror = res; setTimeout(res, 4000); })
+    .then(() => document.fonts.load(`40px "${name}"`).catch(() => {}))
+    .then(() => fabric.util.clearFabricFontCache(name));
+}
+
+/* ---------- Fabric ---------- */
+Object.assign(fabric.Object.prototype, {
+  originX: 'center', originY: 'center', objectCaching: false, transparentCorners: false, cornerStyle: 'circle', cornerSize: 11,
+  cornerColor: '#e7e1cf', cornerStrokeColor: '#0a0a0a', borderColor: '#e7e1cf', borderScaleFactor: 1.5, padding: 4,
+});
+const PROPS = ['name', 'uid', 'locked', 'curve', 'srcKey', 'warp', 'selectable', 'evented', 'lockMovementX', 'lockMovementY', 'lockScalingX', 'lockScalingY', 'lockRotation', 'hasControls'];
+const fc = new fabric.Canvas('c', { preserveObjectStacking: true, selection: true, stopContextMenu: true, fireRightClick: false, enableRetinaScaling: true });
+const wrap = $('#wrap');
+let uidSeq = 1;
+const nextUid = () => 'o' + Date.now().toString(36) + (uidSeq++);
+
+// prancheta (área de impressão) — fica por baixo, não é exportada
+function checkerPattern() {
+  const c = document.createElement('canvas'); c.width = c.height = 40;
+  const x = c.getContext('2d'); x.fillStyle = '#cfcfcf'; x.fillRect(0, 0, 40, 40); x.fillStyle = '#f4f4f4'; x.fillRect(0, 0, 20, 20); x.fillRect(20, 20, 20, 20);
+  return new fabric.Pattern({ source: c, repeat: 'repeat' });
+}
+const board = new fabric.Rect({ left: docW() / 2, top: docH() / 2, width: docW(), height: docH(), selectable: false, evented: false, strokeWidth: 0,
+  shadow: new fabric.Shadow({ color: 'rgba(0,0,0,.45)', blur: 40, offsetY: 10 }) });
+board.kind = 'board';
+fc.add(board);
+function applyTee() {
+  board.set({ left: docW() / 2, top: docH() / 2, width: docW(), height: docH(), fill: DOC.tee === 'checker' ? checkerPattern() : DOC.tee });
+  board.setCoords(); fc.requestRenderAll();
+}
+const isUser = (o) => o && !o.kind;
+const userObjs = () => fc.getObjects().filter(isUser);
+function keepBoardBottom() { fc.sendToBack(board); }
+
+/* ---------- zoom e mover a mesa ---------- */
+function fit() {
+  const w = wrap.clientWidth, h = wrap.clientHeight; if (!w || !h) return;
+  fc.setDimensions({ width: w, height: h });
+  const z = Math.min((w - 60) / docW(), (h - 60) / docH());
+  fc.setViewportTransform([z, 0, 0, z, (w - docW() * z) / 2, (h - docH() * z) / 2]);
+  showZoom(); fc.requestRenderAll();
+}
+// 100% = tamanho real na tela (96 px por polegada)
+function showZoom() { $('#zoomVal').textContent = Math.round(fc.getZoom() * DOC.dpi / 96 * 100) + '%'; }
+function zoomAt(z, pt) { z = clamp(z, 0.01, 8); fc.zoomToPoint(pt || new fabric.Point(fc.width / 2, fc.height / 2), z); showZoom(); }
+$('#zoomIn').onclick = () => zoomAt(fc.getZoom() * 1.25);
+$('#zoomOut').onclick = () => zoomAt(fc.getZoom() / 1.25);
+$('#zoomFit').onclick = fit;
+new ResizeObserver(fit).observe(wrap);
+fc.on('mouse:wheel', (opt) => {
+  const e = opt.e; e.preventDefault(); e.stopPropagation();
+  if (e.ctrlKey || e.metaKey) zoomAt(fc.getZoom() * 0.995 ** e.deltaY, new fabric.Point(e.offsetX, e.offsetY));
+  else fc.relativePan(new fabric.Point(-e.deltaX, -e.deltaY));
+});
+let tool = 'select', spaceDown = false, panning = null;
+function setTool(t) {
+  tool = t;
+  document.querySelectorAll('[data-tool]').forEach((b) => b.classList.toggle('active', b.dataset.tool === t));
+  fc.selection = t === 'select';
+  fc.defaultCursor = t === 'hand' ? 'grab' : 'default';
+  userObjs().forEach((o) => { if (!o.locked) o.evented = t === 'select'; });
+}
+document.querySelectorAll('[data-tool]').forEach((b) => (b.onclick = () => { endMode(); setTool(b.dataset.tool); }));
+fc.on('mouse:down', (opt) => {
+  if (mode === 'erase') return eraseDown(opt);
+  if (tool === 'hand' || spaceDown) { const e = opt.e; panning = { x: e.clientX, y: e.clientY }; fc.selection = false; }
+});
+fc.on('mouse:move', (opt) => {
+  if (mode === 'erase') return eraseMove(opt);
+  if (!panning) return;
+  const e = opt.e; fc.relativePan(new fabric.Point(e.clientX - panning.x, e.clientY - panning.y)); panning = { x: e.clientX, y: e.clientY };
+});
+fc.on('mouse:up', (opt) => {
+  if (mode === 'erase') return eraseUp(opt);
+  if (panning) { panning = null; fc.selection = tool === 'select'; }
+});
+
+/* ---------- imagens guardadas fora do histórico (evita copiar MBs a cada passo) ---------- */
+const imgStore = new Map();
+let imgSeq = 0;
+function putImg(dataURL) { const k = 'img' + Date.now().toString(36) + (imgSeq++); imgStore.set(k, dataURL); return k; }
+function swapSrc(j, toStore) {
+  if (!j) return j;
+  if (j.type === 'image') {
+    if (toStore && j.srcKey) j.src = 'store:' + j.srcKey;
+    else if (!toStore && typeof j.src === 'string' && j.src.startsWith('store:')) j.src = imgStore.get(j.src.slice(6)) || '';
+  }
+  if (Array.isArray(j.objects)) j.objects.forEach((c) => swapSrc(c, toStore));
+  if (/text/.test(j.type)) delete j.path; // texto curvo: o caminho é refeito a partir de "curve"
+  return j;
+}
+function serializeObjects() { return userObjs().map((o) => swapSrc(o.toObject(PROPS), true)); }
+
+/* ---------- histórico ---------- */
+let hist = [], hi = -1, restoring = false;
+const state = () => JSON.stringify({ doc: DOC, objects: serializeObjects() });
+function snapshot() {
+  if (restoring) return;
+  const s = state(); if (hist[hi] === s) return;
+  hist = hist.slice(0, hi + 1); hist.push(s); if (hist.length > 60) hist.shift(); hi = hist.length - 1;
+  updateUndo(); autosave();
+}
+const snapshotSoon = debounce(snapshot, 250);
+function updateUndo() { $('#undo').disabled = hi <= 0; $('#redo').disabled = hi >= hist.length - 1; }
+function restoreState(s, cb) {
+  const data = JSON.parse(s);
+  restoring = true;
+  Object.assign(DOC, data.doc || {});
+  fc.discardActiveObject(); userObjs().forEach((o) => fc.remove(o));
+  const objs = (data.objects || []).map((j) => swapSrc(JSON.parse(JSON.stringify(j)), false));
+  fabric.util.enlivenObjects(objs, (list) => {
+    list.forEach((o) => { fc.add(o); fixAfterLoad(o); });
+    keepBoardBottom(); applyTee(); syncDocUI(); fc.requestRenderAll();
+    restoring = false; refreshLayers(); refreshSel(); cb && cb();
+  });
+}
+function fixAfterLoad(o) {
+  if (/text/.test(o.type) && o.curve) applyCurve(o);
+  if (o.type === 'group') o.getObjects().forEach((c) => /text/.test(c.type) && c.curve && applyCurve(c));
+  if (o.locked) setLocked(o, true);
+}
+$('#undo').onclick = () => { if (hi > 0) { hi--; restoreState(hist[hi], () => { updateUndo(); autosave(); }); } };
+$('#redo').onclick = () => { if (hi < hist.length - 1) { hi++; restoreState(hist[hi], () => { updateUndo(); autosave(); }); } };
+
+/* ---------- salvar / abrir ---------- */
+function projectData() {
+  const objects = serializeObjects();
+  const keys = new Set();
+  const walk = (j) => { if (j.srcKey) keys.add(j.srcKey); if (j.warp && j.warp.maskKey) keys.add(j.warp.maskKey); (j.objects || []).forEach(walk); };
+  objects.forEach(walk);
+  const images = {}; keys.forEach((k) => (images[k] = imgStore.get(k)));
+  return { app: '148-editor', v: 1, doc: DOC, fonts: userFonts.map(({ name, data, file }) => ({ name, data, file })), images, objects };
+}
+const autosave = debounce(() => {
+  if (!store.set('editor148:projeto', JSON.stringify(projectData()))) toast('Projeto grande demais para guardar no navegador — use “Salvar projeto”.', 4000);
+}, 600);
+$('#saveProj').onclick = () => {
+  const blob = new Blob([JSON.stringify(projectData())], { type: 'application/json' });
+  const url = URL.createObjectURL(blob); download(url, 'arte-148.projeto.json'); setTimeout(() => URL.revokeObjectURL(url), 5000);
+  toast('Projeto salvo (textos e camadas continuam editáveis)');
+};
+$('#openProj').onclick = () => $('#fileProj').click();
+$('#fileProj').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) f.text().then((t) => openProject(t, true)); };
+async function openProject(text, announce) {
+  let p; try { p = JSON.parse(text); } catch { toast('Esse arquivo não é um projeto do editor'); return; }
+  if (!p || !Array.isArray(p.objects)) { toast('Esse arquivo não é um projeto do editor'); return; }
+  for (const [k, v] of Object.entries(p.images || {})) imgStore.set(k, v);
+  for (const f of p.fonts || []) await registerUserFont(f.name, f.data, f.file, false);
+  const fams = new Set(); const walk = (j) => { if (j.fontFamily) fams.add(j.fontFamily); (j.objects || []).forEach(walk); }; p.objects.forEach(walk);
+  await Promise.all([...fams].map(loadFont));
+  restoreState(JSON.stringify({ doc: p.doc, objects: p.objects }), () => { fit(); snapshot(); if (announce) toast('Projeto aberto'); });
+}
+
+/* ---------- inserir elementos ---------- */
+function centerOfBoard() { return { left: docW() / 2, top: docH() / 2 }; }
+function addObject(o, name) {
+  o.uid = nextUid(); o.name = name;
+  fc.add(o); keepBoardBottom(); fc.setActiveObject(o); fc.requestRenderAll(); setTool('select');
+}
+$('#addText').onclick = async () => {
+  await loadFont('Anton');
+  const t = new fabric.IText('SEU TEXTO', { ...centerOfBoard(), fontFamily: 'Anton', fontSize: 3.2 * pxPerCm() * 1.4, fill: '#141414', textAlign: 'center', lineHeight: 1, charSpacing: 0 });
+  addObject(t, 'Texto');
+};
+$('#addRect').onclick = () => addObject(new fabric.Rect({ ...centerOfBoard(), width: 12 * pxPerCm(), height: 6 * pxPerCm(), fill: '#6b1d2a', strokeWidth: 0 }), 'Forma');
+$('#addCircle').onclick = () => addObject(new fabric.Circle({ ...centerOfBoard(), radius: 5 * pxPerCm(), fill: '#16213f', strokeWidth: 0 }), 'Círculo');
+$('#addImage').onclick = () => $('#fileImg').click();
+$('#fileImg').onchange = (e) => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  const isSvg = /svg/i.test(f.type) || /\.svg$/i.test(f.name);
+  const name = f.name.replace(/\.[^.]+$/, '').slice(0, 30) || 'Imagem';
+  if (isSvg) {
+    f.text().then((txt) => fabric.loadSVGFromString(txt, (objs, opts) => {
+      if (!objs.length) { toast('Não consegui ler esse SVG'); return; }
+      const g = fabric.util.groupSVGElements(objs, opts);
+      const s = Math.min((docW() * 0.7) / g.width, (docH() * 0.7) / g.height);
+      g.set({ ...centerOfBoard(), scaleX: s, scaleY: s });
+      addObject(g, name + ' (vetor)');
+      toast('SVG importado como vetor: cores e formas continuam editáveis (desagrupe para mexer em partes)', 4000);
+    }));
+    return;
+  }
+  const rd = new FileReader();
+  rd.onload = () => fabric.Image.fromURL(rd.result, (img) => {
+    img.srcKey = putImg(rd.result);
+    // entra no tamanho em que fica nítida: 1 pixel da imagem = 1 pixel de impressão, limitado à prancheta
+    const s = Math.min(1, (docW() * 0.9) / img.width, (docH() * 0.9) / img.height);
+    img.set({ ...centerOfBoard(), scaleX: s, scaleY: s });
+    addObject(img, name);
+    toast(`Imagem importada (${img.width} × ${img.height} px). É uma imagem achatada: textos dela não são editáveis — use “Apagar” e escreva por cima.`, 5200);
+  });
+  rd.readAsDataURL(f);
+};
+
+/* ---------- camadas ---------- */
+const ICON = {
+  text: '<svg class="i" viewBox="0 0 24 24"><path d="M5 6V4h14v2"/><path d="M12 4v16"/></svg>',
+  image: '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16"/><path d="m21 16-5-5-9 9"/></svg>',
+  shape: '<svg class="i" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12"/></svg>',
+  group: '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="10" height="10"/><rect x="11" y="11" width="10" height="10"/></svg>',
+  eye: '<svg class="i" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  lock: '<svg class="i" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+  up: '<svg class="i" viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg>',
+  down: '<svg class="i" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
+};
+const kindOf = (o) => (o.type === 'image' ? 'image' : /text/.test(o.type) ? 'text' : o.type === 'group' ? 'group' : 'shape');
+function displayName(o) { return /text/.test(o.type) ? (o.text || '').replace(/\s+/g, ' ').slice(0, 26) || 'Texto' : o.name || 'Elemento'; }
+function setLocked(o, on) {
+  o.locked = on;
+  Object.assign(o, { selectable: !on, evented: !on && tool === 'select', lockMovementX: on, lockMovementY: on, lockScalingX: on, lockScalingY: on, lockRotation: on, hasControls: !on });
+}
+function refreshLayers() {
+  const list = $('#layers'), objs = userObjs().slice().reverse();
+  const act = fc.getActiveObjects();
+  $('#layerCount').textContent = objs.length ? `${objs.length} ${objs.length === 1 ? 'camada' : 'camadas'}` : '';
+  list.innerHTML = '';
+  if (!objs.length) { list.innerHTML = '<li><p class="empty">Nada na prancheta ainda. Importe uma imagem ou crie um texto.</p></li>'; return; }
+  for (const o of objs) {
+    const li = document.createElement('li');
+    const b = document.createElement('button'); b.className = 'layer' + (act.includes(o) ? ' on' : '');
+    b.innerHTML = ICON[kindOf(o)] + '<span></span>'; b.querySelector('span').textContent = displayName(o) + (o.locked ? ' · bloqueada' : '');
+    b.onclick = () => { if (o.locked) { toast('Camada bloqueada — clique no cadeado para liberar'); return; } setTool('select'); fc.setActiveObject(o); fc.requestRenderAll(); refreshSel(); };
+    const mk = (html, title, on, fn) => { const x = document.createElement('button'); x.className = 'icon-btn' + (on ? '' : ' off'); x.innerHTML = html; x.title = title; x.setAttribute('aria-label', title); x.onclick = fn; return x; };
+    li.append(b,
+      mk(ICON.eye, o.visible ? 'Ocultar' : 'Mostrar', o.visible, () => { o.visible = !o.visible; if (!o.visible) fc.discardActiveObject(); fc.requestRenderAll(); snapshot(); refreshLayers(); }),
+      mk(ICON.lock, o.locked ? 'Desbloquear' : 'Bloquear', !o.locked, () => { setLocked(o, !o.locked); if (o.locked) fc.discardActiveObject(); fc.requestRenderAll(); snapshot(); refreshLayers(); }),
+      mk(ICON.up, 'Trazer para frente', true, () => { fc.bringForward(o); keepBoardBottom(); fc.requestRenderAll(); snapshot(); refreshLayers(); }),
+      mk(ICON.down, 'Enviar para trás', true, () => { fc.sendBackwards(o); keepBoardBottom(); fc.requestRenderAll(); snapshot(); refreshLayers(); }));
+    list.appendChild(li);
+  }
+}
+
+/* ---------- painel do selecionado ---------- */
+const act = () => fc.getActiveObject();
+const isText = (o) => o && /text/.test(o.type);
+function fillFontSelect() {
+  const sel = $('#fontSel'); const cur = sel.value; sel.innerHTML = '';
+  const groups = {};
+  for (const f of userFonts) (groups['Suas fontes'] = groups['Suas fontes'] || []).push(f.name);
+  for (const f of FONT_LIST) (groups[f.cat] = groups[f.cat] || []).push(f.name);
+  for (const [g, names] of Object.entries(groups)) {
+    const og = document.createElement('optgroup'); og.label = g;
+    names.forEach((n) => { const op = document.createElement('option'); op.value = n; op.textContent = n; og.appendChild(op); });
+    sel.appendChild(og);
+  }
+  if (cur) sel.value = cur;
+}
+function cm(px) { return px / pxPerCm(); }
+function refreshSel() {
+  const o = act();
+  $('#selPanel').hidden = !o;
+  refreshLayers();
+  if (!o) return;
+  const multi = o.type === 'activeSelection';
+  $('#selName').textContent = multi ? `${o.size()} itens` : displayName(o);
+  $('#groupBtn').hidden = !multi; $('#ungroupBtn').hidden = o.type !== 'group';
+  $('#alignTo').textContent = multi ? 'entre os itens selecionados' : 'na prancheta';
+  const r = o.getBoundingRect(true, true);
+  if (document.activeElement !== $('#posX')) $('#posX').value = fmt(cm(r.left), 1).replace(',', '.');
+  if (document.activeElement !== $('#posY')) $('#posY').value = fmt(cm(r.top), 1).replace(',', '.');
+  if (document.activeElement !== $('#sizeW')) $('#sizeW').value = (cm(o.getScaledWidth())).toFixed(1);
+  if (document.activeElement !== $('#sizeH')) $('#sizeH').value = (cm(o.getScaledHeight())).toFixed(1);
+  const ang = Math.round(((o.angle + 540) % 360) - 180); $('#rot').value = ang; $('#rotOut').textContent = ang + '°';
+  $('#opac').value = Math.round((o.opacity ?? 1) * 100); $('#opacOut').textContent = Math.round((o.opacity ?? 1) * 100) + '%';
+  const txt = !multi && isText(o), img = !multi && o.type === 'image', shape = !multi && /rect|circle|path|polygon|ellipse/.test(o.type);
+  $('#textCtl').hidden = !txt; $('#imageCtl').hidden = !img; $('#colorCtl').hidden = !(txt || shape);
+  if (txt) {
+    if (document.activeElement !== $('#textVal')) $('#textVal').value = o.text;
+    $('#fontSel').value = o.fontFamily; $('#fontInfo').textContent = licenseText(fontMeta(o.fontFamily));
+    if (document.activeElement !== $('#fontSize')) $('#fontSize').value = Math.round((o.fontSize * (o.scaleY || 1)) * 72 / DOC.dpi);
+    $('#boldBtn').setAttribute('aria-pressed', String(o.fontWeight === 'bold' || o.fontWeight >= 600));
+    $('#italicBtn').setAttribute('aria-pressed', String(o.fontStyle === 'italic'));
+    document.querySelectorAll('[data-align]').forEach((b) => b.setAttribute('aria-pressed', String(o.textAlign === b.dataset.align)));
+    $('#charSp').value = o.charSpacing || 0; $('#charSpOut').textContent = o.charSpacing || 0;
+    $('#lineH').value = o.lineHeight || 1; $('#lineHOut').textContent = fmt(o.lineHeight || 1, 2);
+    $('#curve').value = o.curve || 0; $('#curveOut').textContent = o.curve || 0;
+  }
+  if (txt || shape) {
+    const f = typeof o.fill === 'string' ? toHex(o.fill) : '#000000';
+    $('#fillColor').value = f; if (document.activeElement !== $('#fillHex')) $('#fillHex').value = f.toUpperCase();
+    $('#strokeColor').value = typeof o.stroke === 'string' ? toHex(o.stroke) : '#000000';
+    $('#strokeW').value = o.stroke && o.strokeWidth ? +(o.strokeWidth * 72 / DOC.dpi).toFixed(1) : 0;
+  }
+  if (img) { showDpi(o); $('#warpEdit').hidden = !o.warp; $('#warpFromImg').hidden = !!o.warp; }
+}
+function toHex(c) { const x = document.createElement('canvas').getContext('2d'); x.fillStyle = c; const v = x.fillStyle; return v.startsWith('#') ? v : '#000000'; }
+function effDpi(o) { return DOC.dpi / Math.max(o.scaleX, o.scaleY); }
+function showDpi(o) {
+  const d = Math.round(effDpi(o)), b = $('#dpiBadge');
+  const lvl = d >= 280 ? ['ok', 'Ótima'] : d >= 200 ? ['ok', 'Boa'] : d >= 150 ? ['warn', 'Aceitável'] : ['bad', 'Baixa'];
+  b.className = 'badge ' + lvl[0]; b.textContent = `${lvl[1]} · ${d} dpi`;
+  const maxW = (o.width / 150) * 2.54, maxW300 = (o.width / 300) * 2.54;
+  $('#dpiNote').textContent = `No tamanho atual (${fmt(cm(o.getScaledWidth()))} cm de largura) a imagem tem ${d} dpi. ` +
+    `Ela fica nítida até ~${fmt(maxW300)} cm (300 dpi) e aceitável até ~${fmt(maxW)} cm (150 dpi). ` +
+    (d < 150 ? 'Abaixo disso a impressão sai borrada: aumentar pixels não recupera detalhes — use uma imagem original maior ou vetorize.' : '');
+}
+fc.on('selection:created', refreshSel); fc.on('selection:updated', refreshSel); fc.on('selection:cleared', refreshSel);
+fc.on('object:moving', refreshSel); fc.on('object:scaling', refreshSel); fc.on('object:rotating', refreshSel);
+fc.on('object:modified', () => { refreshSel(); snapshotSoon(); });
+fc.on('text:changed', (e) => { if (e.target.curve) applyCurve(e.target); refreshSel(); snapshotSoon(); });
+fc.on('object:added', (e) => { if (isUser(e.target) && !restoring) { snapshotSoon(); refreshLayers(); } });
+fc.on('object:removed', (e) => { if (isUser(e.target) && !restoring) { snapshotSoon(); refreshLayers(); } });
+
+function setProp(fn) { const o = act(); if (!o) return; fn(o); if (isText(o) && o.curve) applyCurve(o); o.setCoords(); fc.requestRenderAll(); snapshotSoon(); refreshSel(); }
+$('#posX').onchange = (e) => setProp((o) => { const r = o.getBoundingRect(true, true); o.left += +e.target.value * pxPerCm() - r.left; });
+$('#posY').onchange = (e) => setProp((o) => { const r = o.getBoundingRect(true, true); o.top += +e.target.value * pxPerCm() - r.top; });
+$('#sizeW').onchange = (e) => setProp((o) => { const k = (+e.target.value * pxPerCm()) / o.getScaledWidth(); if (k > 0) o.set({ scaleX: o.scaleX * k, scaleY: o.scaleY * k }); });
+$('#sizeH').onchange = (e) => setProp((o) => { const k = (+e.target.value * pxPerCm()) / o.getScaledHeight(); if (k > 0) o.set({ scaleX: o.scaleX * k, scaleY: o.scaleY * k }); });
+$('#rot').oninput = (e) => setProp((o) => o.rotate(+e.target.value));
+$('#opac').oninput = (e) => setProp((o) => o.set('opacity', e.target.value / 100));
+$('#textVal').oninput = (e) => setProp((o) => o.set('text', e.target.value || ' '));
+$('#fontSel').onchange = async (e) => { const f = e.target.value; await loadFont(f); setProp((o) => { o.set('fontFamily', f); }); };
+$('#fontSize').onchange = (e) => setProp((o) => o.set({ fontSize: (+e.target.value * DOC.dpi / 72) / (o.scaleY || 1) }));
+$('#boldBtn').onclick = () => setProp((o) => o.set('fontWeight', o.fontWeight === 'bold' ? 'normal' : 'bold'));
+$('#italicBtn').onclick = () => setProp((o) => o.set('fontStyle', o.fontStyle === 'italic' ? 'normal' : 'italic'));
+document.querySelectorAll('[data-align]').forEach((b) => (b.onclick = () => setProp((o) => o.set('textAlign', b.dataset.align))));
+$('#charSp').oninput = (e) => setProp((o) => o.set('charSpacing', +e.target.value));
+$('#lineH').oninput = (e) => setProp((o) => o.set('lineHeight', +e.target.value));
+$('#curve').oninput = (e) => setProp((o) => { o.curve = +e.target.value; });
+$('#fillColor').oninput = (e) => setProp((o) => o.set('fill', e.target.value));
+$('#fillHex').onchange = (e) => { const h = e.target.value.trim(); if (/^#?[0-9a-f]{6}$/i.test(h)) setProp((o) => o.set('fill', h.startsWith('#') ? h : '#' + h)); };
+$('#strokeColor').oninput = (e) => setProp((o) => o.set({ stroke: e.target.value, strokeWidth: o.strokeWidth || 0.5 * DOC.dpi / 72, paintFirst: 'stroke' }));
+$('#strokeW').onchange = (e) => setProp((o) => { const w = +e.target.value * DOC.dpi / 72; o.set({ strokeWidth: w, stroke: w ? (o.stroke || $('#strokeColor').value) : null, paintFirst: 'stroke', strokeLineJoin: 'round' }); });
+$('#dupBtn').onclick = duplicate;
+$('#delBtn').onclick = removeActive;
+$('#groupBtn').onclick = () => { const o = act(); if (o && o.type === 'activeSelection') { const g = o.toGroup(); g.uid = nextUid(); g.name = 'Grupo'; fc.requestRenderAll(); snapshot(); refreshSel(); } };
+$('#ungroupBtn').onclick = () => { const o = act(); if (o && o.type === 'group') { const s = o.toActiveSelection(); s.getObjects().forEach((c) => { c.uid = c.uid || nextUid(); }); fc.requestRenderAll(); snapshot(); refreshSel(); } };
+function duplicate() {
+  const o = act(); if (!o || o.type === 'activeSelection') return;
+  o.clone((c) => { c.set({ left: o.left + pxPerCm(), top: o.top + pxPerCm() }); c.uid = nextUid(); c.name = o.name; c.curve = o.curve; c.srcKey = o.srcKey; if (o.warp) c.warp = JSON.parse(JSON.stringify(o.warp)); fc.add(c); if (c.curve) applyCurve(c); fc.setActiveObject(c); fc.requestRenderAll(); }, PROPS);
+}
+function removeActive() { const list = fc.getActiveObjects(); if (!list.length) return; fc.discardActiveObject(); list.forEach((o) => fc.remove(o)); fc.requestRenderAll(); }
+
+// alinhar
+const ALIGN = [['left', 'Esquerda', 'M4 4v16M8 8h10M8 16h6'], ['hcenter', 'Centro (horizontal)', 'M12 4v16M6 8h12M8 16h8'], ['right', 'Direita', 'M20 4v16M6 8h10M10 16h6'],
+  ['top', 'Topo', 'M4 4h16M8 8v10M16 8v6'], ['vcenter', 'Meio (vertical)', 'M4 12h16M8 6v12M16 8v8'], ['bottom', 'Base', 'M4 20h16M8 6v10M16 10v6']];
+for (const [id, label, d] of ALIGN) {
+  const b = document.createElement('button'); b.className = 'icon-btn'; b.title = label; b.setAttribute('aria-label', 'Alinhar: ' + label);
+  b.innerHTML = `<svg class="i" viewBox="0 0 24 24"><path d="${d}"/></svg>`; b.onclick = () => align(id); $('#alignRow').appendChild(b);
+}
+function align(how) {
+  const o = act(); if (!o) return;
+  const multi = o.type === 'activeSelection';
+  const items = multi ? o.getObjects() : [o];
+  let T;
+  if (multi) { const r = o.getBoundingRect(true, true); T = { l: r.left, t: r.top, r: r.left + r.width, b: r.top + r.height }; fc.discardActiveObject(); }
+  else T = { l: 0, t: 0, r: docW(), b: docH() };
+  for (const it of items) {
+    const r = it.getBoundingRect(true, true);
+    if (how === 'left') it.left += T.l - r.left; if (how === 'right') it.left += T.r - (r.left + r.width); if (how === 'hcenter') it.left += (T.l + T.r) / 2 - (r.left + r.width / 2);
+    if (how === 'top') it.top += T.t - r.top; if (how === 'bottom') it.top += T.b - (r.top + r.height); if (how === 'vcenter') it.top += (T.t + T.b) / 2 - (r.top + r.height / 2);
+    it.setCoords();
+  }
+  if (multi) fc.setActiveObject(new fabric.ActiveSelection(items, { canvas: fc }));
+  fc.requestRenderAll(); snapshot(); refreshSel();
+}
+
+/* ---------- texto curvo (arco) ---------- */
+function applyCurve(o) {
+  const amt = clamp(o.curve || 0, -100, 100);
+  o.set('path', null); o.initDimensions();
+  if (!amt) { o.setCoords(); return; }
+  const w = Math.max(10, o.width) * 1.12, ang = (Math.abs(amt) / 100) * Math.PI * 1.7, R = w / ang;
+  const x0 = -R * Math.sin(ang / 2), x1 = -x0, large = ang > Math.PI ? 1 : 0;
+  const d = amt > 0
+    ? `M ${x0} ${R - R * Math.cos(ang / 2)} A ${R} ${R} 0 ${large} 1 ${x1} ${R - R * Math.cos(ang / 2)}`
+    : `M ${x0} ${-(R - R * Math.cos(ang / 2))} A ${R} ${R} 0 ${large} 0 ${x1} ${-(R - R * Math.cos(ang / 2))}`;
+  o.set({ path: new fabric.Path(d, { visible: false }), pathAlign: 'center' });
+  o.initDimensions(); o.setCoords();
+}
+
+/* ---------- separar letras (ajuste individual) ---------- */
+$('#splitBtn').onclick = () => {
+  const o = act(); if (!isText(o)) return;
+  if (o.curve) { toast('Deixe a curvatura em 0 antes de separar as letras'); return; }
+  o.initDimensions();
+  const m = o.calcTransformMatrix(), letters = [];
+  const lineH = o.height / o._textLines.length;
+  o._textLines.forEach((chars, li) => {
+    const lineLeft = o._getLineLeftOffset(li);
+    chars.forEach((ch, ci) => {
+      if (!ch.trim()) return;
+      const b = o.__charBounds[li][ci];
+      const lx = -o.width / 2 + lineLeft + b.left + b.width / 2, ly = -o.height / 2 + lineH * (li + 0.5);
+      const p = fabric.util.transformPoint(new fabric.Point(lx, ly), m);
+      const t = new fabric.IText(ch, { left: p.x, top: p.y, angle: o.angle, scaleX: o.scaleX, scaleY: o.scaleY, fontFamily: o.fontFamily, fontSize: o.fontSize,
+        fontWeight: o.fontWeight, fontStyle: o.fontStyle, fill: o.fill, stroke: o.stroke, strokeWidth: o.strokeWidth, paintFirst: o.paintFirst, lineHeight: o.lineHeight });
+      t.uid = nextUid(); t.name = 'Letra ' + ch; letters.push(t);
+    });
+  });
+  fc.remove(o); letters.forEach((t) => fc.add(t)); keepBoardBottom();
+  fc.setActiveObject(new fabric.ActiveSelection(letters, { canvas: fc }));
+  fc.requestRenderAll(); snapshot(); refreshSel();
+  toast('Letras separadas: clique numa letra para mover, girar ou mudar o tamanho. Selecione todas e use Agrupar quando terminar.', 5500);
+};
+
+/* ---------- fontes: importar e comparar ---------- */
+$('#uploadFontBtn').onclick = () => $('#fileFont').click();
+$('#fileFont').onchange = (e) => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = async () => {
+    const name = f.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').slice(0, 40);
+    if (await registerUserFont(name, rd.result, f.name, true)) setProp((o) => o.set('fontFamily', name));
+  };
+  rd.readAsDataURL(f);
+};
+async function registerUserFont(name, dataURL, file, announce) {
+  try {
+    const buf = await (await fetch(dataURL)).arrayBuffer();
+    const face = new FontFace(name, buf); await face.load(); document.fonts.add(face);
+    fabric.util.clearFabricFontCache(name);
+    if (!userFonts.some((u) => u.name === name)) userFonts.push({ name, data: dataURL, file, lic: 'arquivo', origin: 'arquivo enviado' });
+    fillFontSelect(); if (announce) toast(`Fonte “${name}” instalada neste projeto`);
+    return true;
+  } catch { toast('Não consegui ler essa fonte (use OTF ou TTF)'); return false; }
+}
+let refSnippet = null;
+const CATS = ['Impacto', 'Serifa', 'Sem serifa', 'Manuscrita', 'Gótica', 'Retrô', 'Urbana', 'Suas fontes'];
+let cmpCat = 'Impacto';
+$('#compareBtn').onclick = () => {
+  const o = act(); $('#cmpText').value = isText(o) ? o.text.split('\n')[0].slice(0, 40) : 'Ainda construindo';
+  cmpCat = (fontMeta(isText(o) ? o.fontFamily : '') || {}).cat || 'Impacto';
+  $('#refBox').hidden = !refSnippet; if (refSnippet) $('#refImg').src = refSnippet;
+  renderCompare(); $('#compareModal').hidden = false;
+};
+function renderCompare() {
+  const cats = $('#cmpCats'); cats.innerHTML = '';
+  for (const c of CATS) { const b = document.createElement('button'); b.className = 'chip'; b.textContent = c; b.setAttribute('aria-pressed', String(c === cmpCat)); b.onclick = () => { cmpCat = c; renderCompare(); }; cats.appendChild(b); }
+  const grid = $('#cmpGrid'); grid.innerHTML = '';
+  const list = cmpCat === 'Suas fontes' ? userFonts : FONT_LIST.filter((f) => f.cat === cmpCat);
+  if (!list.length) { grid.innerHTML = '<p class="empty">Nenhuma fonte sua ainda. Use “Importar fonte (OTF/TTF)”.</p>'; return; }
+  for (const f of list) {
+    loadFont(f.name);
+    const b = document.createElement('button'); b.className = 'fontcard';
+    b.innerHTML = '<span class="sample"></span><strong></strong><small></small>';
+    b.querySelector('.sample').style.fontFamily = `"${f.name}", sans-serif`;
+    b.querySelector('.sample').textContent = $('#cmpText').value || 'Ainda construindo';
+    b.querySelector('strong').textContent = f.name;
+    b.querySelector('small').textContent = licenseText(f);
+    b.onclick = async () => { await loadFont(f.name); setProp((o) => o.set('fontFamily', f.name)); $('#compareModal').hidden = true; toast(`Fonte: ${f.name} (escolha visual, aproximada)`); };
+    grid.appendChild(b);
+  }
+}
+$('#cmpText').oninput = () => document.querySelectorAll('#cmpGrid .sample').forEach((s) => (s.textContent = $('#cmpText').value || 'Ainda construindo'));
+$('#cmpClose').onclick = () => ($('#compareModal').hidden = true);
+
+/* =========================================================================
+   Modos de edição de imagem: recortar, remover fundo, apagar área
+   ========================================================================= */
+let mode = null, modeData = null;
+function needImage() { const o = act(); if (!o || o.type !== 'image') { toast('Selecione uma imagem (PNG/JPG) primeiro'); return null; } return o; }
+function setModebar(html) { const mb = $('#modebar'); mb.innerHTML = html; mb.hidden = !html; }
+function endMode() {
+  if (mode === 'crop' && modeData?.rect) fc.remove(modeData.rect);
+  if (mode === 'erase' && modeData?.rect) fc.remove(modeData.rect);
+  mode = null; modeData = null; setModebar(''); setTool(tool);
+  document.querySelectorAll('.tool[data-mode]').forEach((b) => b.classList.remove('active'));
+  fc.requestRenderAll();
+}
+document.querySelectorAll('[data-mode]').forEach((b) => (b.onclick = () => startMode(b.dataset.mode)));
+function startMode(m) {
+  const img = needImage(); if (!img) return;
+  endMode(); mode = m; setTool('select');
+  document.querySelectorAll('.tool[data-mode]').forEach((b) => b.classList.toggle('active', b.dataset.mode === m));
+  if (m === 'crop') startCrop(img); else if (m === 'bg') startBg(img); else startErase(img);
+}
+// pixels de trabalho da imagem
+function imageCanvas(img) {
+  const el = img.getElement(), c = document.createElement('canvas');
+  c.width = el.naturalWidth || el.width; c.height = el.naturalHeight || el.height;
+  c.getContext('2d').drawImage(el, 0, 0); return c;
+}
+function replaceImage(img, canvas, keepPlace = true) {
+  return new Promise((res) => {
+    const url = canvas.toDataURL('image/png');
+    const key = putImg(url);
+    img.setSrc(url, () => { img.srcKey = key; img.setCoords(); fc.requestRenderAll(); res(); });
+  });
+}
+// ponto do mundo → pixel da imagem
+function worldToImage(img, p) {
+  const inv = fabric.util.invertTransform(img.calcTransformMatrix());
+  const q = fabric.util.transformPoint(p, inv);
+  return { x: q.x + img.width / 2, y: q.y + img.height / 2 };
+}
+
+/* --- recortar --- */
+function startCrop(img) {
+  if (Math.abs(img.angle % 360) > 0.5) { toast('Deixe a rotação da imagem em 0° para recortar'); endMode(); return; }
+  const r = img.getBoundingRect(true, true);
+  const rect = new fabric.Rect({ left: r.left + r.width / 2, top: r.top + r.height / 2, width: r.width * 0.8, height: r.height * 0.8, fill: 'rgba(231,225,207,.08)',
+    stroke: '#e7e1cf', strokeDashArray: [12, 8], strokeWidth: 2 / fc.getZoom(), strokeUniform: true, lockRotation: true, hasRotatingPoint: false });
+  rect.kind = 'helper'; rect.setControlsVisibility({ mtr: false });
+  modeData = { img, rect }; fc.add(rect); fc.setActiveObject(rect);
+  setModebar('<b>Recortar</b><span class="note">Ajuste o retângulo sobre a parte que fica.</span><button class="btn small primary" id="cropOk">Aplicar recorte</button><button class="btn small" id="cropCancel">Cancelar</button>');
+  $('#cropOk').onclick = async () => {
+    const { img, rect } = modeData, rr = rect.getBoundingRect(true, true);
+    const a = worldToImage(img, new fabric.Point(rr.left, rr.top)), b = worldToImage(img, new fabric.Point(rr.left + rr.width, rr.top + rr.height));
+    const x0 = clamp(Math.round(Math.min(a.x, b.x)), 0, img.width), y0 = clamp(Math.round(Math.min(a.y, b.y)), 0, img.height);
+    const x1 = clamp(Math.round(Math.max(a.x, b.x)), 0, img.width), y1 = clamp(Math.round(Math.max(a.y, b.y)), 0, img.height);
+    if (x1 - x0 < 2 || y1 - y0 < 2) { toast('Área de recorte muito pequena'); return; }
+    const src = imageCanvas(img), c = document.createElement('canvas'); c.width = x1 - x0; c.height = y1 - y0;
+    c.getContext('2d').drawImage(src, x0, y0, c.width, c.height, 0, 0, c.width, c.height);
+    const center = fabric.util.transformPoint(new fabric.Point((x0 + x1) / 2 - img.width / 2, (y0 + y1) / 2 - img.height / 2), img.calcTransformMatrix());
+    endMode();
+    await replaceImage(img, c);
+    img.set({ left: center.x, top: center.y }); img.setCoords(); fc.setActiveObject(img); fc.requestRenderAll(); snapshot(); refreshSel();
+    toast('Recorte aplicado');
+  };
+  $('#cropCancel').onclick = endMode;
+}
+
+/* --- remover fundo liso (local) ---
+   Parte das bordas da imagem e só apaga o que está ligado a elas e tem cor parecida
+   com o fundo. Áreas claras DENTRO do desenho ficam (não confunde com o fundo). */
+function removeBackground(src, tol, soft, everywhere) {
+  const w = src.width, h = src.height, x = src.getContext('2d'), id = x.getImageData(0, 0, w, h), d = id.data;
+  const border = [];
+  for (let i = 0; i < w; i += Math.max(1, (w / 200) | 0)) border.push(i, (h - 1) * w + i);
+  for (let j = 0; j < h; j += Math.max(1, (h / 200) | 0)) border.push(j * w, j * w + w - 1);
+  const med = (k) => border.map((p) => d[p * 4 + k]).sort((a, b) => a - b)[border.length >> 1];
+  const bg = [med(0), med(1), med(2)];
+  const dist = (p) => Math.hypot(d[p * 4] - bg[0], d[p * 4 + 1] - bg[1], d[p * 4 + 2] - bg[2]);
+  const T = tol * 4.4, mark = new Uint8Array(w * h);
+  if (everywhere) { for (let p = 0; p < w * h; p++) if (dist(p) <= T) mark[p] = 1; }
+  else {
+    const stack = [];
+    for (let i = 0; i < w; i++) stack.push(i, (h - 1) * w + i);
+    for (let j = 0; j < h; j++) stack.push(j * w, j * w + w - 1);
+    while (stack.length) {
+      const p = stack.pop(); if (mark[p] || dist(p) > T) continue;
+      mark[p] = 1; const px = p % w, py = (p / w) | 0;
+      if (px > 0) stack.push(p - 1); if (px < w - 1) stack.push(p + 1); if (py > 0) stack.push(p - w); if (py < h - 1) stack.push(p + w);
+    }
+  }
+  for (let p = 0; p < w * h; p++) {
+    if (mark[p]) { d[p * 4 + 3] = 0; continue; }
+    if (soft) { // borda suave: pixel encostado no fundo e de cor intermediária fica semitransparente
+      const px = p % w, py = (p / w) | 0;
+      const near = (px > 0 && mark[p - 1]) || (px < w - 1 && mark[p + 1]) || (py > 0 && mark[p - w]) || (py < h - 1 && mark[p + w]);
+      if (near) { const k = clamp((dist(p) - T) / (T * 0.8 + 1), 0, 1); d[p * 4 + 3] = Math.round(d[p * 4 + 3] * (0.35 + 0.65 * k)); }
+    }
+  }
+  const out = document.createElement('canvas'); out.width = w; out.height = h; out.getContext('2d').putImageData(id, 0, 0);
+  return { canvas: out, bg };
+}
+function startBg(img) {
+  const original = imageCanvas(img), originalKey = img.srcKey, originalUrl = imgStore.get(originalKey);
+  modeData = { img, original, originalUrl, originalKey };
+  setModebar(`<b>Remover fundo</b><label class="note" for="bgTol">Tolerância</label><input type="range" id="bgTol" min="2" max="60" value="18">
+    <label class="note"><input type="checkbox" id="bgSoft" checked> Borda suave</label>
+    <label class="note" title="Apaga essa cor em toda a imagem, inclusive dentro do desenho"><input type="checkbox" id="bgAll"> Também dentro do desenho</label>
+    <button class="btn small primary" id="bgOk">Aplicar</button><button class="btn small" id="bgCancel">Cancelar</button>`);
+  const preview = debounce(async () => {
+    const r = removeBackground(original, +$('#bgTol').value, $('#bgSoft').checked, $('#bgAll').checked);
+    await new Promise((res) => img.setSrc(r.canvas.toDataURL('image/png'), res));
+    fc.requestRenderAll();
+  }, 120);
+  ['bgTol', 'bgSoft', 'bgAll'].forEach((id) => ($('#' + id).oninput = preview));
+  preview();
+  $('#bgOk').onclick = async () => {
+    const r = removeBackground(original, +$('#bgTol').value, $('#bgSoft').checked, $('#bgAll').checked);
+    mode = null; setModebar(''); document.querySelectorAll('.tool[data-mode]').forEach((b) => b.classList.remove('active'));
+    await replaceImage(img, r.canvas); snapshot(); refreshSel();
+    toast('Fundo removido. Fundos com textura ou foto precisam de IA (não incluído).', 4200);
+  };
+  $('#bgCancel').onclick = () => { img.setSrc(originalUrl, () => { img.srcKey = originalKey; fc.requestRenderAll(); }); endMode(); };
+}
+
+/* --- apagar área e reconstruir o fundo (local) --- */
+function startErase(img) {
+  modeData = { img, rect: null, start: null };
+  userObjs().forEach((o) => (o.evented = false)); fc.defaultCursor = 'crosshair';
+  fc.selection = false; fc.discardActiveObject(); fc.requestRenderAll();
+  setModebar('<b>Apagar área</b><span class="note">Arraste um retângulo sobre o texto que quer trocar.</span><button class="btn small" id="eraseCancel">Sair</button>');
+  $('#eraseCancel').onclick = endMode;
+}
+function eraseDown(opt) {
+  const p = fc.getPointer(opt.e);
+  if (modeData.rect) fc.remove(modeData.rect);
+  modeData.start = p;
+  modeData.rect = new fabric.Rect({ left: p.x, top: p.y, width: 1, height: 1, originX: 'left', originY: 'top', fill: 'rgba(224,128,111,.18)', stroke: '#e0806f',
+    strokeWidth: 2 / fc.getZoom(), strokeDashArray: [10 / fc.getZoom(), 6 / fc.getZoom()], selectable: false, evented: false });
+  modeData.rect.kind = 'helper'; fc.add(modeData.rect);
+}
+function eraseMove(opt) {
+  if (!modeData.start) return;
+  const p = fc.getPointer(opt.e), s = modeData.start;
+  modeData.rect.set({ left: Math.min(p.x, s.x), top: Math.min(p.y, s.y), width: Math.abs(p.x - s.x), height: Math.abs(p.y - s.y) }); fc.requestRenderAll();
+}
+function eraseUp() {
+  if (!modeData.start) return;
+  modeData.start = null;
+  const r = modeData.rect; if (r.width < 4 || r.height < 4) return;
+  setModebar(`<b>Apagar área</b><span class="note">Como preencher o lugar do texto?</span>
+    <button class="btn small primary" data-fill="rebuild" title="Reconstrói a partir das bordas da área (bom para fundo liso ou degradê)">Reconstruir fundo</button>
+    <button class="btn small" data-fill="avg" title="Pinta com a cor média em volta da área">Cor do entorno</button>
+    <button class="btn small" data-fill="clear" title="Deixa transparente">Transparente</button>
+    <button class="btn small" id="eraseCancel">Sair</button>`);
+  document.querySelectorAll('[data-fill]').forEach((b) => (b.onclick = () => applyErase(b.dataset.fill)));
+  $('#eraseCancel').onclick = endMode;
+}
+async function applyErase(how) {
+  const { img, rect } = modeData;
+  const corners = [[rect.left, rect.top], [rect.left + rect.width, rect.top], [rect.left, rect.top + rect.height], [rect.left + rect.width, rect.top + rect.height]]
+    .map(([x, y]) => worldToImage(img, new fabric.Point(x, y)));
+  const x0 = clamp(Math.floor(Math.min(...corners.map((c) => c.x))), 1, img.width - 1), x1 = clamp(Math.ceil(Math.max(...corners.map((c) => c.x))), 1, img.width - 1);
+  const y0 = clamp(Math.floor(Math.min(...corners.map((c) => c.y))), 1, img.height - 1), y1 = clamp(Math.ceil(Math.max(...corners.map((c) => c.y))), 1, img.height - 1);
+  if (x1 - x0 < 2 || y1 - y0 < 2) { toast('Desenhe a área sobre a imagem selecionada'); return; }
+  const src = imageCanvas(img), ctx = src.getContext('2d');
+  // guarda o recorte original como referência para comparar fontes
+  const snip = document.createElement('canvas'); snip.width = x1 - x0; snip.height = y1 - y0;
+  snip.getContext('2d').drawImage(src, x0, y0, snip.width, snip.height, 0, 0, snip.width, snip.height); refSnippet = snip.toDataURL('image/png');
+  if (how === 'clear') ctx.clearRect(x0, y0, x1 - x0, y1 - y0);
+  else {
+    const W = x1 - x0 + 2, H = y1 - y0 + 2, id = ctx.getImageData(x0 - 1, y0 - 1, W, H), d = id.data;
+    // cor média da moldura de 1 px em volta
+    const sum = [0, 0, 0, 0]; let n = 0;
+    for (let i = 0; i < W; i++) for (const j of [0, H - 1]) { const k = (j * W + i) * 4; for (let c = 0; c < 4; c++) sum[c] += d[k + c]; n++; }
+    for (let j = 1; j < H - 1; j++) for (const i of [0, W - 1]) { const k = (j * W + i) * 4; for (let c = 0; c < 4; c++) sum[c] += d[k + c]; n++; }
+    const avg = sum.map((v) => v / n);
+    const f = new Float32Array(W * H * 4); for (let k = 0; k < d.length; k++) f[k] = d[k];
+    for (let j = 1; j < H - 1; j++) for (let i = 1; i < W - 1; i++) {
+      const k = (j * W + i) * 4;
+      if (how === 'avg') { for (let c = 0; c < 4; c++) f[k + c] = avg[c]; continue; }
+      // reconstruir: mistura das bordas esquerda/direita e cima/baixo, pesada pela distância
+      const L = (j * W) * 4, R = (j * W + W - 1) * 4, T = i * 4, B = ((H - 1) * W + i) * 4;
+      const tx = i / (W - 1), ty = j / (H - 1), dx = Math.min(i, W - 1 - i), dy = Math.min(j, H - 1 - j), wx = 1 / (dx + 1), wy = 1 / (dy + 1);
+      for (let c = 0; c < 4; c++) {
+        const h = d[L + c] * (1 - tx) + d[R + c] * tx, v = d[T + c] * (1 - ty) + d[B + c] * ty;
+        f[k + c] = (h * wx + v * wy) / (wx + wy);
+      }
+    }
+    if (how === 'rebuild') { // suaviza (equação de Laplace) para tirar emendas
+      const iters = Math.min(160, 20 + Math.max(W, H));
+      for (let it = 0; it < iters; it++) {
+        for (let j = 1; j < H - 1; j++) for (let i = 1; i < W - 1; i++) {
+          const k = (j * W + i) * 4;
+          for (let c = 0; c < 4; c++) f[k + c] = (f[k - 4 + c] + f[k + 4 + c] + f[k - W * 4 + c] + f[k + W * 4 + c]) * 0.25;
+        }
+      }
+    }
+    for (let k = 0; k < d.length; k++) d[k] = f[k];
+    ctx.putImageData(id, x0 - 1, y0 - 1);
+  }
+  fc.remove(rect); modeData.rect = null;
+  await replaceImage(img, src); snapshot();
+  setModebar('<b>Apagar área</b><span class="note">Feito. Arraste outra área ou saia e escreva o novo texto (use “Comparar” para escolher a fonte).</span><button class="btn small primary" id="eraseText">Escrever texto aqui</button><button class="btn small" id="eraseCancel">Sair</button>');
+  $('#eraseCancel').onclick = endMode;
+  const place = { left: rect.left + rect.width / 2, top: rect.top + rect.height / 2, h: rect.height };
+  $('#eraseText').onclick = async () => {
+    endMode(); await loadFont('Anton');
+    const t = new fabric.IText('NOVO TEXTO', { left: place.left, top: place.top, fontFamily: 'Anton', fontSize: place.h * 0.8, fill: '#141414', textAlign: 'center', lineHeight: 1 });
+    addObject(t, 'Texto'); $('#textVal').focus(); $('#textVal').select();
+  };
+  if (how === 'rebuild') toast('Fundo reconstruído a partir das bordas. Em texturas ou desenhos complexos, o resultado fica borrado — aí é preciso IA (não incluído).', 5200);
+}
+
+/* =========================================================================
+   Texto na forma (envelope): cada linha ocupa uma faixa horizontal da forma;
+   a linha é esticada na largura da faixa e, coluna por coluna, até o topo e a
+   base do contorno dentro da faixa. Resultado: as letras "enchem" a silhueta.
+   ========================================================================= */
+const SHAPES = {
+  cerebro: { label: 'Cérebro', w: 124, h: 100, draw(x) {
+    x.beginPath(); x.moveTo(8, 52);
+    x.bezierCurveTo(0, 26, 22, 3, 56, 2); x.bezierCurveTo(92, 1, 123, 18, 122, 46); // lobo frontal → topo → nuca
+    x.bezierCurveTo(121, 62, 112, 70, 102, 72); x.bezierCurveTo(108, 82, 98, 91, 86, 87); // cerebelo
+    x.lineTo(82, 99); x.lineTo(69, 99); x.lineTo(71, 76); // tronco
+    x.bezierCurveTo(55, 75, 36, 77, 22, 73); x.bezierCurveTo(12, 70, 7, 62, 8, 52); x.fill(); // base do lobo temporal
+  } },
+  coracao: { label: 'Coração', w: 100, h: 92, draw(x) {
+    x.beginPath(); x.moveTo(50, 92); x.bezierCurveTo(20, 70, 0, 52, 0, 28); x.bezierCurveTo(0, 11, 13, 0, 27, 0); x.bezierCurveTo(38, 0, 46, 7, 50, 17);
+    x.bezierCurveTo(54, 7, 62, 0, 73, 0); x.bezierCurveTo(87, 0, 100, 11, 100, 28); x.bezierCurveTo(100, 52, 80, 70, 50, 92); x.fill();
+  } },
+  circulo: { label: 'Círculo', w: 100, h: 100, draw(x) { x.beginPath(); x.arc(50, 50, 50, 0, Math.PI * 2); x.fill(); } },
+  escudo: { label: 'Escudo', w: 90, h: 100, draw(x) { x.beginPath(); x.moveTo(0, 6); x.lineTo(45, 0); x.lineTo(90, 6); x.lineTo(90, 52); x.quadraticCurveTo(88, 84, 45, 100); x.quadraticCurveTo(2, 84, 0, 52); x.closePath(); x.fill(); } },
+};
+function shapeMask(name, W) {
+  const sh = SHAPES[name], c = document.createElement('canvas');
+  c.width = Math.round(W); c.height = Math.round(W * sh.h / sh.w);
+  const x = c.getContext('2d'); x.fillStyle = '#fff'; x.scale(c.width / sh.w, c.height / sh.h); sh.draw(x); return c;
+}
+function scaledCopy(src, W) { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(W)); c.height = Math.max(1, Math.round(src.height * W / src.width)); c.getContext('2d').drawImage(src, 0, 0, c.width, c.height); return c; }
+function loadImgEl(url) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; }); }
+async function renderWarp(cfg, mask) {
+  const W = mask.width, H = mask.height, md = mask.getContext('2d').getImageData(0, 0, W, H).data;
+  const rowL = new Int32Array(H).fill(-1), rowR = new Int32Array(H).fill(-1);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (md[(y * W + x) * 4 + 3] > 128) { if (rowL[y] < 0) rowL[y] = x; rowR[y] = x; }
+  // bordas suavizadas só para esticar as letras (o recorte final usa o contorno exato)
+  const sL = new Float32Array(H), sR = new Float32Array(H), K = Math.max(2, Math.round(H * 0.03));
+  for (let y = 0; y < H; y++) {
+    if (rowL[y] < 0) { sL[y] = sR[y] = -1; continue; }
+    let a = 0, b2 = 0, n = 0; for (let j = Math.max(0, y - K); j <= Math.min(H - 1, y + K); j++) if (rowL[j] >= 0) { a += rowL[j]; b2 += rowR[j]; n++; }
+    sL[y] = a / n; sR[y] = b2 / n;
+  }
+  let top = 0; while (top < H && rowL[top] < 0) top++;
+  let bot = H - 1; while (bot > top && rowL[bot] < 0) bot--;
+  const lines = String(cfg.text || '').split('\n').map((t) => t.trim()).filter(Boolean);
+  if (!lines.length || bot - top < 4) return null;
+  await loadFont(cfg.font); try { await document.fonts.load(`200px "${cfg.font}"`); } catch {}
+  const FS = 240;
+  const texts = lines.map((t) => {
+    const c = document.createElement('canvas'), x = c.getContext('2d'), font = `${FS}px "${cfg.font}", Impact, sans-serif`;
+    x.font = font; const m = x.measureText(t);
+    const w = Math.max(2, Math.ceil(m.actualBoundingBoxLeft + m.actualBoundingBoxRight) + 2), h = Math.max(2, Math.ceil(m.actualBoundingBoxAscent + m.actualBoundingBoxDescent) + 2);
+    c.width = w; c.height = h; x.font = font; x.fillStyle = '#000'; x.fillText(t, m.actualBoundingBoxLeft + 1, m.actualBoundingBoxAscent + 1);
+    return { c, a: w / h };
+  });
+  const total = bot - top + 1, gap = Math.round(total * (cfg.gap || 0) / 100), avail = Math.max(lines.length * 2, total - gap * (lines.length - 1));
+  const size = (i) => clamp(((cfg.sizes || [])[i] || 100) / 100, 0.2, 4);
+  let h = texts.map((t, i) => size(i));
+  { const s0 = h.reduce((a, b) => a + b, 0); h = h.map((v) => (v * avail) / s0); }
+  const widthIn = (y0, y1) => { let s = 0, n = 0; for (let y = Math.max(top, Math.round(y0)); y <= Math.min(bot, Math.round(y1)); y++) if (rowL[y] >= 0) { s += rowR[y] - rowL[y] + 1; n++; } return n ? s / n : 1; };
+  if (cfg.layout !== 'equal') {
+    for (let it = 0; it < 8; it++) { // altura ideal = largura disponível / proporção natural da linha
+      let y = top; const ideal = texts.map((t, i) => { const v = widthIn(y, y + h[i]) / t.a; y += h[i] + gap; return v; });
+      // amortecido: segue a proporção das letras sem deixar uma linha engolir as outras
+      const damp = ideal.map((v, i) => Math.pow(v, 0.55) * size(i)), sum = damp.reduce((a, b) => a + b, 0), avg = avail / texts.length;
+      h = damp.map((v, i) => clamp((v * avail) / sum, avg * 0.65 * size(i), avg * 1.5 * size(i)));
+      const s2 = h.reduce((a, b) => a + b, 0); h = h.map((v) => (v * avail) / s2);
+    }
+  }
+  const out = document.createElement('canvas'); out.width = W; out.height = H; const o = out.getContext('2d');
+  const env = cfg.warp !== 'rows' && cfg.warp !== 'cols', od = env ? o.createImageData(W, H) : null, odd = od && od.data;
+  const colors = (cfg.colors && cfg.colors.length ? cfg.colors : ['#141414']);
+  let y = top;
+  texts.forEach((t, i) => {
+    const y0 = Math.round(y), y1 = Math.min(H, Math.round(y + h[i])); y += h[i] + gap;
+    const bh = y1 - y0; if (bh < 2) return;
+    let L = W, R = -1; for (let yy = y0; yy < y1; yy++) if (rowL[yy] >= 0) { L = Math.min(L, rowL[yy]); R = Math.max(R, rowR[yy]); }
+    if (R <= L) return;
+    const bw = R - L + 1, band = document.createElement('canvas'); band.width = bw; band.height = bh;
+    const b = band.getContext('2d'); b.imageSmoothingQuality = 'high'; b.drawImage(t.c, 0, 0, bw, bh);
+    b.globalCompositeOperation = 'source-in'; b.fillStyle = colors[i % colors.length]; b.fillRect(0, 0, bw, bh);
+    if (env) { // envelope: cada pixel da forma busca a letra pela posição entre esquerda/direita e topo/base
+      const bd = b.getImageData(0, 0, bw, bh).data, T = new Float32Array(bw).fill(-1), B = new Float32Array(bw).fill(-1);
+      for (let x = L; x <= R; x++) for (let yy = y0; yy < y1; yy++) if (md[(yy * W + x) * 4 + 3] > 128) { if (T[x - L] < 0) T[x - L] = yy; B[x - L] = yy; }
+      const Kx = Math.max(2, Math.round(bw * 0.02)), sT = new Float32Array(bw), sB = new Float32Array(bw);
+      for (let i = 0; i < bw; i++) { let a = 0, c = 0, n = 0; for (let j = Math.max(0, i - Kx); j <= Math.min(bw - 1, i + Kx); j++) if (T[j] >= 0) { a += T[j]; c += B[j]; n++; } sT[i] = n ? a / n : -1; sB[i] = n ? c / n : -1; }
+      for (let yy = y0; yy < y1; yy++) {
+        if (sL[yy] < 0) continue; const rw = Math.max(1, sR[yy] - sL[yy]);
+        for (let x = rowL[yy]; x <= rowR[yy]; x++) {
+          const mi = (yy * W + x) * 4; if (md[mi + 3] <= 128) continue;
+          const ci = x - L, th = sB[ci] - sT[ci]; if (sT[ci] < 0) continue;
+          const u = clamp((x - sL[yy]) / rw, 0, 1), v = th > 0.5 ? clamp((yy - sT[ci]) / th, 0, 1) : 0.5;
+          const si = ((Math.round(v * (bh - 1)) * bw) + Math.round(u * (bw - 1))) * 4;
+          odd[mi] = bd[si]; odd[mi + 1] = bd[si + 1]; odd[mi + 2] = bd[si + 2]; odd[mi + 3] = bd[si + 3];
+        }
+      }
+    } else if (cfg.warp === 'cols') { // topo e base: cada coluna estica até o contorno de cima e de baixo
+      for (let x = L; x <= R; x++) {
+        let t0 = -1, t1 = -1;
+        for (let yy = y0; yy < y1; yy++) if (md[(yy * W + x) * 4 + 3] > 128) { if (t0 < 0) t0 = yy; t1 = yy; }
+        if (t0 >= 0) o.drawImage(band, x - L, 0, 1, bh, x, t0, 1, t1 - t0 + 1);
+      }
+    } else { // laterais: cada linha de pixels estica até a borda esquerda e direita da forma
+      for (let yy = y0; yy < y1; yy++) if (sL[yy] >= 0) o.drawImage(band, 0, yy - y0, bw, 1, sL[yy], yy, sR[yy] - sL[yy] + 1, 1);
+    }
+  });
+  if (env) { o.putImageData(od, 0, 0); return out; }
+  o.globalCompositeOperation = 'destination-in'; o.drawImage(mask, 0, 0);
+  return out;
+}
+// estado da janela
+let warpCfg = null, warpTarget = null, warpSrcImg = null, warpMaskFull = null;
+const WARP_DEFAULT = { text: 'VAMOS\nFALAR SOBRE\nSAÚDE\nMENTAL', font: 'Anton', colors: ['#e8335a', '#f27a94', '#f6a8ba'], gap: 2, layout: 'auto', warp: 'env', shape: 'cerebro', wCm: 22 };
+function fillWarpFonts() {
+  const sel = $('#warpFont'); sel.innerHTML = $('#fontSel').innerHTML; sel.value = warpCfg.font;
+}
+function renderWarpShapes() {
+  const box = $('#warpShapes'); box.innerHTML = '';
+  const opts = Object.entries(SHAPES).map(([k, v]) => [k, v.label]);
+  if (warpSrcImg || warpCfg.shape === 'imagem') opts.push(['imagem', 'Silhueta da imagem']);
+  for (const [k, label] of opts) {
+    const b = document.createElement('button'); b.className = 'chip'; b.textContent = label; b.setAttribute('aria-pressed', String(warpCfg.shape === k));
+    b.onclick = () => { warpCfg.shape = k; renderWarpShapes(); warpPreview(); }; box.appendChild(b);
+  }
+  $('#warpShapeNote').textContent = warpCfg.shape === 'imagem' ? 'Usa a silhueta (parte não transparente) da imagem. Remova o fundo antes com a ferramenta Fundo.'
+    : 'Para usar o contorno de um desenho seu, selecione a imagem (sem fundo) e clique em “Preencher esta silhueta com texto”.';
+}
+async function warpMask(cfg, W) {
+  if (cfg.shape !== 'imagem') return shapeMask(cfg.shape, W);
+  if (!warpMaskFull) { const url = imgStore.get(cfg.maskKey); if (!url) return null; const el = await loadImgEl(url); warpMaskFull = document.createElement('canvas'); warpMaskFull.width = el.naturalWidth; warpMaskFull.height = el.naturalHeight; warpMaskFull.getContext('2d').drawImage(el, 0, 0); }
+  return W >= warpMaskFull.width ? warpMaskFull : scaledCopy(warpMaskFull, W);
+}
+let warpJob = 0;
+const warpPreview = debounce(async () => {
+  const job = ++warpJob; $('#warpBusy').hidden = false;
+  const mask = await warpMask(warpCfg, 640); if (!mask) { $('#warpBusy').hidden = true; return; }
+  const c = await renderWarp(warpCfg, mask); if (job !== warpJob) return;
+  const pv = $('#warpPrev'); pv.width = mask.width; pv.height = mask.height;
+  const x = pv.getContext('2d'); x.clearRect(0, 0, pv.width, pv.height);
+  x.globalAlpha = 0.08; x.drawImage(mask, 0, 0); x.globalAlpha = 1; if (c) x.drawImage(c, 0, 0);
+  $('#warpBusy').hidden = true;
+}, 150);
+function syncWarpUI() {
+  $('#warpText').value = warpCfg.text; fillWarpFonts(); $('#warpLayout').value = warpCfg.layout; $('#warpMode').value = warpCfg.warp || 'env';
+  ['warpC1', 'warpC2', 'warpC3'].forEach((id, i) => { const el = $('#' + id); el.value = warpCfg.colors[i] || warpCfg.colors[0]; el.disabled = i >= warpCfg.colors.length; });
+  $('#warpOne').textContent = warpCfg.colors.length > 1 ? 'Uma cor' : 'Três cores';
+  $('#warpGap').value = warpCfg.gap; $('#warpGapOut').textContent = fmt(warpCfg.gap, 1) + '%';
+  $('#warpW').value = warpCfg.wCm; $('#warpW').closest('label').hidden = warpCfg.shape === 'imagem';
+  renderWarpShapes(); renderWarpSizes();
+}
+function renderWarpSizes() {
+  const lines = warpCfg.text.split('\n').map((t) => t.trim()).filter(Boolean), box = $('#warpSizes');
+  warpCfg.sizes = lines.map((_, i) => (warpCfg.sizes || [])[i] || 100);
+  box.innerHTML = '';
+  lines.forEach((t, i) => {
+    const row = document.createElement('label'); row.className = 'field-line'; row.style.gap = '8px';
+    row.innerHTML = '<span style="width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span><input type="range" min="40" max="250" step="5" style="flex:1"><output style="width:44px;text-align:right"></output>';
+    row.querySelector('span').textContent = t; const r = row.querySelector('input'), out = row.querySelector('output');
+    r.value = warpCfg.sizes[i]; out.textContent = warpCfg.sizes[i] + '%'; r.setAttribute('aria-label', 'Tamanho da linha ' + t);
+    r.oninput = () => { warpCfg.sizes[i] = +r.value; out.textContent = r.value + '%'; warpPreview(); };
+    box.appendChild(row);
+  });
+  $('#warpSizesBox').hidden = !lines.length;
+}
+function openWarp(cfg, target, srcImg) {
+  warpCfg = JSON.parse(JSON.stringify(cfg)); warpTarget = target || null; warpSrcImg = srcImg || null; warpMaskFull = null;
+  loadFont(warpCfg.font);
+  $('#warpOk').textContent = warpTarget ? 'Atualizar' : 'Colocar na prancheta';
+  syncWarpUI(); $('#warpModal').hidden = false; warpPreview();
+}
+$('#warpTool').onclick = () => { endMode(); openWarp(WARP_DEFAULT); };
+$('#warpEdit').onclick = () => { const o = act(); if (o && o.warp) openWarp(o.warp, o); };
+$('#warpFromImg').onclick = () => {
+  const o = act(); if (!o || o.type !== 'image') return;
+  const c = imageCanvas(o), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+  let clear = 0; for (let k = 3; k < d.length; k += 16) if (d[k] < 128) clear++;
+  if (clear / (d.length / 16) < 0.03) { toast('Essa imagem não tem fundo transparente. Use “Remover fundo” antes, para o contorno virar a forma.', 4800); return; }
+  // máscara = silhueta da imagem (opaca em branco)
+  const m = document.createElement('canvas'); m.width = c.width; m.height = c.height; const mx = m.getContext('2d');
+  mx.drawImage(c, 0, 0); mx.globalCompositeOperation = 'source-in'; mx.fillStyle = '#fff'; mx.fillRect(0, 0, m.width, m.height);
+  openWarp({ ...WARP_DEFAULT, shape: 'imagem', maskKey: putImg(m.toDataURL('image/png')), srcName: o.name }, null, o);
+};
+$('#warpText').oninput = (e) => { warpCfg.text = e.target.value; renderWarpSizes(); warpPreview(); };
+$('#warpFont').onchange = async (e) => { warpCfg.font = e.target.value; await loadFont(warpCfg.font); warpPreview(); };
+$('#warpLayout').onchange = (e) => { warpCfg.layout = e.target.value; warpPreview(); };
+$('#warpMode').onchange = (e) => { warpCfg.warp = e.target.value; warpPreview(); };
+['warpC1', 'warpC2', 'warpC3'].forEach((id, i) => ($('#' + id).oninput = (e) => { if (i < warpCfg.colors.length) warpCfg.colors[i] = e.target.value; warpPreview(); }));
+$('#warpOne').onclick = () => { warpCfg.colors = warpCfg.colors.length > 1 ? [warpCfg.colors[0]] : [warpCfg.colors[0], $('#warpC2').value, $('#warpC3').value]; syncWarpUI(); warpPreview(); };
+$('#warpGap').oninput = (e) => { warpCfg.gap = +e.target.value; $('#warpGapOut').textContent = fmt(warpCfg.gap, 1) + '%'; warpPreview(); };
+$('#warpW').onchange = (e) => { warpCfg.wCm = clamp(+e.target.value || 22, 3, 60); };
+$('#warpCancel').onclick = () => ($('#warpModal').hidden = true);
+$('#warpOk').onclick = async () => {
+  $('#warpOk').disabled = true; $('#warpBusy').hidden = false;
+  try {
+    let W;
+    if (warpCfg.shape === 'imagem') W = (await warpMask(warpCfg, 1e9)).width;
+    else W = Math.min(4800, warpCfg.wCm * pxPerCm());
+    const mask = await warpMask(warpCfg, W), c = await renderWarp(warpCfg, mask);
+    if (!c) { toast('Escreva pelo menos uma linha'); return; }
+    const cfg = JSON.parse(JSON.stringify(warpCfg));
+    if (warpTarget) {
+      const keep = warpTarget.getScaledWidth();
+      await replaceImage(warpTarget, c); warpTarget.warp = cfg;
+      if (cfg.shape !== 'imagem') { const s = (cfg.wCm * pxPerCm()) / warpTarget.width; warpTarget.set({ scaleX: s, scaleY: s }); } else { const s = keep / warpTarget.width; warpTarget.set({ scaleX: s, scaleY: s }); }
+      warpTarget.setCoords(); fc.requestRenderAll(); snapshot(); refreshSel();
+    } else {
+      const url = c.toDataURL('image/png');
+      fabric.Image.fromURL(url, (img) => {
+        img.srcKey = putImg(url); img.warp = cfg;
+        if (warpSrcImg) img.set({ left: warpSrcImg.left, top: warpSrcImg.top, scaleX: warpSrcImg.scaleX, scaleY: warpSrcImg.scaleY, angle: warpSrcImg.angle });
+        else { const s = (cfg.wCm * pxPerCm()) / img.width; img.set({ ...centerOfBoard(), scaleX: s, scaleY: s }); }
+        addObject(img, 'Texto na forma');
+        toast('Pronto. Para mudar a frase, as cores ou a forma: selecione e clique em “Editar texto na forma”.', 4800);
+      });
+    }
+    $('#warpModal').hidden = true;
+  } finally { $('#warpOk').disabled = false; $('#warpBusy').hidden = true; }
+};
+
+/* ---------- prancheta, tecido e versão escura ---------- */
+function syncDocUI() {
+  $('#docW').value = DOC.wCm; $('#docH').value = DOC.hCm; $('#docDpi').value = String(DOC.dpi);
+  $('#docInfo').textContent = `${docW()} × ${docH()} px para imprimir em ${fmt(DOC.wCm)} × ${fmt(DOC.hCm)} cm a ${DOC.dpi} dpi.`;
+  const sw = $('#teeSwatches'); sw.innerHTML = '';
+  for (const [v, label] of TEES) {
+    const b = document.createElement('button'); b.className = 'sw' + (v === 'checker' ? ' checker' : ''); if (v !== 'checker') b.style.background = v;
+    b.title = label; b.setAttribute('aria-label', label); b.setAttribute('aria-pressed', String(DOC.tee === v));
+    b.onclick = () => { DOC.tee = v; applyTee(); syncDocUI(); snapshot(); }; sw.appendChild(b);
+  }
+}
+function resizeDoc() {
+  const oldPx = pxPerCm(), oldW = docW(), oldH = docH();
+  DOC.wCm = clamp(+$('#docW').value || DOC.wCm, 2, 120); DOC.hCm = clamp(+$('#docH').value || DOC.hCm, 2, 120); DOC.dpi = +$('#docDpi').value || 300;
+  const k = pxPerCm() / oldPx;
+  // mantém o tamanho físico (cm) das artes e a posição relativa ao centro da prancheta
+  for (const o of userObjs()) {
+    o.set({ left: (o.left - oldW / 2) * k + docW() / 2, top: (o.top - oldH / 2) * k + docH() / 2, scaleX: o.scaleX * k, scaleY: o.scaleY * k }); o.setCoords();
+  }
+  applyTee(); syncDocUI(); fit(); snapshot(); refreshSel();
+}
+['docW', 'docH', 'docDpi'].forEach((id) => ($('#' + id).onchange = resizeDoc));
+$('#darkVersion').onclick = () => {
+  const swap = (c) => { if (typeof c !== 'string') return c; const h = toHex(c); const l = parseInt(h.slice(1, 3), 16) * 0.3 + parseInt(h.slice(3, 5), 16) * 0.59 + parseInt(h.slice(5, 7), 16) * 0.11; return l < 90 ? '#e7e1cf' : l > 200 ? '#141414' : c; };
+  const walk = (o) => { if (o.type === 'group') return o.getObjects().forEach(walk); if (o.type === 'image') return; o.set({ fill: swap(o.fill), stroke: o.stroke ? swap(o.stroke) : o.stroke }); };
+  userObjs().forEach(walk);
+  DOC.tee = DOC.tee === '#141414' ? '#ffffff' : '#141414'; applyTee(); syncDocUI(); fc.requestRenderAll(); snapshot();
+  toast('Textos e formas pretos ↔ off-white. Imagens não mudam de cor (precisariam ser vetorizadas).', 4200);
+};
+
+/* ---------- exportar ---------- */
+function renderArt() {
+  fc.discardActiveObject();
+  const helpers = fc.getObjects().filter((o) => o.kind); helpers.forEach((o) => (o.visible = false));
+  const z = fc.getZoom(), v = fc.viewportTransform;
+  const c = fc.toCanvasElement(1 / z, { left: v[4], top: v[5], width: docW() * z, height: docH() * z });
+  helpers.forEach((o) => (o.visible = true)); fc.requestRenderAll();
+  return c;
+}
+$('#exportBtn').onclick = () => {
+  if (!userObjs().length) { toast('A prancheta está vazia'); return; }
+  const c = renderArt();
+  $('#expPreview').src = c.toDataURL('image/png');
+  $('#expInfo').textContent = `${docW()} × ${docH()} px · ${fmt(DOC.wCm)} × ${fmt(DOC.hCm)} cm · ${DOC.dpi} dpi · fundo transparente.`;
+  const imgs = userObjs().filter((o) => o.type === 'image'), low = imgs.filter((o) => effDpi(o) < 150);
+  const texts = []; const walk = (o) => (o.type === 'group' ? o.getObjects().forEach(walk) : isText(o) && texts.push(o)); userObjs().forEach(walk);
+  $('#expWarn').textContent = [
+    low.length ? `Atenção: ${low.length} imagem(ns) abaixo de 150 dpi — vão sair borradas na impressão.` : '',
+    imgs.length ? 'O SVG vai conter imagens (pixels) embutidas: não fica 100% vetorial.' : '',
+    texts.length ? 'No SVG, os textos dependem das fontes: quem abrir precisa tê-las (converter textos em contornos é a próxima etapa). O PNG já sai com tudo desenhado.' : '',
+  ].filter(Boolean).join(' ');
+  $('#exportModal').hidden = false;
+};
+$('#expPng').onclick = () => download($('#expPreview').src, 'estampa-148.png');
+$('#expSvg').onclick = () => {
+  fc.discardActiveObject();
+  const helpers = fc.getObjects().filter((o) => o.kind); helpers.forEach((o) => (o.visible = false));
+  const svg = fc.toSVG({ viewBox: { x: 0, y: 0, width: docW(), height: docH() }, width: `${DOC.wCm}cm`, height: `${DOC.hCm}cm` });
+  helpers.forEach((o) => (o.visible = true)); fc.requestRenderAll();
+  const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' })); download(url, 'estampa-148.svg'); setTimeout(() => URL.revokeObjectURL(url), 5000);
+};
+$('#expClose').onclick = () => ($('#exportModal').hidden = true);
+document.querySelectorAll('.modal').forEach((m) => m.addEventListener('click', (e) => { if (e.target === m) m.hidden = true; }));
+
+/* ---------- teclado ---------- */
+window.addEventListener('keydown', (e) => {
+  const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '') || act()?.isEditing;
+  const mod = e.ctrlKey || e.metaKey;
+  if (e.code === 'Space' && !typing) { spaceDown = true; fc.defaultCursor = 'grab'; e.preventDefault(); return; }
+  if (mod && e.key.toLowerCase() === 'z' && !typing) { e.preventDefault(); (e.shiftKey ? $('#redo') : $('#undo')).click(); return; }
+  if (mod && e.key.toLowerCase() === 'y' && !typing) { e.preventDefault(); $('#redo').click(); return; }
+  if (typing) return;
+  if (e.key === 'Escape') { endMode(); return; }
+  if (mod && e.key.toLowerCase() === 'd') { e.preventDefault(); duplicate(); return; }
+  if (mod && e.key.toLowerCase() === 'g') { e.preventDefault(); (e.shiftKey ? $('#ungroupBtn') : $('#groupBtn')).click(); return; }
+  if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); removeActive(); return; }
+  if (e.key.startsWith('Arrow') && act()) {
+    e.preventDefault(); const o = act(), st = (e.shiftKey ? 1 : 0.1) * pxPerCm();
+    if (e.key === 'ArrowLeft') o.left -= st; if (e.key === 'ArrowRight') o.left += st; if (e.key === 'ArrowUp') o.top -= st; if (e.key === 'ArrowDown') o.top += st;
+    o.setCoords(); fc.requestRenderAll(); snapshotSoon(); refreshSel(); return;
+  }
+  if (mod) return;
+  const k = e.key.toLowerCase();
+  if (k === 'v') setTool('select'); else if (k === 'h') setTool('hand'); else if (k === 't') $('#addText').click();
+  else if (k === 'i') $('#addImage').click(); else if (k === 'r') $('#addRect').click(); else if (k === 'o') $('#addCircle').click();
+});
+window.addEventListener('keyup', (e) => { if (e.code === 'Space') { spaceDown = false; fc.defaultCursor = tool === 'hand' ? 'grab' : 'default'; } });
+
+/* ---------- início ---------- */
+(async function boot() {
+  fillFontSelect();
+  try { await Promise.race([document.fonts.load('40px "Anton"'), new Promise((r) => setTimeout(r, 2500))]); } catch {}
+  fabric.util.clearFabricFontCache('Anton');
+  applyTee(); syncDocUI(); fit();
+  const saved = store.get('editor148:projeto');
+  if (saved) { await openProject(saved, false); }
+  else { snapshot(); }
+  refreshLayers(); updateUndo();
+})();
+</script>
+</body>
+</html>

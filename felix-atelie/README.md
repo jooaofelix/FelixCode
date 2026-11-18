@@ -44,6 +44,21 @@ O modelo oversized fica embutido no próprio `index.html` (moldes + malha 3D oti
 - **Baixar molde (PNG)**: a arte plana de cada peça na escala de 18 px por cm, para mandar para a estamparia.
 - **Projeto**: salva sozinho no navegador; também dá para salvar e abrir arquivos `.json`.
 
+## Editor de artes (`editor.html`)
+
+Botão **Editor de artes** no topo do Ateliê. Serve para adaptar uma referência e preparar a estampa antes de levar para a camiseta.
+
+- **Prancheta em tamanho real**: largura × altura em cm e resolução (150/200/300 dpi). Veja a arte sobre o xadrez (transparente) ou sobre a cor da camiseta (só prévia).
+- **Importar** PNG, JPG ou SVG (SVG entra como vetor editável). Cada imagem mostra a qualidade de impressão (dpi) no tamanho atual e até quantos cm ela fica nítida.
+- **Recortar**, **Remover fundo liso** (não apaga as partes claras dentro do desenho) e **Apagar área** (para tirar um texto da arte e reconstruir o fundo).
+- **Textos**: fonte (lista com licença de cada uma, ou importe OTF/TTF), tamanho em pt, espaçamento, altura da linha, contorno, **curvatura** e **separar em letras** para ajustar cada letra.
+- **Comparar fontes**: a frase em várias fontes lado a lado, com o recorte do texto original como referência. A escolha é visual e aproximada.
+- **Texto na forma**: a frase preenche um cérebro, coração, círculo, escudo ou a silhueta de um desenho seu, linha por linha, com as letras esticando até o contorno. Cores alternadas, tamanho de cada linha e reedição a qualquer momento.
+- **Camadas**: ocultar, bloquear, subir/descer, agrupar, alinhar; desfazer/refazer.
+- **Versão para camiseta escura/clara**: troca preto ↔ off-white em textos e formas.
+- **Exportar** PNG transparente no tamanho de impressão e SVG (avisa quando o SVG tem pixels ou depende de fontes). **Salvar projeto** (.json) mantém tudo editável; também salva sozinho no navegador.
+- O painel **O que funciona aqui** diz o que é local e o que precisaria de IA ou serviço externo (OCR, identificar fonte, fundos com textura, vetorizar).
+
 ## Atalhos
 
 | Tecla | Ação |

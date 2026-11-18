@@ -17,6 +17,7 @@ O app segue a marca de roupa **148** ("Toda a criação louva", streetwear com r
 | Arquivo | O que é |
 | --- | --- |
 | `index.html` | O app inteiro: HTML, CSS e um `<script type="module">`. Carrega `three@0.169.0` (ESM, jsDelivr) e `fabric@5.3.0` (UMD, jsDelivr). |
+| `editor.html` | **Editor de Artes 148** (página separada, só Fabric 5.3): adaptar referências, trocar textos, texto na forma, exportar PNG transparente/SVG. Veja a seção "Editor de artes". |
 | `tools/gerar_modelo.py` | Gera o modelo (perfil, sombreamento, recorte) a partir de um mockup em 3 vistas e embute no `index.html`. |
 | `tools/testar.js` | Teste visual: capturas das 3 vistas nos 2 modos + exportação + erros do console. |
 | `wrangler.jsonc`, `.assetsignore` | Publicação na Cloudflare (Workers Static Assets). `tools/` e os `.md` não sobem. |
@@ -81,6 +82,16 @@ No `object:moving`, a arte gruda (a menos de `SNAP_PX` px na tela) no centro da 
 2. `pip install pillow numpy`, depois `python tools/gerar_modelo.py mockup.jpg --embutir index.html` (opções: `--limiar`, `--comprimento`, `--escala`). O script imprime topo, barra, cava e escala detectados; confira se fazem sentido.
 3. Ajuste gola e manga em `G` comparando com a foto (veja "Testar").
 4. O sombreamento e o recorte vão como data URL dentro do `index.html` (~300 KB). A pessoa forneceu a imagem original; avise sobre a licença se o site for público.
+
+## Editor de artes (`editor.html`)
+
+- Mundo do Fabric em **pixels de impressão**: 1 unidade = 1 px no dpi do documento (`DOC = {wCm, hCm, dpi, tee}`; padrão 30 × 40 cm a 300 dpi). `pxPerCm() = dpi / 2,54`. A prancheta é um `Rect` com `kind: 'board'` (xadrez ou cor da camiseta, só prévia); tudo com `kind` fica fora das camadas, do histórico e da exportação.
+- Imagens: o dataURL fica em `imgStore` (Map) e o objeto guarda `srcKey`; o histórico e o autosave trocam `src` por `store:<chave>` (`swapSrc`) para não copiar MBs a cada passo. O projeto `.json` leva só as imagens usadas (`images`), as fontes enviadas (`fonts`, base64) e os objetos.
+- Qualidade: `effDpi = dpi / escala`. ≥280 ótima, ≥200 boa, ≥150 aceitável, <150 baixa (avisa que aumentar pixels não recupera detalhe).
+- Ferramentas de imagem (todas locais, destrutivas com desfazer): recortar (retângulo auxiliar, rotação 0°), remover fundo (flood fill **a partir das bordas** com a cor mediana da borda; áreas claras dentro do desenho ficam, a menos que marque "Também dentro do desenho"), apagar área (transparente, cor do entorno, ou reconstruir = interpolação das bordas + suavização de Laplace). O recorte apagado vira `refSnippet`, mostrado em "Comparar fontes".
+- Texto: curvatura = `path` de arco SVG refeito a partir de `curve` (o `path` não é salvo); "Separar letras" usa `__charBounds`. Fontes: lista curada do Google Fonts com licença (OFL/Apache) + upload OTF/TTF via `FontFace`. Não existe identificação automática de fonte (é externo: WhatTheFont etc.); a interface diz isso.
+- **Texto na forma** (`renderWarp`): cada linha ocupa uma faixa da máscara; alturas automáticas pela proporção da linha (amortecida, × `sizes` por linha); envelope = cada pixel da forma amostra a linha em u = posição entre bordas esquerda/direita suavizadas da linha de pixel e v = posição entre topo/base suavizados da coluna dentro da faixa. Formas prontas em `SHAPES` (caixa de unidades `w × h`) ou a silhueta de uma imagem sem fundo (`maskKey` no `imgStore`). Resultado é uma imagem na resolução de impressão com `warp` (config) para reeditar.
+- Teste: o mesmo esquema do `testar.js` (servir `fabric` do `node_modules`); as fontes do Google podem ser liberadas na rota se a rede deixar.
 
 ## Testar
 
